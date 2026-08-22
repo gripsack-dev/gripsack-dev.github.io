@@ -5,7 +5,7 @@ packages from any source, dotfiles included — on any machine, with
 rollback. This page is the friendly tour; the design docs under
 [plan/](plan/) have the full details and the reasoning.
 
-![gripsack architecture: eval row (env repo → frontend → IR → lockfile) feeding the execute row (core → store → generations → $HOME), with sourcerer plugins below](architecture.svg)
+![gripsack architecture: eval row (env repo → frontend → IR → lockfile) feeding the execute row (core → store → generations → $HOME), with fetcher plugins below](architecture.svg)
 
 ## The two halves
 
@@ -42,7 +42,7 @@ sourcing ladder keeps the core small:
 2. **resolvers** — eval-time code in your repo that turns "latest
    artifact X" into a pinned URL + hash (the skill travels with your
    dotfiles),
-3. **sourcerers** — `gripsource-*` plugins for genuinely bespoke
+3. **fetchers** — `gripfetch-*` plugins for genuinely bespoke
    transports, with the core hash-verifying every byte they return.
 
 ## Dotfiles, first-class

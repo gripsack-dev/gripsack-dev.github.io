@@ -54,25 +54,25 @@ and gripsack provisions the frontend environment for you:
 
 ```toml
 [eval]
-deps = ["gripsack-sourcerer-artifactory==1.2.0"]
+deps = ["gripsack-fetcher-artifactory==1.2.0"]
 ```
 
 Pinned, cached, and reproducible: the same spec builds the same
 environment on every machine. This is how an env repo "carries its own
 skills" — clone it elsewhere and the skills come with it.
 
-## Custom sources (sourcerers)
+## Custom sources (fetchers)
 
 For transports built-ins can't do (mTLS, exotic protocols), point a
 named source at its plugin:
 
 ```toml
-[sources.artifactory]
-plugin = "gripsource-artifactory"
+[fetchers.artifactory]
+plugin = "gripfetch-artifactory"
 ```
 
 Usually you don't need this section at all — plugin discovery is
-automatic for `gripsource-<name>` executables on your PATH. Declare it
+automatic for `gripfetch-<name>` executables on your PATH. Declare it
 when you want an explicit path or a different name.
 
 ## Housekeeping

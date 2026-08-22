@@ -26,13 +26,13 @@ data and is always read before module evaluation.
 
 | key | type | default | what |
 |---|---|---|---|
-| `deps` | string[] | `[]` | frontend-environment packages the modules import at eval time (resolvers, sourcerer libraries). Pinned; content-cached |
+| `deps` | string[] | `[]` | frontend-environment packages the modules import at eval time (resolvers, fetcher libraries). Pinned; content-cached |
 
-## `[sources.<name>]` — env.toml or user config
+## `[fetchers.<name>]` — env.toml or user config
 
 | key | type | default | what |
 |---|---|---|---|
-| `plugin` | string | — | sourcerer executable for this source; default discovery is `gripsource-<name>` on `PATH` |
+| `plugin` | string | — | fetcher plugin for this source; default discovery is `gripfetch-<name>` on `PATH` |
 
 Repo entries override user entries of the same name.
 

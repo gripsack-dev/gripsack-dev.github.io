@@ -1,7 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 560" font-family="DejaVu Sans Mono, monospace">
   <!-- gripsack architecture: frontends evaluate modules to span-annotated
        IR (top row, blue); the core compiles it into the store and flips a
-       generation (bottom row, green); sourcerers feed bespoke transports
+       generation (bottom row, green); fetchers feed bespoke transports
        (peach). Catppuccin Mocha — build.py swaps hexes for site CSS vars,
        so the diagram re-themes with the palette picker. -->
   <defs>
@@ -91,16 +91,16 @@
   <line x1="528" y1="306" x2="480" y2="306" stroke="#a6e3a1" stroke-width="2" marker-end="url(#arrg)"/>
   <line x1="278" y1="306" x2="230" y2="306" stroke="#a6e3a1" stroke-width="2" marker-end="url(#arrg)"/>
 
-  <!-- ===== sourcerers (peach) ===== -->
+  <!-- ===== fetchers (peach) ===== -->
   <rect x="774" y="416" width="162" height="90" rx="12" fill="#1e1e2e" stroke="#fab387" stroke-width="2"/>
-  <text x="855" y="442" text-anchor="middle" font-size="12" font-weight="bold" fill="#fab387">gripsource-*</text>
+  <text x="855" y="442" text-anchor="middle" font-size="12" font-weight="bold" fill="#fab387">gripfetch-*</text>
   <text x="855" y="464" text-anchor="middle" font-size="10" fill="#a6adc8">bespoke transport</text>
   <text x="855" y="481" text-anchor="middle" font-size="10" fill="#a6adc8">NDJSON · stdio</text>
   <text x="855" y="498" text-anchor="middle" font-size="9" fill="#6c7086">bytes hash-verified</text>
   <line x1="855" y1="412" x2="855" y2="382" stroke="#fab387" stroke-width="2" marker-end="url(#arrp)"/>
-  <text x="600" y="445" font-size="10" fill="#6c7086">sourcing ladder (0002): built-in args</text>
+  <text x="600" y="445" font-size="10" fill="#6c7086">fetcher ladder (0002): built-in args</text>
   <text x="600" y="462" font-size="10" fill="#6c7086">→ eval-time resolvers (your python/TS)</text>
-  <text x="600" y="479" font-size="10" fill="#6c7086">→ sourcerer plugins, only if transport</text>
+  <text x="600" y="479" font-size="10" fill="#6c7086">→ fetcher plugins, only if transport</text>
   <text x="600" y="496" font-size="10" fill="#6c7086">itself is bespoke</text>
 
   <!-- ===== wire example: spans make errors point at your source ===== -->
