@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>gripsack</title>
+<meta name="description" content="gripsack — your whole environment in one bag. Declarative packages and dotfiles, with generations and rollback.">
+<style>
+  :root { color-scheme: dark; }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #0f1114;
+    color: #d7dae0;
+    font: 16px/1.6 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  }
+  main { max-width: 40rem; padding: 2rem; }
+  h1 { font-size: 2rem; font-weight: 600; letter-spacing: -0.02em; }
+  h1 .dot { color: #7aa2f7; }
+  p.tag { margin-top: 0.75rem; color: #9aa0aa; }
+  code {
+    display: inline-block;
+    margin-top: 1.5rem;
+    padding: 0.6rem 0.9rem;
+    background: #171a1f;
+    border: 1px solid #262b33;
+    border-radius: 6px;
+    color: #c3cbdd;
+  }
+  nav { margin-top: 2rem; display: flex; gap: 1.25rem; }
+  a { color: #7aa2f7; text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  footer { margin-top: 3rem; font-size: 0.8rem; color: #5c626c; }
+</style>
+</head>
+<body>
+<main>
+  <h1>gripsack<span class="dot">.dev</span></h1>
+  <p class="tag">Your whole environment in one bag. Packages from any source
+  and your dotfiles, described once — deployed anywhere, rolled back anytime.</p>
+  <code>grip apply --repo git@github.com:you/myenv</code>
+  <nav>
+    <a href="https://github.com/gripsack-dev/gripsack">github</a>
+    <a href="https://github.com/gripsack-dev/gripsack/blob/main/plan/0001-architecture.md">architecture</a>
+  </nav>
+  <footer>a gripsack-dev project</footer>
+</main>
+</body>
+</html>
