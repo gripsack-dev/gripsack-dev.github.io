@@ -16,7 +16,8 @@
     <img src="./assets/icon.svg" alt="gripsack icon"><span class="wordmark">gripsack</span>
   </a>
   <nav>
-    <a href="https://github.com/gripsack-dev/gripsack/blob/main/plan/0001-architecture.md">architecture</a>
+    <a href="./docs/architecture.html">architecture</a>
+    <a href="./docs/settings.html">settings</a>
     <a href="https://github.com/gripsack-dev/gripsack">github ↗</a>
   </nav>
 </header>
@@ -24,46 +25,7 @@
 <main class="content">
 
 <section class="hero">
-  <div class="logo" role="img" aria-label="gripsack — a traveler's bag with a config file and a terminal chip peeking out"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 310" font-family="ui-monospace, DejaVu Sans Mono, monospace">
-  <!-- gripsack logo: a traveler's gripsack (handle, flap, straps, buckles,
-       stitching) with a config file and a terminal chip peeking out.
-       CSS vars → re-tints with the site palette. -->
-  <rect width="480" height="310" rx="18" fill="var(--bg)"/>
-  <!-- ground shadow -->
-  <ellipse cx="240" cy="240" rx="118" ry="10" fill="var(--deep)"/>
-  <!-- config file peeking (left) -->
-  <g transform="rotate(-10 176 82)">
-    <rect x="152" y="46" width="48" height="72" rx="6" fill="var(--card)" stroke="var(--border-strong)" stroke-width="2.5"/>
-    <rect x="161" y="62" width="24" height="6" rx="2.5" fill="var(--blue)"/>
-    <rect x="161" y="74" width="30" height="6" rx="2.5" fill="var(--teal)"/>
-    <rect x="161" y="86" width="20" height="6" rx="2.5" fill="var(--dim)"/>
-  </g>
-  <!-- terminal chip peeking (right) -->
-  <g transform="rotate(9 307 77)">
-    <rect x="282" y="44" width="50" height="66" rx="9" fill="var(--card)" stroke="var(--border-strong)" stroke-width="2.5"/>
-    <text x="293" y="76" font-size="24" font-weight="bold" fill="var(--green)">❯</text>
-    <rect x="308" y="60" width="10" height="17" rx="2.5" fill="var(--green)" opacity="0.65"/>
-  </g>
-  <!-- handle (drawn before the body so the bag overlaps its base) -->
-  <rect x="204" y="68" width="72" height="44" rx="18" fill="none" stroke="color-mix(in srgb, var(--peach) 55%, var(--bg))" stroke-width="8"/>
-  <!-- bag body -->
-  <rect x="140" y="110" width="200" height="122" rx="26" fill="var(--peach)"/>
-  <!-- flap -->
-  <rect x="140" y="110" width="200" height="48" rx="24" fill="color-mix(in srgb, var(--peach) 74%, var(--bg))"/>
-  <!-- straps -->
-  <rect x="180" y="102" width="14" height="64" rx="4" fill="color-mix(in srgb, var(--peach) 58%, var(--bg))"/>
-  <rect x="286" y="102" width="14" height="64" rx="4" fill="color-mix(in srgb, var(--peach) 58%, var(--bg))"/>
-  <!-- buckles -->
-  <rect x="176" y="126" width="22" height="16" rx="4" fill="none" stroke="var(--yellow)" stroke-width="3.5"/>
-  <rect x="282" y="126" width="22" height="16" rx="4" fill="none" stroke="var(--yellow)" stroke-width="3.5"/>
-  <!-- rivets -->
-  <circle cx="187" cy="162" r="3.2" fill="var(--yellow)"/>
-  <circle cx="293" cy="162" r="3.2" fill="var(--yellow)"/>
-  <!-- stitching -->
-  <path d="M 158 212 H 322" stroke="color-mix(in srgb, var(--peach) 52%, var(--bg))" stroke-width="3.5" stroke-dasharray="8 8" stroke-linecap="round"/>
-  <!-- wordmark -->
-  <text x="240" y="291" text-anchor="middle" font-size="54" font-weight="bold" letter-spacing="-2" fill="var(--text)">gripsack</text>
-</svg></div>
+  <div class="logo" role="img" aria-label="gripsack — a traveler's bag with a config file and a terminal chip peeking out"><!--LOGO--></div>
   <p class="tagline">your whole environment, in one bag.</p>
   <p class="sub">packages from any source <em>plus</em> your dotfiles — described once in Python,
   fetched, built, and deployed by a Rust core. roll back anytime.</p>
