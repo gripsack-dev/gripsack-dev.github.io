@@ -1,52 +1,209 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>gripsack</title>
-<meta name="description" content="gripsack — your whole environment in one bag. Declarative packages and dotfiles, with generations and rollback.">
-<style>
-  :root { color-scheme: dark; }
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-  body {
-    min-height: 100vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: #0f1114;
-    color: #d7dae0;
-    font: 16px/1.6 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-  }
-  main { max-width: 40rem; padding: 2rem; }
-  h1 { font-size: 2rem; font-weight: 600; letter-spacing: -0.02em; }
-  h1 .dot { color: #7aa2f7; }
-  p.tag { margin-top: 0.75rem; color: #9aa0aa; }
-  code {
-    display: inline-block;
-    margin-top: 1.5rem;
-    padding: 0.6rem 0.9rem;
-    background: #171a1f;
-    border: 1px solid #262b33;
-    border-radius: 6px;
-    color: #c3cbdd;
-  }
-  nav { margin-top: 2rem; display: flex; gap: 1.25rem; }
-  a { color: #7aa2f7; text-decoration: none; }
-  a:hover { text-decoration: underline; }
-  footer { margin-top: 3rem; font-size: 0.8rem; color: #5c626c; }
-</style>
+<meta name="description" content="gripsack — your whole environment in one bag. Packages from any source plus your dotfiles, described once in Python, deployed by a Rust core with generations and rollback.">
+<link rel="icon" href="./assets/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="./assets/site.css">
+<script src="./assets/site.js" defer></script>
 </head>
-<body>
-<main>
-  <h1>gripsack<span class="dot">.dev</span></h1>
-  <p class="tag">Your whole environment in one bag. Packages from any source
-  and your dotfiles, described once — deployed anywhere, rolled back anytime.</p>
-  <code>grip apply --repo git@github.com:you/myenv</code>
+<body class="home">
+
+<header class="topbar">
+  <a class="brand" href="./index.html">
+    <img src="./assets/icon.svg" alt="gripsack icon"><span class="wordmark">gripsack</span>
+  </a>
   <nav>
-    <a href="https://github.com/gripsack-dev/gripsack">github</a>
     <a href="https://github.com/gripsack-dev/gripsack/blob/main/plan/0001-architecture.md">architecture</a>
+    <a href="https://github.com/gripsack-dev/gripsack">github ↗</a>
   </nav>
-  <footer>a gripsack-dev project</footer>
+</header>
+
+<main class="content">
+
+<section class="hero">
+  <div class="logo" role="img" aria-label="gripsack — a traveler's bag with a config file and a terminal chip peeking out"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 310" font-family="ui-monospace, DejaVu Sans Mono, monospace">
+  <!-- gripsack logo: a traveler's gripsack (handle, flap, straps, buckles,
+       stitching) with a config file and a terminal chip peeking out.
+       CSS vars → re-tints with the site palette. -->
+  <rect width="480" height="310" rx="18" fill="var(--bg)"/>
+  <!-- ground shadow -->
+  <ellipse cx="240" cy="240" rx="118" ry="10" fill="var(--deep)"/>
+  <!-- config file peeking (left) -->
+  <g transform="rotate(-10 176 82)">
+    <rect x="152" y="46" width="48" height="72" rx="6" fill="var(--card)" stroke="var(--border-strong)" stroke-width="2.5"/>
+    <rect x="161" y="62" width="24" height="6" rx="2.5" fill="var(--blue)"/>
+    <rect x="161" y="74" width="30" height="6" rx="2.5" fill="var(--teal)"/>
+    <rect x="161" y="86" width="20" height="6" rx="2.5" fill="var(--dim)"/>
+  </g>
+  <!-- terminal chip peeking (right) -->
+  <g transform="rotate(9 307 77)">
+    <rect x="282" y="44" width="50" height="66" rx="9" fill="var(--card)" stroke="var(--border-strong)" stroke-width="2.5"/>
+    <text x="293" y="76" font-size="24" font-weight="bold" fill="var(--green)">❯</text>
+    <rect x="308" y="60" width="10" height="17" rx="2.5" fill="var(--green)" opacity="0.65"/>
+  </g>
+  <!-- handle (drawn before the body so the bag overlaps its base) -->
+  <rect x="204" y="68" width="72" height="44" rx="18" fill="none" stroke="color-mix(in srgb, var(--peach) 55%, var(--bg))" stroke-width="8"/>
+  <!-- bag body -->
+  <rect x="140" y="110" width="200" height="122" rx="26" fill="var(--peach)"/>
+  <!-- flap -->
+  <rect x="140" y="110" width="200" height="48" rx="24" fill="color-mix(in srgb, var(--peach) 74%, var(--bg))"/>
+  <!-- straps -->
+  <rect x="180" y="102" width="14" height="64" rx="4" fill="color-mix(in srgb, var(--peach) 58%, var(--bg))"/>
+  <rect x="286" y="102" width="14" height="64" rx="4" fill="color-mix(in srgb, var(--peach) 58%, var(--bg))"/>
+  <!-- buckles -->
+  <rect x="176" y="126" width="22" height="16" rx="4" fill="none" stroke="var(--yellow)" stroke-width="3.5"/>
+  <rect x="282" y="126" width="22" height="16" rx="4" fill="none" stroke="var(--yellow)" stroke-width="3.5"/>
+  <!-- rivets -->
+  <circle cx="187" cy="162" r="3.2" fill="var(--yellow)"/>
+  <circle cx="293" cy="162" r="3.2" fill="var(--yellow)"/>
+  <!-- stitching -->
+  <path d="M 158 212 H 322" stroke="color-mix(in srgb, var(--peach) 52%, var(--bg))" stroke-width="3.5" stroke-dasharray="8 8" stroke-linecap="round"/>
+  <!-- wordmark -->
+  <text x="240" y="291" text-anchor="middle" font-size="54" font-weight="bold" letter-spacing="-2" fill="var(--text)">gripsack</text>
+</svg></div>
+  <p class="tagline">your whole environment, in one bag.</p>
+  <p class="sub">packages from any source <em>plus</em> your dotfiles — described once in Python,
+  fetched, built, and deployed by a Rust core. roll back anytime.</p>
+  <div class="chips">
+    <span class="chip">rust core</span>
+    <span class="chip">python modules</span>
+    <span class="chip">hash-addressed store</span>
+    <span class="chip">generations &amp; rollback</span>
+    <span class="chip status">status: design</span>
+  </div>
+  <div class="install">
+    <pre><span class="p">$</span> curl -fsSL https://gripsack.dev/install.sh | sh</pre>
+    <button class="copy" data-copy="curl -fsSL https://gripsack.dev/install.sh | sh">copy</button>
+  </div>
+  <p class="alt">nothing to install yet — this is the shape of it. planned:
+  <code>cargo install gripsack</code> · <code>brew install gripsack-dev/tap/gripsack</code>
+  · <a href="https://github.com/gripsack-dev/gripsack/releases">release binaries</a></p>
+  <div class="cta">
+    <a class="primary" href="https://github.com/gripsack-dev/gripsack/blob/main/plan/0001-architecture.md">read the plan</a>
+    <a class="ghost" href="https://github.com/gripsack-dev/gripsack">GitHub ↗</a>
+  </div>
+</section>
+
+<section>
+  <h2 class="section">pick a palette</h2>
+  <div class="palette-bar">
+    <button data-set-palette="catppuccin-mocha" class="active"><span class="sw" style="--sw:#89b4fa"></span>catppuccin-mocha</button>
+    <button data-set-palette="tokyo-night"><span class="sw" style="--sw:#7aa2f7"></span>tokyo-night</button>
+    <button data-set-palette="gruvbox-dark"><span class="sw" style="--sw:#83a598"></span>gruvbox-dark</button>
+    <button data-set-palette="nord"><span class="sw" style="--sw:#88c0d0"></span>nord</button>
+    <button data-set-palette="dracula"><span class="sw" style="--sw:#bd93f9"></span>dracula</button>
+    <button data-set-palette="one-dark"><span class="sw" style="--sw:#61afef"></span>one-dark</button>
+    <button data-set-palette="solarized-dark"><span class="sw" style="--sw:#268bd2"></span>solarized-dark</button>
+    <button data-set-palette="catppuccin-latte"><span class="sw" style="--sw:#1e66f5"></span>catppuccin-latte</button>
+    <button data-set-palette="github-light"><span class="sw" style="--sw:#0969da"></span>github-light</button>
+    <button data-set-palette="one-light"><span class="sw" style="--sw:#4078f2"></span>one-light</button>
+    <button data-set-palette="solarized-light"><span class="sw" style="--sw:#268bd2"></span>solarized-light</button>
+  </div>
+  <p class="note">pure CSS variables — the logo re-tints too. your pick persists per browser.</p>
+</section>
+
+<section>
+  <h2 class="section">how it works</h2>
+  <div class="steps">
+    <div class="step"><b>1</b><h3>describe</h3><p>modules are typed Python in your repo: sources, build steps, config files, ownership.</p></div>
+    <div class="step"><b>2</b><h3>evaluate</h3><p>modules evaluate to IR — pure data. host facts &amp; tags resolve here, nowhere else.</p></div>
+    <div class="step"><b>3</b><h3>lock</h3><p>the resolved plan pins URLs and content hashes per host. reproducible, no sandbox.</p></div>
+    <div class="step"><b>4</b><h3>build</h3><p>fetchers and builders run as a DAG into hash-addressed store paths.</p></div>
+    <div class="step"><b>5</b><h3>activate</h3><p>one atomic symlink flip. dotfiles deployed per ownership mode.</p></div>
+    <div class="step"><b>6</b><h3>roll back</h3><p>flip <code>current</code> to any previous generation. that's the whole mechanism.</p></div>
+  </div>
+</section>
+
+<section>
+  <h2 class="section">a module</h2>
+  <div class="window">
+    <div class="titlebar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="wtitle">myenv/modules/helix.py — sketch; the api is not final</span></div>
+<pre><span class="k">from</span> gripsack <span class="k">import</span> module, github_release, symlink, tracked_copy
+
+helix = module(
+    <span class="s">"helix"</span>,
+    source=github_release(
+        repo=<span class="s">"helix-editor/helix"</span>,
+        asset=<span class="s">"helix-{version}-x86_64-linux.tar.xz"</span>,
+    ),
+    install={<span class="s">"bin/hx"</span>: symlink(<span class="s">"~/.local/bin/hx"</span>)},
+    config={
+        <span class="s">"config.toml"</span>: tracked_copy(<span class="s">"~/.config/helix/config.toml"</span>),
+        <span class="s">"languages.toml"</span>: tracked_copy(<span class="s">"~/.config/helix/languages.toml"</span>),
+    },
+)</pre>
+  </div>
+  <p class="note">full IDE support — pyright gives you autocomplete, inline errors, and
+  refactors, because a module is just typed Python. evaluation emits IR (JSON);
+  the Rust core only ever consumes IR.</p>
+</section>
+
+<section>
+  <h2 class="section">what it does</h2>
+  <div class="grid">
+    <div class="card">
+      <h3>modules</h3>
+      <p>everything is a module: how to get it, build it, where its files and configs live. modules depend on modules; build-only deps are ephemeral.</p>
+    </div>
+    <div class="card">
+      <h3>any source</h3>
+      <p>github releases, tarballs, git builds, cargo, distro packages. fetchers are pluggable verbs, conditionally selected per host.</p>
+    </div>
+    <div class="card">
+      <h3>dotfiles, first-class</h3>
+      <p>ownership per file: <code>owned</code> symlink, <code>tracked-copy</code> with drift detection, <code>merge</code> blocks, <code>template</code> for per-machine values.</p>
+    </div>
+    <div class="card">
+      <h3>generations</h3>
+      <p>every apply — one module or the whole graph — is a new generation. activation is one atomic rename; rollback is flipping it back.</p>
+    </div>
+    <div class="card">
+      <h3>lockfiles, not sandboxes</h3>
+      <p>impure by default, reproducible by pinned URLs and hashes. nix's ergonomics without nix's enforcement.</p>
+    </div>
+    <div class="card">
+      <h3>hosts &amp; facts</h3>
+      <p>one repo, many machines. fedora laptop, ubuntu desktop: facts auto-detected, tags declared, conditionals resolved at eval.</p>
+    </div>
+  </div>
+</section>
+
+<section id="compare">
+  <h2 class="section">compare</h2>
+  <table class="compare">
+    <tr><th></th><th>gripsack</th><th>nix + home-manager</th><th>chezmoi · stow</th><th>apt · brew · mise</th></tr>
+    <tr><td>packages from any source</td><td class="yes">✓</td><td class="part">nixpkgs</td><td class="no">·</td><td class="part">own repos</td></tr>
+    <tr><td>dotfiles managed</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td class="no">·</td></tr>
+    <tr><td>generations &amp; rollback</td><td class="yes">✓</td><td class="yes">✓</td><td class="part">git history</td><td class="no">·</td></tr>
+    <tr><td>config ownership modes</td><td class="yes">✓</td><td class="part">owned only</td><td class="part">templates</td><td class="no">·</td></tr>
+    <tr><td>no custom language</td><td class="yes">python</td><td class="no">nix lang</td><td class="yes">✓</td><td class="yes">✓</td></tr>
+    <tr><td>reproducible without sandbox</td><td class="yes">lockfiles</td><td class="part">flakes</td><td class="yes">✓</td><td class="no">·</td></tr>
+    <tr><td>no daemon, no root</td><td class="yes">✓</td><td class="no">daemon · /nix</td><td class="yes">✓</td><td class="part">apt needs root</td></tr>
+    <tr><td>per-host conditionals</td><td class="yes">facts + tags</td><td class="part">modules</td><td class="part">templates</td><td class="no">·</td></tr>
+  </table>
+</section>
+
+<section class="outro">
+  <h2 class="section">follow along</h2>
+  <div class="install">
+    <pre><span class="p">$</span> grip apply --repo git@github.com:you/myenv</pre>
+    <button class="copy" data-copy="grip apply --repo git@github.com:you/myenv">copy</button>
+  </div>
+  <p class="alt">the design is public and moving:
+  <a href="https://github.com/gripsack-dev/gripsack/blob/main/plan/0001-architecture.md">0001 — architecture</a>.
+  star the <a href="https://github.com/gripsack-dev/gripsack">repo</a> if this is the package manager you also wish existed.</p>
+</section>
+
+<footer>
+  <span>MIT license</span>
+  <a href="https://github.com/gripsack-dev/gripsack">source</a>
+  <a href="https://github.com/gripsack-dev/gripsack/blob/main/plan/0001-architecture.md">plan</a>
+  <span style="margin-left:auto">a gripsack-dev project · eleven palettes</span>
+</footer>
+
 </main>
 </body>
 </html>
