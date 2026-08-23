@@ -35,6 +35,7 @@
   <p class="sub">packages from any source <em>plus</em> your dotfiles — described once in Python,
   fetched, built, and deployed by a Rust core. roll back anytime.</p>
   <div class="chips">
+    <span class="chip version">v<!--VERSION--></span>
     <span class="chip">rust core</span>
     <span class="chip">python modules</span>
     <span class="chip">hash-addressed store</span>
@@ -48,7 +49,7 @@
   <p class="alt">also: <code>brew install gripsack-dev/tap/gripsack</code> ·
   <code>mise use cargo:gripsack</code> ·
   <a href="https://github.com/gripsack-dev/gripsack/releases">release binaries</a> ·
-  <span class="chip status">status: alpha</span></p>
+      <span class="chip status">status: alpha</span></p>
   <div class="cta">
     <a class="primary" href="https://github.com/gripsack-dev/gripsack/blob/main/plan/0001-architecture.md">read the plan</a>
     <a class="ghost" href="https://github.com/gripsack-dev/gripsack">GitHub ↗</a>
@@ -199,12 +200,25 @@ module(<span class="s">"helix"</span>, {
 </section>
 
 <section class="outro">
-  <h2 class="section">follow along</h2>
+  <h2 class="section">install</h2>
   <div class="install">
-    <pre><span class="p">$</span> grip apply</pre>
-    <button class="copy" data-copy="grip apply">copy</button>
+    <pre><span class="p">$</span> curl -fsSL https://gripsack.dev/install.sh | sh</pre>
+    <button class="copy" data-copy="curl -fsSL https://gripsack.dev/install.sh | sh">copy</button>
   </div>
-  <p class="alt">v0.1 is out — the core flow (apply · generations · rollback) works.
+  <p class="alt">
+    <code>brew install "gripsack-dev/tap/gripsack"</code> ·
+    <code>cargo install gripsack</code> ·
+    <code>mise use cargo:gripsack</code> ·
+    <a href="https://github.com/gripsack-dev/gripsack/releases">release binaries</a><br>
+    frontends: <code>pip install gripsack</code> · <code>npm i @gripsack/core</code>
+  </p>
+  <p class="alt">then: <code>grip apply --repo git@github.com:you/myenv</code> and you're home.</p>
+</section>
+
+<section class="outro">
+  <h2 class="section">follow along</h2>
+  <p class="alt">v0.2 is out — github releases, brew bottles, git, tarball, pixi fetchers;
+  plugin fetchers over NDJSON.
   the design is public and moving:
   <a href="https://github.com/gripsack-dev/gripsack/blob/main/plan/0001-architecture.md">0001 — architecture</a>.
   star the <a href="https://github.com/gripsack-dev/gripsack">repo</a> if this is the package manager you also wish existed.</p>

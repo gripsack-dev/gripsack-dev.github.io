@@ -30,6 +30,19 @@ REPO = "https://github.com/gripsack-dev/gripsack"
 _ASSET_VERSION: str | None = None
 
 
+def latest_release() -> str:
+    """The current release tag, fetched at build time; stale-safe fallback."""
+    try:
+        with urllib.request.urlopen(
+            "https://api.github.com/repos/gripsack-dev/gripsack/releases/latest"
+        ) as r:
+            import json
+
+            return json.load(r)["tag_name"].removeprefix("core-v")
+    except Exception:
+        return "0.2"
+
+
 def asset_version() -> str:
     global _ASSET_VERSION
     if _ASSET_VERSION is None:
@@ -239,6 +252,7 @@ def assemble() -> None:
     index = (ROOT / "website" / "index.html").read_text()
     assert "<!--LOGO-->" in index, "index.html lost its <!--LOGO--> placeholder"
     index = index.replace("<!--LOGO-->", themed_logo())
+    index = index.replace("<!--VERSION-->", latest_release())
     index = index.replace("./assets/site.css", f"./assets/site.css?v={asset_version()}")
     index = index.replace("./assets/site.js", f"./assets/site.js?v={asset_version()}")
     (OUT / "index.html").write_text(index)
