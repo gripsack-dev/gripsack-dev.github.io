@@ -82,7 +82,12 @@
 <section>
   <h2 class="section">a module</h2>
   <div class="window">
-    <div class="titlebar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="wtitle">myenv/modules/helix.py — sketch; the api is not final</span></div>
+    <div class="titlebar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="wtitle">myenv/modules/helix — sketch; the api is not final</span>
+      <span class="tab-bar">
+        <button data-tab="py" class="active">python</button><button data-tab="ts">typescript</button>
+      </span>
+    </div>
+    <div class="tab-pane" data-pane="py">
 <pre><span class="k">from</span> gripsack <span class="k">import</span> module, github_release, symlink, tracked_copy
 
 helix = module(
@@ -97,10 +102,42 @@ helix = module(
         <span class="s">"languages.toml"</span>: tracked_copy(<span class="s">"~/.config/helix/languages.toml"</span>),
     },
 )</pre>
+    </div>
+    <div class="tab-pane" data-pane="ts" hidden>
+<pre><span class="k">import</span> { module, githubRelease, symlink, trackedCopy } <span class="k">from</span> <span class="s">"@gripsack/core"</span>;
+
+module(<span class="s">"helix"</span>, {
+  fetch: githubRelease({
+    repo: <span class="s">"helix-editor/helix"</span>,
+    asset: <span class="s">"helix-{version}-x86_64-linux.tar.xz"</span>,
+  }),
+  install: { <span class="s">"bin/hx"</span>: symlink(<span class="s">"~/.local/bin/hx"</span>) },
+  config: {
+    <span class="s">"config.toml"</span>: trackedCopy(<span class="s">"~/.config/helix/config.toml"</span>),
+    <span class="s">"languages.toml"</span>: trackedCopy(<span class="s">"~/.config/helix/languages.toml"</span>),
+  },
+});</pre>
+    </div>
   </div>
-  <p class="note">full IDE support — pyright gives you autocomplete, inline errors, and
-  refactors, because a module is just typed Python. evaluation emits IR (JSON);
-  the Rust core only ever consumes IR.</p>
+  <p class="note">full IDE support in both — pyright or tsc gives you autocomplete, inline
+  errors, and refactors, because a module is just typed code. evaluation emits IR
+  (JSON); the Rust core only ever consumes IR.</p>
+</section>
+
+<section>
+  <h2 class="section">errors that point at your code</h2>
+  <div class="window">
+    <div class="titlebar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="wtitle">every IR node carries a span back to the line that emitted it</span></div>
+<pre><span class="p">$</span> grip plan
+<span class="err">error[E101]</span>: module <span class="s">"helix"</span> depends on unknown module <span class="s">"nvim"</span>
+  <span class="loc">--&gt;</span> <span class="loc">modules/helix.py:4:7</span>
+   <span class="gutter">|</span>
+ <span class="gutter">4 |</span> helix = module(<span class="s">"helix"</span>, fetch=..., depends=[dep(<span class="s">"nvim"</span>)])
+   <span class="gutter">|</span>       <span class="err">^ dependency declared here</span></pre>
+  </div>
+  <p class="note">structured diagnostics with stable codes and source snippets — and
+  because the passes are library functions over span-labeled IR, an LSP is a
+  protocol shim, not new analysis.</p>
 </section>
 
 <section>

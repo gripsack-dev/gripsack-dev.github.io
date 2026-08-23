@@ -59,3 +59,18 @@
     }
   });
 })();
+
+/* code tabs: [data-tab] toggles the sibling [data-pane] panels */
+document.addEventListener("click", function (ev) {
+  var btn = ev.target.closest ? ev.target.closest("[data-tab]") : null;
+  if (!btn) return;
+  var bar = btn.parentElement;
+  var win = bar.closest(".window") || bar.parentElement;
+  var name = btn.getAttribute("data-tab");
+  bar.querySelectorAll("[data-tab]").forEach(function (b) {
+    b.classList.toggle("active", b === btn);
+  });
+  win.querySelectorAll("[data-pane]").forEach(function (p) {
+    p.hidden = p.getAttribute("data-pane") !== name;
+  });
+});
