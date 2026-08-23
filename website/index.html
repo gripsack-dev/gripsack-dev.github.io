@@ -40,7 +40,7 @@
     <span class="chip">python modules</span>
     <span class="chip">hash-addressed store</span>
     <span class="chip">generations &amp; rollback</span>
-    <span class="chip status">status: design</span>
+    <span class="chip status">alpha</span>
   </div>
   <div class="install">
     <pre><span class="p">$</span> curl -fsSL https://gripsack.dev/install.sh | sh</pre>
@@ -48,8 +48,7 @@
   </div>
   <p class="alt">also: <code>brew install gripsack-dev/tap/gripsack</code> ·
   <code>mise use cargo:gripsack</code> ·
-  <a href="https://github.com/gripsack-dev/gripsack/releases">release binaries</a> ·
-      <span class="chip status">status: alpha</span></p>
+      <a href="https://github.com/gripsack-dev/gripsack/releases">release binaries</a></p>
   <div class="cta">
     <a class="primary" href="https://github.com/gripsack-dev/gripsack/blob/main/plan/0001-architecture.md">read the plan</a>
     <a class="ghost" href="https://github.com/gripsack-dev/gripsack">GitHub ↗</a>
@@ -240,18 +239,41 @@ module(<span class="s">"helix"</span>, {
 
 <section class="outro">
   <h2 class="section">install</h2>
-  <div class="install">
-    <pre><span class="p">$</span> curl -fsSL https://gripsack.dev/install.sh | sh</pre>
-    <button class="copy" data-copy="curl -fsSL https://gripsack.dev/install.sh | sh">copy</button>
+  <div class="install-grid">
+    <div class="install-block">
+      <span class="install-label">the one-liner</span>
+      <div class="install">
+        <pre><span class="p">$</span> curl -fsSL https://gripsack.dev/install.sh | sh</pre>
+        <button class="copy" data-copy="curl -fsSL https://gripsack.dev/install.sh | sh">copy</button>
+      </div>
+    </div>
+    <div class="install-block">
+      <span class="install-label">homebrew</span>
+      <div class="install">
+        <pre><span class="p">$</span> brew install "gripsack-dev/tap/gripsack"</pre>
+        <button class="copy" data-copy="brew install &quot;gripsack-dev/tap/gripsack&quot;">copy</button>
+      </div>
+    </div>
+    <div class="install-block">
+      <span class="install-label">cargo</span>
+      <div class="install">
+        <pre><span class="p">$</span> cargo install gripsack</pre>
+        <button class="copy" data-copy="cargo install gripsack">copy</button>
+      </div>
+    </div>
+    <div class="install-block">
+      <span class="install-label">mise</span>
+      <div class="install">
+        <pre><span class="p">$</span> mise use cargo:gripsack</pre>
+        <button class="copy" data-copy="mise use cargo:gripsack">copy</button>
+      </div>
+    </div>
   </div>
   <p class="alt">
-    <code>brew install "gripsack-dev/tap/gripsack"</code> ·
-    <code>cargo install gripsack</code> ·
-    <code>mise use cargo:gripsack</code> ·
-    <a href="https://github.com/gripsack-dev/gripsack/releases">release binaries</a><br>
-    frontends: <code>pip install gripsack</code> · <code>npm i @gripsack/core</code>
+    <a href="https://github.com/gripsack-dev/gripsack/releases">release binaries</a> ·
+    frontends: <code>pip install gripsack</code> · <code>npm i @gripsack/core</code><br>
+    then: <code>grip apply --repo git@github.com:you/myenv</code> and you're home.
   </p>
-  <p class="alt">then: <code>grip apply --repo git@github.com:you/myenv</code> and you're home.</p>
 </section>
 
 <section class="outro">

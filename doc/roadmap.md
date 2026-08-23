@@ -1,35 +1,38 @@
 # Roadmap
 
-Where gripsack is going. 0.1 proves the spine; 1.0 is the north star —
-*a misconfiguration in any file gripsack touches should produce the same
+Where gripsack is going. 0.2 is live; 1.0 is the north star — *a
+misconfiguration in any file gripsack touches should produce the same
 quality of error as a typo in a module.*
 
-## Now — 0.1
+## Shipped — 0.1
 
 - The core flow: `apply` / `plan` / `generations` / `rollback`
 - `file` + `tarball` fetchers, `owned` + `tracked-copy` ownership
 - Python frontend (typed, doctest-enforced), TypeScript frontend
-  (typed; eval lands in 0.2)
 - Generations on disk, atomic flip, no-op satisfaction
-- Run logs with causal spans; the agent debug skill
+- Run logs with causal spans; the debug skill
 
-## Next — 0.2
+## Shipped — 0.2
 
-- `github_release` / `git` fetchers; the fetcher plugin host
-  (`gripfetch-*` protocol live)
+- Fetchers: `github_release` (with resolution + `{version}`
+  substitution), `git`, `brew` (bottles, with the pour), `pixi`,
+  bare binaries / `.tar.xz` / `.zip`
+- `gripfetch-*` plugin protocol host — NDJSON, hash-verified
+- `grip update [MODULE]` — the flake cycle, per-module
+- `--repo` bootstrap (path or git URL), eval provisioning via uv
+- `gripsack-adopt` skill — interview-driven migration
+- E108/E109 plan-time gates for unimplemented modes and verify paths
+
+## Next — 0.3
+
 - TypeScript eval path
 - Activation adapters (`SystemdUser` first), `merge` + `template`
-  ownership
-- Parallel scheduler with resource locks (the DAG already exists;
-  execution is sequential today)
-- Lockfile write path (`locks/<host>.lock` fully enforced)
-
-## Later — 0.3+
-
-- `grip adopt` (import existing configs into modules)
-- Store sync between machines
-- Editions & deprecation warnings (the W-code channel exists)
-- Secrets (age/sops at activation)
+  ownership modes
+- Parallel scheduler with resource locks (the DAG is ready; execution
+  is sequential today)
+- `gc`, `why-owns`
+- Tree entries (directory-shaped config deploys)
+- External satisfaction (never touch a path gripsack didn't deploy)
 
 ## North star — 1.0
 
