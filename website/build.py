@@ -15,6 +15,7 @@ from __future__ import annotations
 import hashlib
 import re
 import shutil
+import urllib.request
 from pathlib import Path
 
 import markdown
@@ -238,6 +239,12 @@ def assemble() -> None:
     (OUT / "index.html").write_text(index)
     # Custom domain — GitHub Pages reads this from the deployed artifact.
     (OUT / "CNAME").write_text("gripsack.dev\n")
+    # The installer, served at gripsack.dev/install.sh (source of truth:
+    # the gripsack repo).
+    installer = urllib.request.urlopen(
+        "https://raw.githubusercontent.com/gripsack-dev/gripsack/main/install.sh"
+    ).read()
+    (OUT / "install.sh").write_bytes(installer)
     (OUT / "assets").mkdir(exist_ok=True)
     for name in ("icon.svg", "favicon.svg", "site.css", "site.js"):
         shutil.copy(ROOT / "website" / "assets" / name, OUT / "assets" / name)

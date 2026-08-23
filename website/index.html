@@ -37,12 +37,11 @@
     <span class="chip status">status: design</span>
   </div>
   <div class="install">
-    <pre><span class="p">$</span> cargo install gripsack</pre>
-    <button class="copy" data-copy="cargo install gripsack">copy</button>
+    <pre><span class="p">$</span> curl -fsSL https://gripsack.dev/install.sh | sh</pre>
+    <button class="copy" data-copy="curl -fsSL https://gripsack.dev/install.sh | sh">copy</button>
   </div>
   <p class="alt">also: <code>brew install gripsack-dev/tap/gripsack</code> ·
-  <code>mise use cargo:gripsack</code> · <code>pip install gripsack</code> ·
-  <code>npm i @gripsack/core</code> ·
+  <code>mise use cargo:gripsack</code> ·
   <a href="https://github.com/gripsack-dev/gripsack/releases">release binaries</a> ·
   <span class="chip status">status: alpha</span></p>
   <div class="cta">
@@ -121,9 +120,10 @@ module(<span class="s">"helix"</span>, {
 });</pre>
     </div>
   </div>
-  <p class="note">full IDE support in both — pyright or tsc gives you autocomplete, inline
-  errors, and refactors, because a module is just typed code. evaluation emits IR
-  (JSON); the Rust core only ever consumes IR.</p>
+  <p class="note">the frontends are libraries — <code>pip install gripsack</code> or
+  <code>npm i @gripsack/core</code> — and fully typed: pyright or tsc gives you
+  autocomplete, inline errors, and refactors, because a module is just typed code.
+  evaluation emits IR (JSON); the Rust core only ever consumes IR.</p>
 </section>
 
 <section>
