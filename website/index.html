@@ -18,8 +18,10 @@
   <nav>
     <a href="./docs/architecture.html">architecture</a>
     <a href="./docs/modules.html">modules</a>
+    <a href="./docs/fetchers.html">fetchers</a>
     <a href="./docs/settings.html">settings</a>
     <a href="./docs/runs.html">run logs</a>
+    <a href="./docs/skills.html">skills</a>
     <a href="./docs/roadmap.html">roadmap</a>
     <a href="https://github.com/gripsack-dev/gripsack">github ↗</a>
   </nav>
@@ -154,7 +156,7 @@ module(<span class="s">"helix"</span>, {
     </div>
     <div class="card">
       <h3>any source</h3>
-      <p>github releases, tarballs, git builds, cargo, distro packages. fetchers are pluggable verbs, conditionally selected per host.</p>
+      <p>file, tarball, git today; github releases, brew bottles, and conda next. anything else: a <code>gripfetch-*</code> plugin — <a href="./docs/fetchers.html">the tiers</a>.</p>
     </div>
     <div class="card">
       <h3>dotfiles, first-class</h3>
@@ -171,6 +173,10 @@ module(<span class="s">"helix"</span>, {
     <div class="card">
       <h3>hosts &amp; facts</h3>
       <p>one repo, many machines. fedora laptop, ubuntu desktop: facts auto-detected, tags declared, conditionals resolved at eval.</p>
+    </div>
+    <div class="card">
+      <h3>agent skills</h3>
+      <p>installable skills teach your agent to debug runs from structured logs and to migrate existing tools into modules. <a href="./docs/skills.html">skills</a></p>
     </div>
   </div>
 </section>

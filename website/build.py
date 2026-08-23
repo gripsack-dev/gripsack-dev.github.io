@@ -47,6 +47,8 @@ PAGES: dict[str, tuple[str, str]] = {
     "settings": ("doc/settings.md", "settings"),
     "settings-reference": ("doc/settings-reference.md", "settings reference"),
     "runs": ("doc/runs.md", "run logs"),
+    "fetchers": ("doc/fetchers.md", "fetchers"),
+    "skills": ("doc/skills.md", "skills"),
     "roadmap": ("doc/roadmap.md", "roadmap"),
 }
 
