@@ -149,7 +149,8 @@ p.alt code { border: none; padding: 0 2px; }
 .card code { border: none; padding: 0 2px; }
 
 /* ---- compare ---- */
-table.compare { width: 100%; border-collapse: collapse; font-size: 14px; display: block; overflow-x: auto; }
+.table-wrap { overflow-x: auto; }
+table.compare { width: 100%; border-collapse: collapse; font-size: 14px; }
 table.compare th, table.compare td { border-bottom: 1px solid var(--border); padding: 8px 10px; }
 table.compare th { font-family: var(--mono); font-size: 13px; color: var(--blue); text-align: center; }
 table.compare th:first-child { color: var(--faint); font-weight: 400; text-align: left; }

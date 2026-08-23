@@ -37,12 +37,14 @@
     <span class="chip status">status: design</span>
   </div>
   <div class="install">
-    <pre><span class="p">$</span> curl -fsSL https://gripsack.dev/install.sh | sh</pre>
-    <button class="copy" data-copy="curl -fsSL https://gripsack.dev/install.sh | sh">copy</button>
+    <pre><span class="p">$</span> cargo install gripsack</pre>
+    <button class="copy" data-copy="cargo install gripsack">copy</button>
   </div>
-  <p class="alt">nothing to install yet — this is the shape of it. planned:
-  <code>cargo install gripsack</code> · <code>brew install gripsack-dev/tap/gripsack</code>
-  · <a href="https://github.com/gripsack-dev/gripsack/releases">release binaries</a></p>
+  <p class="alt">also: <code>brew install gripsack-dev/tap/gripsack</code> ·
+  <code>mise use cargo:gripsack</code> · <code>pip install gripsack</code> ·
+  <code>npm i @gripsack/core</code> ·
+  <a href="https://github.com/gripsack-dev/gripsack/releases">release binaries</a> ·
+  <span class="chip status">status: alpha</span></p>
   <div class="cta">
     <a class="primary" href="https://github.com/gripsack-dev/gripsack/blob/main/plan/0001-architecture.md">read the plan</a>
     <a class="ghost" href="https://github.com/gripsack-dev/gripsack">GitHub ↗</a>
@@ -172,6 +174,7 @@ module(<span class="s">"helix"</span>, {
 
 <section id="compare">
   <h2 class="section">compare</h2>
+  <div class="table-wrap">
   <table class="compare">
     <tr><th></th><th>gripsack</th><th>nix + home-manager</th><th>chezmoi · stow</th><th>apt · brew · mise</th></tr>
     <tr><td>packages from any source</td><td class="yes">✓</td><td class="part">nixpkgs</td><td class="no">·</td><td class="part">own repos</td></tr>
@@ -183,15 +186,17 @@ module(<span class="s">"helix"</span>, {
     <tr><td>no daemon, no root</td><td class="yes">✓</td><td class="no">daemon · /nix</td><td class="yes">✓</td><td class="part">apt needs root</td></tr>
     <tr><td>per-host conditionals</td><td class="yes">facts + tags</td><td class="part">modules</td><td class="part">templates</td><td class="no">·</td></tr>
   </table>
+  </div>
 </section>
 
 <section class="outro">
   <h2 class="section">follow along</h2>
   <div class="install">
-    <pre><span class="p">$</span> grip apply --repo git@github.com:you/myenv</pre>
-    <button class="copy" data-copy="grip apply --repo git@github.com:you/myenv">copy</button>
+    <pre><span class="p">$</span> grip apply</pre>
+    <button class="copy" data-copy="grip apply">copy</button>
   </div>
-  <p class="alt">the design is public and moving:
+  <p class="alt">v0.1 is out — the core flow (apply · generations · rollback) works.
+  the design is public and moving:
   <a href="https://github.com/gripsack-dev/gripsack/blob/main/plan/0001-architecture.md">0001 — architecture</a>.
   star the <a href="https://github.com/gripsack-dev/gripsack">repo</a> if this is the package manager you also wish existed.</p>
 </section>
