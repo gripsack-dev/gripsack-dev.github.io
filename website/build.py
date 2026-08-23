@@ -43,8 +43,11 @@ def asset_version() -> str:
 # Docs mirrored onto the site: url-slug -> (source file, nav label).
 PAGES: dict[str, tuple[str, str]] = {
     "architecture": ("doc/architecture.md", "architecture"),
+    "modules": ("doc/modules.md", "modules"),
     "settings": ("doc/settings.md", "settings"),
     "settings-reference": ("doc/settings-reference.md", "settings reference"),
+    "runs": ("doc/runs.md", "run logs"),
+    "roadmap": ("doc/roadmap.md", "roadmap"),
 }
 
 # Links inside the mirrored docs that point at files we do NOT mirror:
