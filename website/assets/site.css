@@ -402,3 +402,38 @@ pre::-webkit-scrollbar-track, .table-wrap::-webkit-scrollbar-track { background:
 
 /* version chip stands out a touch */
 .chips .chip.version { color: var(--green); border-color: var(--green); }
+
+/* ---- features: full-width numbered rows (tuicr-style) ---- */
+.features { display: flex; flex-direction: column; }
+.feature {
+  display: grid;
+  grid-template-columns: 56px minmax(0, 1fr) auto;
+  gap: 20px;
+  align-items: baseline;
+  padding: 20px 6px;
+  border-top: 1px solid var(--border);
+  transition: background 0.15s ease;
+}
+.feature:last-child { border-bottom: 1px solid var(--border); }
+.feature:hover { background: color-mix(in srgb, var(--card) 55%, transparent); }
+.fnum {
+  font-family: var(--mono); font-size: 13px; color: var(--faint);
+  text-align: right;
+}
+.feature h3 {
+  font-family: var(--mono); font-size: 17px; font-weight: 700;
+  color: var(--text); margin: 0 0 4px;
+}
+.feature h3::before { content: "\203A  "; color: var(--blue); }
+.feature p { margin: 0; color: var(--dim); font-size: 14.5px; max-width: 62ch; }
+.fchips { display: flex; flex-direction: column; gap: 6px; align-items: flex-end; }
+.fchip {
+  font-family: var(--mono); font-size: 12px; color: var(--dim);
+  background: var(--deep); border: 1px solid var(--border);
+  border-bottom: 2px solid var(--blue); border-radius: 6px;
+  padding: 2px 9px; white-space: nowrap;
+}
+@media (max-width: 880px) {
+  .feature { grid-template-columns: 34px 1fr; }
+  .fchips { display: none; }
+}

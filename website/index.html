@@ -150,34 +150,73 @@ module(<span class="s">"helix"</span>, {
 
 <section>
   <h2 class="section">what it does</h2>
-  <div class="grid">
-    <div class="card">
-      <h3>modules</h3>
-      <p>everything is a module: how to get it, build it, where its files and configs live. modules depend on modules; build-only deps are ephemeral.</p>
+  <div class="features">
+    <div class="feature">
+      <span class="fnum">01</span>
+      <div class="fbody">
+        <h3>modules</h3>
+        <p>everything is a module: how to get it, build it, where its files and
+        configs live. modules depend on modules; build-only deps are ephemeral.</p>
+      </div>
+      <div class="fchips"><span class="fchip">dep("rust", Edge.BUILD)</span></div>
     </div>
-    <div class="card">
-      <h3>any source</h3>
-      <p>file, tarball, git today; github releases, brew bottles, and conda next. anything else: a <code>gripfetch-*</code> plugin — <a href="./docs/fetchers.html">the tiers</a>.</p>
+    <div class="feature">
+      <span class="fnum">02</span>
+      <div class="fbody">
+        <h3>any source</h3>
+        <p>github releases, brew bottles, git, tarballs, pixi — and anything
+        else as a <code>gripfetch-*</code> plugin speaking NDJSON, hash-verified
+        by the core. <a href="./docs/fetchers.html">the tiers</a>.</p>
+      </div>
+      <div class="fchips"><span class="fchip">github_release(…)</span><span class="fchip">brew(…)</span></div>
     </div>
-    <div class="card">
-      <h3>dotfiles, first-class</h3>
-      <p>ownership per file: <code>owned</code> symlink, <code>tracked-copy</code> with drift detection, <code>merge</code> blocks, <code>template</code> for per-machine values.</p>
+    <div class="feature">
+      <span class="fnum">03</span>
+      <div class="fbody">
+        <h3>dotfiles, first-class</h3>
+        <p>ownership per file: store-owned symlinks, tracked copies with drift
+        detection that never clobbers your edits, merge blocks and templates.</p>
+      </div>
+      <div class="fchips"><span class="fchip">tracked_copy(…)</span></div>
     </div>
-    <div class="card">
-      <h3>generations</h3>
-      <p>every apply — one module or the whole graph — is a new generation. activation is one atomic rename; rollback is flipping it back.</p>
+    <div class="feature">
+      <span class="fnum">04</span>
+      <div class="fbody">
+        <h3>generations</h3>
+        <p>every apply — one module or the whole graph — is a new generation.
+        activation is one atomic rename; rollback is flipping it back. a no-op
+        apply creates nothing.</p>
+      </div>
+      <div class="fchips"><span class="fchip">grip rollback</span></div>
     </div>
-    <div class="card">
-      <h3>lockfiles, not sandboxes</h3>
-      <p>impure by default, reproducible by pinned URLs and hashes. nix's ergonomics without nix's enforcement.</p>
+    <div class="feature">
+      <span class="fnum">05</span>
+      <div class="fbody">
+        <h3>lockfiles, not sandboxes</h3>
+        <p>impure by default, reproducible by pinned URLs and content hashes,
+        per host. nix's ergonomics without nix's enforcement.</p>
+      </div>
+      <div class="fchips"><span class="fchip">grip update</span></div>
     </div>
-    <div class="card">
-      <h3>hosts &amp; facts</h3>
-      <p>one repo, many machines. fedora laptop, ubuntu desktop: facts auto-detected, tags declared, conditionals resolved at eval.</p>
+    <div class="feature">
+      <span class="fnum">06</span>
+      <div class="fbody">
+        <h3>hosts &amp; facts</h3>
+        <p>one repo, many machines. fedora laptop, macos desktop: facts
+        auto-detected (os, arch, libc), tags declared, conditionals resolved
+        at eval.</p>
+      </div>
+      <div class="fchips"><span class="fchip">tags = ["gui"]</span></div>
     </div>
-    <div class="card">
-      <h3>agent skills</h3>
-      <p>installable skills teach your agent to debug runs from structured logs and to migrate existing tools into modules. <a href="./docs/skills.html">skills</a></p>
+    <div class="feature">
+      <span class="fnum">07</span>
+      <div class="fbody">
+        <h3>agent skills</h3>
+        <p>installable skills teach your agent to debug a run from its
+        structured log, and to migrate an existing tool into a module,
+        interview-style. <a href="./docs/skills.html">the skills</a>.</p>
+      </div>
+      <div class="fchips"><span class="fchip">runs/latest</span></div>
     </div>
   </div>
 </section>
