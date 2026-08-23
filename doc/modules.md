@@ -60,6 +60,39 @@ typo fails at eval), `verify` contracts, and `retries` overrides. The
 action ladder: typed primitives → `run_step` (argv as data) →
 `shell_step` (last rung) → `gripfetch-*` plugins for transports.
 
+## Conditionals (hosts, facts, tags)
+
+The runner evaluates the host entrypoint first, then modules — so
+modules can read the shared `facts` object (`facts.os`, `facts.arch`,
+`facts.libc`, `facts.has("gui")`) and gate whole modules with `when`:
+
+```python
+from gripsack import module, when
+
+module("steam", fetch=..., when=when(os="linux", tags=["gui"]))
+```
+
+```python
+@when(os="linux", not_tags=["headless"])
+class Steam(Module): ...
+```
+
+typescript: `moduleIf("steam", {...}, { os: "linux", tags: ["gui"] })`
+and `defineIf(Steam, {...})`.
+
+Per-file conditionals are plain code — different source, same
+destination, per host:
+
+```python
+module("zed", config={
+    ("settings.spaces.json" if facts.has("spaces") else "settings.laptop.json"):
+        tracked_copy("~/.config/zed/settings.json"),
+})
+```
+
+Facts stay curated on purpose: os/arch/libc/tags. Anything beyond that
+is eval-time code in your repo — the frontend *is* the extension point.
+
 ## Dependencies
 
 `dep("git")` is a runtime edge; `dep("rust", edge=Edge.BUILD)` is an
