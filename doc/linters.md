@@ -8,6 +8,74 @@ hour later — linters close that gap at eval, where the error points
 at the offending line.
 
 Status: landing next — the implementation PR is open.
+## Coverage
+
+One reference linter ships first — helix — with the tools the dotfiles
+crowd actually edits queued behind it, sorted by github stars. The
+long tail is yours to claim.
+
+<div class="lint-stats">
+  <span><b>1</b> reference</span>
+  <span><b>49</b> planned</span>
+  <span><b>∞</b> the long tail</span>
+</div>
+
+<div class="lint-grid">
+  <a class="lint-tool lt-reference" style="--lt:var(--green)" href="https://github.com/gripsack-dev/linters-py"><span class="lt-name">helix</span><span class="lt-status">reference</span></a>
+  <span class="lint-tool" style="--lt:var(--blue)"><span class="lt-name">deno</span></span>
+  <span class="lint-tool" style="--lt:var(--peach)"><span class="lt-name">zed</span></span>
+  <span class="lint-tool" style="--lt:var(--yellow)"><span class="lt-name">lazygit</span></span>
+  <span class="lint-tool" style="--lt:var(--mauve)"><span class="lt-name">alacritty</span></span>
+  <span class="lint-tool" style="--lt:var(--teal)"><span class="lt-name">ghostty</span></span>
+  <span class="lint-tool" style="--lt:var(--red)"><span class="lt-name">starship</span></span>
+  <span class="lint-tool" style="--lt:var(--blue)"><span class="lt-name">lazydocker</span></span>
+  <span class="lint-tool" style="--lt:var(--peach)"><span class="lt-name">yazi</span></span>
+  <span class="lint-tool" style="--lt:var(--yellow)"><span class="lt-name">Hyprland</span></span>
+  <span class="lint-tool" style="--lt:var(--mauve)"><span class="lt-name">zellij</span></span>
+  <span class="lint-tool" style="--lt:var(--teal)"><span class="lt-name">kitty</span></span>
+  <span class="lint-tool" style="--lt:var(--red)"><span class="lt-name">k9s</span></span>
+  <span class="lint-tool" style="--lt:var(--blue)"><span class="lt-name">btop</span></span>
+  <span class="lint-tool" style="--lt:var(--peach)"><span class="lt-name">glances</span></span>
+  <span class="lint-tool" style="--lt:var(--yellow)"><span class="lt-name">delta</span></span>
+  <span class="lint-tool" style="--lt:var(--mauve)"><span class="lt-name">mise</span></span>
+  <span class="lint-tool" style="--lt:var(--teal)"><span class="lt-name">jj</span></span>
+  <span class="lint-tool" style="--lt:var(--red)"><span class="lt-name">atuin</span></span>
+  <span class="lint-tool" style="--lt:var(--blue)"><span class="lt-name">niri</span></span>
+  <span class="lint-tool" style="--lt:var(--peach)"><span class="lt-name">glow</span></span>
+  <span class="lint-tool" style="--lt:var(--yellow)"><span class="lt-name">biome</span></span>
+  <span class="lint-tool" style="--lt:var(--mauve)"><span class="lt-name">fastfetch</span></span>
+  <span class="lint-tool" style="--lt:var(--teal)"><span class="lt-name">oh-my-posh</span></span>
+  <span class="lint-tool" style="--lt:var(--red)"><span class="lt-name">superfile</span></span>
+  <span class="lint-tool" style="--lt:var(--blue)"><span class="lt-name">gitui</span></span>
+  <span class="lint-tool" style="--lt:var(--peach)"><span class="lt-name">zola</span></span>
+  <span class="lint-tool" style="--lt:var(--yellow)"><span class="lt-name">rofi</span></span>
+  <span class="lint-tool" style="--lt:var(--mauve)"><span class="lt-name">lsd</span></span>
+  <span class="lint-tool" style="--lt:var(--teal)"><span class="lt-name">pre-commit</span></span>
+  <span class="lint-tool" style="--lt:var(--red)"><span class="lt-name">bottom</span></span>
+  <span class="lint-tool" style="--lt:var(--blue)"><span class="lt-name">tmuxinator</span></span>
+  <span class="lint-tool" style="--lt:var(--peach)"><span class="lt-name">gh-dash</span></span>
+  <span class="lint-tool" style="--lt:var(--yellow)"><span class="lt-name">posting</span></span>
+  <span class="lint-tool" style="--lt:var(--mauve)"><span class="lt-name">git-cliff</span></span>
+  <span class="lint-tool" style="--lt:var(--teal)"><span class="lt-name">eza</span></span>
+  <span class="lint-tool" style="--lt:var(--red)"><span class="lt-name">waybar</span></span>
+  <span class="lint-tool" style="--lt:var(--blue)"><span class="lt-name">broot</span></span>
+  <span class="lint-tool" style="--lt:var(--peach)"><span class="lt-name">ruff</span></span>
+  <span class="lint-tool" style="--lt:var(--yellow)"><span class="lt-name">lf</span></span>
+  <span class="lint-tool" style="--lt:var(--mauve)"><span class="lt-name">rio</span></span>
+  <span class="lint-tool" style="--lt:var(--teal)"><span class="lt-name">harlequin</span></span>
+  <span class="lint-tool" style="--lt:var(--red)"><span class="lt-name">television</span></span>
+  <span class="lint-tool" style="--lt:var(--blue)"><span class="lt-name">procs</span></span>
+  <span class="lint-tool" style="--lt:var(--peach)"><span class="lt-name">taskwarrior</span></span>
+  <span class="lint-tool" style="--lt:var(--yellow)"><span class="lt-name">dunst</span></span>
+  <span class="lint-tool" style="--lt:var(--mauve)"><span class="lt-name">newsboat</span></span>
+  <span class="lint-tool" style="--lt:var(--teal)"><span class="lt-name">editorconfig</span></span>
+  <span class="lint-tool" style="--lt:var(--red)"><span class="lt-name">bacon</span></span>
+  <span class="lint-tool" style="--lt:var(--blue)"><span class="lt-name">zathura</span></span>
+  <a class="lint-tool lt-more" href="https://github.com/gripsack-dev/linters-py/issues?q=label:linter"><span class="lt-name">+ more</span><span class="lt-status">help wanted ↗</span></a>
+</div>
+
+Every planned tool has an open tracking issue — pick one up, or file
+the one your dotfiles need.
 
 ## Using a linter
 
