@@ -31,6 +31,8 @@ typo in a module.*
 ## Next
 
 - TypeScript frontend
+- Config linters (`griplint-*` plugins) — eval-time validation of the
+  configs you deploy; see [linters](linters.md)
 - `merge` + `template` ownership modes
 - Exported env — modules contributing PATH and variables to your shell
 - Activation adapters (`SystemdUser` first)
@@ -44,7 +46,5 @@ typo in a module.*
   the same span-labeled diagnostics; the editor shim maps them in.
   Editing your kitty config in VSCode and getting an error squiggle at
   the exact line — that moment.
-- **Config linters** (`griplint-*` plugins): validators for any
-  dotfile format, same protocol as fetchers.
 - **Fetcher registry**: `gripfetch-*` plugins for the long tail, under
   `gripsack-dev` and beyond.

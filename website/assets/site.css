@@ -51,6 +51,7 @@ pre {
   background: var(--deep); border: 1px solid var(--border); border-radius: 12px;
   padding: 18px 22px; overflow-x: auto; margin: 0 0 14px;
 }
+pre code { background: none; border: none; padding: 0; color: inherit; white-space: pre; }
 pre .p { color: var(--green); }
 pre .c { color: var(--faint); }
 pre .k { color: var(--mauve); }
