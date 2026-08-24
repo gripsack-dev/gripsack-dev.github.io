@@ -12,9 +12,9 @@ verifies).
 | `file_fetch(path)` | live | content hash |
 | `tarball(url, sha256)` | live | pinned sha256, verified before the store |
 | `git(url, rev)` | live | the rev is immutable; shallow-fetched |
-| `github_release(repo, asset)` | 0.2 | resolved release + asset hash, locked |
-| `brew(...)` (bottles) | 0.2/0.3 | bottle hash, locked |
-| `pixi(...)` (conda) | 0.3 | package hashes from the pixi resolution, locked |
+| `github_release(repo, asset)` | live | resolved release + asset hash, locked |
+| `brew(...)` (bottles) | live | bottle hash, locked |
+| `pixi(...)` (conda) | live | package hashes from the pixi resolution, locked |
 
 `mise` is deliberately not a fetcher: its backends are mostly GitHub
 releases, which `github_release` already covers.

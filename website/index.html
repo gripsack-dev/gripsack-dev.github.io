@@ -151,71 +151,51 @@ module(<span class="s">"helix"</span>, {
   <h2 class="section">what it does</h2>
   <div class="features">
     <div class="feature">
-      <span class="fnum">01</span>
-      <div class="fbody">
-        <h3>modules</h3>
-        <p>everything is a module: how to get it, build it, where its files and
-        configs live. modules depend on modules; build-only deps are ephemeral.</p>
-      </div>
-      <div class="fchips"><span class="fchip">dep("rust", Edge.BUILD)</span></div>
+      <span class="fnum">[01]</span>
+      <h3>one module</h3>
+      <p>fetch, build, install, config — one typed Python module declares the
+      whole lifecycle, from github release to deployed dotfile. anything else
+      arrives as a <code>gripfetch-*</code> plugin.</p>
+      <div class="fchips"><span class="fchip">module(…)</span><span class="fchip">gripfetch-*</span></div>
     </div>
     <div class="feature">
-      <span class="fnum">02</span>
-      <div class="fbody">
-        <h3>any source</h3>
-        <p>github releases, brew bottles, git, tarballs, pixi — and anything
-        else as a <code>gripfetch-*</code> plugin speaking NDJSON, hash-verified
-        by the core. <a href="./docs/fetchers.html">the tiers</a>.</p>
-      </div>
-      <div class="fchips"><span class="fchip">github_release(…)</span><span class="fchip">brew(…)</span></div>
+      <span class="fnum">[02]</span>
+      <h3>store + generations</h3>
+      <p>builds land in a content-addressed store; every apply is a new
+      generation and activation is one atomic flip. rollback flips it back —
+      a no-op apply creates nothing.</p>
+      <div class="fchips"><span class="fchip">grip apply</span><span class="fchip">grip rollback</span></div>
     </div>
     <div class="feature">
-      <span class="fnum">03</span>
-      <div class="fbody">
-        <h3>dotfiles, first-class</h3>
-        <p>ownership per file: store-owned symlinks, tracked copies with drift
-        detection that never clobbers your edits, merge blocks and templates.</p>
-      </div>
-      <div class="fchips"><span class="fchip">tracked_copy(…)</span></div>
+      <span class="fnum">[03]</span>
+      <h3>never clobbers</h3>
+      <p>store-owned symlinks, tracked copies with drift detection — and a
+      foreign path is refused, not overwritten, unless you say
+      <code>--take-over</code>.</p>
+      <div class="fchips"><span class="fchip">tracked_copy(…)</span><span class="fchip">--take-over</span></div>
     </div>
     <div class="feature">
-      <span class="fnum">04</span>
-      <div class="fbody">
-        <h3>generations</h3>
-        <p>every apply — one module or the whole graph — is a new generation.
-        activation is one atomic rename; rollback is flipping it back. a no-op
-        apply creates nothing.</p>
-      </div>
-      <div class="fchips"><span class="fchip">grip rollback</span></div>
+      <span class="fnum">[04]</span>
+      <h3>lockfile-pinned</h3>
+      <p>URLs and content hashes pinned per host; facts and tags resolve at
+      eval, so one repo serves the fedora laptop and the macos desktop.
+      reproducible, no sandbox.</p>
+      <div class="fchips"><span class="fchip">grip update</span><span class="fchip">tags = ["gui"]</span></div>
     </div>
     <div class="feature">
-      <span class="fnum">05</span>
-      <div class="fbody">
-        <h3>lockfiles, not sandboxes</h3>
-        <p>impure by default, reproducible by pinned URLs and content hashes,
-        per host. nix's ergonomics without nix's enforcement.</p>
-      </div>
-      <div class="fchips"><span class="fchip">grip update</span></div>
+      <span class="fnum">[05]</span>
+      <h3>errors with spans</h3>
+      <p>eval-time diagnostics carry a span back to the line of your module
+      that emitted them — stable codes, source snippets, no guessing.</p>
+      <div class="fchips"><span class="fchip">error[E101]</span></div>
     </div>
     <div class="feature">
-      <span class="fnum">06</span>
-      <div class="fbody">
-        <h3>hosts &amp; facts</h3>
-        <p>one repo, many machines. fedora laptop, macos desktop: facts
-        auto-detected (os, arch, libc), tags declared, conditionals resolved
-        at eval.</p>
-      </div>
-      <div class="fchips"><span class="fchip">tags = ["gui"]</span></div>
-    </div>
-    <div class="feature">
-      <span class="fnum">07</span>
-      <div class="fbody">
-        <h3>agent skills</h3>
-        <p>installable skills teach your agent to debug a run from its
-        structured log, and to migrate an existing tool into a module,
-        interview-style. <a href="./docs/skills.html">the skills</a>.</p>
-      </div>
-      <div class="fchips"><span class="fchip">runs/latest</span></div>
+      <span class="fnum">[06]</span>
+      <h3>proxy-friendly</h3>
+      <p>works behind corporate proxies: <code>HTTPS_PROXY</code> honored,
+      system CA roots trusted, and <code>GRIPSACK_PYTHON</code> when you must
+      bring your own interpreter.</p>
+      <div class="fchips"><span class="fchip">HTTPS_PROXY</span><span class="fchip">GRIPSACK_PYTHON</span></div>
     </div>
   </div>
 </section>
@@ -278,8 +258,9 @@ module(<span class="s">"helix"</span>, {
 
 <section class="outro">
   <h2 class="section">follow along</h2>
-  <p class="alt">v0.2 is out — github releases, brew bottles, git, tarball, pixi fetchers;
-  plugin fetchers over NDJSON.
+  <p class="alt">shipped so far: fetchers for github releases, brew bottles, git, tarballs,
+  pixi — plus plugin fetchers over NDJSON, generations with rollback, and ownership
+  modes that never clobber. latest: corporate proxy support and system CA roots.
   the design is public and moving:
   <a href="https://github.com/gripsack-dev/gripsack/blob/main/plan/0001-architecture.md">0001 — architecture</a>.
   star the <a href="https://github.com/gripsack-dev/gripsack">repo</a> if this is the package manager you also wish existed.</p>

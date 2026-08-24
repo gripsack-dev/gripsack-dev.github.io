@@ -40,7 +40,7 @@ def latest_release() -> str:
 
             return json.load(r)["tag_name"].removeprefix("core-v")
     except Exception:
-        return "0.2"
+        return "0.4.1"
 
 
 def asset_version() -> str:

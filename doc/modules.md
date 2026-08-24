@@ -49,8 +49,8 @@ only**: they build data, they never run at build time.
 |---|---|---|
 | `symlink(...)` | store-owned, read-only | disciplined tools |
 | `tracked_copy(...)` | copied; drift detected, never silently overwritten | apps that rewrite their configs |
-| `merge(...)` | managed block in a shared file | `.bashrc` (0.2) |
-| `template(...)` | rendered per machine | hostnames, work vs personal (0.2) |
+| `merge(...)` | managed block in a shared file | `.bashrc` (next) |
+| `template(...)` | rendered per machine | hostnames, work vs personal (next) |
 
 ## Steps, resources, retries
 

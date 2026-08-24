@@ -403,30 +403,30 @@ pre::-webkit-scrollbar-track, .table-wrap::-webkit-scrollbar-track { background:
 /* version chip stands out a touch */
 .chips .chip.version { color: var(--green); border-color: var(--green); }
 
-/* ---- features: full-width numbered rows (tuicr-style) ---- */
-.features { display: flex; flex-direction: column; }
+/* ---- features: one bordered panel, hairline-divided tiles — number,
+   ❯ title, description, keycaps pinned to the bottom ---- */
+.features {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 0;
+  border: 1px solid var(--border); border-radius: 12px;
+  overflow: hidden; background: var(--card);
+}
 .feature {
-  display: grid;
-  grid-template-columns: 56px minmax(0, 1fr) auto;
-  gap: 20px;
-  align-items: baseline;
-  padding: 20px 6px;
-  border-top: 1px solid var(--border);
-  transition: background 0.15s ease;
+  display: flex; flex-direction: column; gap: 8px;
+  min-height: 190px; padding: 20px 22px 24px;
+  border-right: 1px solid color-mix(in srgb, var(--border) 55%, transparent);
+  border-bottom: 1px solid color-mix(in srgb, var(--border) 55%, transparent);
 }
-.feature:last-child { border-bottom: 1px solid var(--border); }
-.feature:hover { background: color-mix(in srgb, var(--card) 55%, transparent); }
-.fnum {
-  font-family: var(--mono); font-size: 13px; color: var(--faint);
-  text-align: right;
-}
+.feature:nth-child(3n) { border-right: none; }
+.feature:nth-last-child(-n+3) { border-bottom: none; }
+.fnum { font-family: var(--mono); font-size: 11px; color: var(--faint); }
 .feature h3 {
-  font-family: var(--mono); font-size: 17px; font-weight: 700;
-  color: var(--text); margin: 0 0 4px;
+  font-family: var(--mono); font-size: 15px; font-weight: 700;
+  color: var(--text); margin: 0;
 }
-.feature h3::before { content: "\203A  "; color: var(--blue); }
-.feature p { margin: 0; color: var(--dim); font-size: 14.5px; max-width: 62ch; }
-.fchips { display: flex; flex-direction: column; gap: 6px; align-items: flex-end; }
+.feature h3::before { content: "\276F "; color: var(--blue); }
+.feature p { margin: 0; color: var(--dim); font-size: 13.5px; line-height: 1.5; }
+.feature p code { border: none; padding: 0 2px; }
+.fchips { margin-top: auto; display: flex; gap: 6px; flex-wrap: wrap; padding-top: 8px; }
 .fchip {
   font-family: var(--mono); font-size: 12px; color: var(--dim);
   background: var(--deep); border: 1px solid var(--border);
@@ -434,8 +434,12 @@ pre::-webkit-scrollbar-track, .table-wrap::-webkit-scrollbar-track { background:
   padding: 2px 9px; white-space: nowrap;
 }
 @media (max-width: 880px) {
-  .feature { grid-template-columns: 34px 1fr; }
-  .fchips { display: none; }
+  .features { grid-template-columns: 1fr; }
+  .feature, .feature:nth-child(3n) { border-right: none; }
+  .feature:nth-last-child(-n+3) {
+    border-bottom: 1px solid color-mix(in srgb, var(--border) 55%, transparent);
+  }
+  .feature:last-child { border-bottom: none; }
 }
 
 /* ---- install: one block per channel ---- */
