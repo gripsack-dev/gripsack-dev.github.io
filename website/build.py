@@ -266,6 +266,7 @@ def assemble() -> None:
     assert "<!--LOGO-->" in index, "index.html lost its <!--LOGO--> placeholder"
     index = index.replace("<!--LOGO-->", themed_logo())
     index = index.replace("<!--VERSION-->", site_version())
+    index = index.replace("{version}", site_version())
     index = index.replace("./assets/site.css", f"./assets/site.css?v={asset_version()}")
     index = index.replace("./assets/site.js", f"./assets/site.js?v={asset_version()}")
     # Stamp the demo variants that actually shipped into the img tag, so
@@ -290,6 +291,9 @@ def assemble() -> None:
     (OUT / "img").mkdir(exist_ok=True)
     for gif in (ROOT / "img").glob("*.gif"):
         shutil.copy(gif, OUT / "img" / gif.name)
+    # the PEP 503 index for griplint-* packages, served at /simple
+    if (ROOT / "simple").exists():
+        shutil.copytree(ROOT / "simple", OUT / "simple", dirs_exist_ok=True)
     # Stamp the demo variants that actually shipped into the img tag, so
     # site.js never guesses a missing variant (and never 404s).
     for name in DOC_ASSETS:
