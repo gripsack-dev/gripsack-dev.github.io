@@ -52,7 +52,7 @@ Repo entries override user entries of the same name.
 
 ## CLI surface
 
-```
+```bash
 grip apply [--host H] [MODULE...]   # fetch, build, deploy — one new generation
 grip plan [--host H] [MODULE...]    # show what apply would change
 grip rollback [N]                   # flip current back to generation N

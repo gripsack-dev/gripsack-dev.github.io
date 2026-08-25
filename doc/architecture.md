@@ -81,7 +81,7 @@ Every IR node carries a span — file, line, column of the module code
 that emitted it (the same trick React uses for JSX error stacks). The
 core's compiler passes collect structured diagnostics with stable codes:
 
-```
+```diag
 error[E101]: module "helix" depends on unknown module "git"
   --> modules/helix.py:4:1
 ```

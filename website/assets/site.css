@@ -387,27 +387,47 @@ article.md .lint-grid {
 article.md .lint-tool {
   display: flex; flex-direction: column; gap: 2px;
   padding: 9px 12px; background: var(--card);
-  border: 1px solid var(--border); border-radius: 10px;
+  border: 1px dashed var(--border); border-radius: 10px;
   text-decoration: none;
 }
 article.md a.lint-tool { transition: border-color 0.15s ease, transform 0.15s ease; }
 article.md a.lint-tool:hover { border-color: var(--lt, var(--border-strong)); transform: translateY(-2px); text-decoration: none; }
 article.md .lt-name {
   font-family: var(--mono); font-size: 14px; font-weight: 700;
-  color: var(--lt, var(--dim));
+  color: var(--faint);
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   max-width: 100%;
 }
+article.md .lt-available {
+  border-style: solid;
+  border-color: color-mix(in srgb, var(--green) 35%, var(--border));
+}
+article.md .lt-available .lt-name { color: var(--lt, var(--dim)); }
 article.md .lt-status {
   font-family: var(--mono); font-size: 9.5px; letter-spacing: 1px;
   text-transform: uppercase; color: var(--faint);
 }
 article.md .lt-reference {
+  border-style: solid;
   border-color: color-mix(in srgb, var(--green) 45%, var(--border));
 }
 article.md .lt-reference .lt-status { color: var(--green); }
 article.md .lt-more { border-style: dashed; }
 article.md .lt-more .lt-name, article.md .lt-more .lt-status { color: var(--blue); }
+article.md .lint-legend {
+  font-family: var(--mono); font-size: 11px; color: var(--faint);
+  margin: 0 0 4px; display: flex; align-items: center; flex-wrap: wrap;
+}
+article.md .lint-legend .lg {
+  display: inline-block; width: 10px; height: 10px; border-radius: 3px;
+  margin: 0 7px 0 18px; background: var(--card);
+}
+article.md .lint-legend .lg:first-child { margin-left: 0; }
+article.md .lint-legend .lg-a {
+  border: 1px solid color-mix(in srgb, var(--green) 45%, var(--border));
+}
+article.md .lint-legend .lg-p { border: 1px dashed var(--border); }
+article.md .lint-legend .lg-m { border: 1px dashed var(--blue); }
 article.md blockquote {
   margin: 14px 0; padding: 2px 18px; color: var(--dim);
   border-left: 3px solid var(--blue);
@@ -442,6 +462,7 @@ article.md blockquote {
 pre .err { color: var(--red); font-weight: bold; }
 pre .loc { color: var(--blue); }
 pre .gutter { color: var(--faint); }
+pre .hlp { color: var(--teal); }
 
 /* ---- subtle scrollbars: long paths shouldn't fight the design ---- */
 pre, .table-wrap {

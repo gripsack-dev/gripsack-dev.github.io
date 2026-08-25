@@ -5,7 +5,7 @@ agent helping you) never have to guess what the engine did.
 
 ## Where
 
-```
+```bash
 ~/.local/share/gripsack/runs/<run-id>.jsonl   # one file per run
 ~/.local/share/gripsack/runs/latest           # symlink to the newest
 ```

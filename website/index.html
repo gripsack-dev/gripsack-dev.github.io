@@ -51,8 +51,7 @@
   <code>mise use cargo:gripsack</code> ·
       <a href="https://github.com/gripsack-dev/gripsack/releases">release binaries</a></p>
   <div class="cta">
-    <a class="primary" href="https://github.com/gripsack-dev/gripsack/blob/main/plan/0001-architecture.md">read the plan</a>
-    <a class="ghost" href="https://github.com/gripsack-dev/gripsack">GitHub ↗</a>
+    <a class="primary" href="https://github.com/gripsack-dev/gripsack">GitHub ↗</a>
   </div>
 </section>
 
@@ -140,7 +139,7 @@ module(<span class="s">"helix"</span>, {
 <span class="err">error[E101]</span>: module <span class="s">"helix"</span> depends on unknown module <span class="s">"nvim"</span>
   <span class="loc">--&gt;</span> <span class="loc">modules/helix.py:4:7</span>
    <span class="gutter">|</span>
- <span class="gutter">4 |</span> helix = module(<span class="s">"helix"</span>, fetch=..., depends=[dep(<span class="s">"nvim"</span>)])
+ <span class="loc">4</span> <span class="gutter">|</span> helix = module(<span class="s">"helix"</span>, fetch=..., depends=[dep(<span class="s">"nvim"</span>)])
    <span class="gutter">|</span>       <span class="err">^ dependency declared here</span></pre>
   </div>
   <p class="note">structured diagnostics with stable codes and source snippets — and
@@ -244,6 +243,7 @@ module(<span class="s">"helix"</span>, {
     <tr><td>reproducible without sandbox</td><td class="yes">lockfiles</td><td class="part">flakes</td><td class="yes">✓</td><td class="no">·</td></tr>
     <tr><td>no daemon, no root</td><td class="yes">✓</td><td class="no">daemon · /nix</td><td class="yes">✓</td><td class="part">apt needs root</td></tr>
     <tr><td>per-host conditionals</td><td class="yes">facts + tags</td><td class="part">modules</td><td class="part">templates</td><td class="no">·</td></tr>
+    <tr><td>config linters, at eval, with spans</td><td class="yes">✓</td><td class="no">·</td><td class="no">·</td><td class="no">·</td></tr>
   </table>
   </div>
 </section>
@@ -292,15 +292,12 @@ module(<span class="s">"helix"</span>, {
   <p class="alt">shipped so far: fetchers for github releases, brew bottles, git, tarballs,
   pixi — plus plugin fetchers over NDJSON, generations with rollback, and ownership
   modes that never clobber. latest: corporate proxy support and system CA roots.
-  the design is public and moving:
-  <a href="https://github.com/gripsack-dev/gripsack/blob/main/plan/0001-architecture.md">0001 — architecture</a>.
   star the <a href="https://github.com/gripsack-dev/gripsack">repo</a> if this is the package manager you also wish existed.</p>
 </section>
 
 <footer>
   <span>MIT license</span>
   <a href="https://github.com/gripsack-dev/gripsack">source</a>
-  <a href="https://github.com/gripsack-dev/gripsack/blob/main/plan/0001-architecture.md">plan</a>
   <span style="margin-left:auto">a gripsack-dev project · eleven palettes</span>
 </footer>
 
