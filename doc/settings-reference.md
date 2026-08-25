@@ -49,6 +49,7 @@ Repo entries override user entries of the same name.
 | `GRIPSACK_HOME` | base directory for store, generations, and the `current` symlink (default: `$XDG_DATA_HOME/gripsack` or `~/.local/share/gripsack`) |
 | `GRIPSACK_BIN` | path to the `grip` binary (used by the e2e harness) |
 | `GRIPSACK_PYTHON` | bring-your-own interpreter: skip eval provisioning (provisioned plugins are then absent) |
+| `GRIPSACK_EXTRA_INDEX` | extra package indexes for eval/plugin provisioning, comma-separated — e.g. `https://gripsack.dev/simple` (the `griplint-*` ecosystem index, mirrored at `https://gripsack.dev/packages`). Opt-in, not a default: it requires an egress that can reach `gripsack.dev`, which "reaches PyPI" does not guarantee — content-filtering proxies have been observed 403ing `/simple/*` while allowing the bare domain. PyPI remains the primary index everywhere |
 | `HTTPS_PROXY` / `NO_PROXY` | corporate proxy support; the system CA roots are trusted |
 | `XDG_DATA_HOME` | honored for the default `GRIPSACK_HOME` |
 
