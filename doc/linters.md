@@ -14,7 +14,7 @@ today and what's queued, sorted by github stars.
 
 <div class="lint-stats">
   <span><b>22</b> available</span>
-  <span><b>27</b> planned</span>
+  <span><b>29</b> planned</span>
   <span><b>∞</b> the long tail</span>
 </div>
 
@@ -70,7 +70,9 @@ today and what's queued, sorted by github stars.
   <span class="lint-tool"><span class="lt-name">lf</span></span>
   <span class="lint-tool"><span class="lt-name">taskwarrior</span></span>
   <span class="lint-tool"><span class="lt-name">dunst</span></span>
+  <span class="lint-tool"><span class="lt-name">newsboat</span></span>
   <span class="lint-tool"><span class="lt-name">editorconfig</span></span>
+  <span class="lint-tool"><span class="lt-name">zathura</span></span>
 <a class="lint-tool lt-more" href="https://github.com/gripsack-dev/griplint-py/issues?q=label:linter"><span class="lt-name">+ more</span><span class="lt-status">help wanted ↗</span></a>
 </div>
 
