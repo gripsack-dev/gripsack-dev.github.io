@@ -53,11 +53,13 @@ typo in a module.*
   Windows; WSL is the story), a homebrew cask, and a multi-platform
   install.sh, with a brew `version=` tripwire
 - Run logs with causal spans; the debug and adopt skills
+- `merge` + `template` ownership modes — a managed block inside
+  foreign files (`.bashrc`), and payloads rendered from `{{ vars }}`
+  at deploy time
 
 ## Next
 
 - TypeScript frontend
-- `merge` + `template` ownership modes
 - `[throttle]` token buckets + the `capabilities` op — rate budgets
   live in fetchers
 - Fetcher `package =` provisioning (the linter story, for transports)

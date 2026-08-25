@@ -49,8 +49,24 @@ only**: they build data, they never run at build time.
 |---|---|---|
 | `symlink(...)` | store-owned, read-only | disciplined tools |
 | `tracked_copy(...)` | copied; drift detected, never silently overwritten | apps that rewrite their configs |
-| `merge(...)` | managed block in a shared file | `.bashrc` (next) |
-| `template(...)` | rendered per machine | hostnames, work vs personal (next) |
+| `merge(...)` | managed block in a shared file | `.bashrc`, `settings.json` other tools also write |
+| `template(...)` | rendered per machine at deploy time | hostnames, work vs personal email |
+
+`merge(to, marker=None)` owns exactly one delimited block inside a
+file other tools also write — everything outside the markers is never
+touched. The block is regenerated wholesale on every apply (drift
+*inside* the markers self-heals), prune removes only the block, and
+two modules can each own a block in the same file. The comment style
+is inferred from the destination (`.jsonc` → `//`, `.vimrc` → `"`,
+`.html` → `<!-- -->`, rc files and everything unknown → `#`);
+`marker=` overrides the prefix.
+
+`template(to, vars={...})` substitutes `{{ name }}` placeholders in
+the payload at deploy time; `{{{{` renders a literal `{{` (payloads
+that themselves carry template syntax — helm values, jinja configs —
+are expressible). An undefined variable fails the apply loudly, never
+renders empty. Compute per-host values at eval time with `facts()` —
+the core stays a dumb substituter.
 
 ## Steps, resources, retries
 
