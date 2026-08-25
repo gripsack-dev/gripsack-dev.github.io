@@ -4,6 +4,7 @@ How gripsack gets bytes. Two tiers: in-tree fetchers maintained in the
 core, and `gripfetch-*` plugins for everything else. Version pinning
 always lands in the lockfile (`grip update` re-resolves; `apply`
 verifies).
+![the fetcher plugin flow: a module's plugin_fetch call with opaque args → the core discovers the executable (env.toml path → provisioned venv bin → PATH) and sends one JSON request on stdin → the gripfetch-artifactory plugin writes bytes and streams NDJSON back → the core hash-verifies the bytes against the lockfile before anything enters the store, with the in-tree fetchers below](fetchers-flow.svg)
 
 ## In-tree (first-class)
 

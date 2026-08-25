@@ -74,7 +74,7 @@ GITHUB_LINKS: dict[str, str] = {
 }
 
 # Doc-local SVG diagrams: inlined and re-themed alongside the logo.
-DOC_ASSETS = {"architecture.svg", "linters-flow.svg"}
+DOC_ASSETS = {"architecture.svg", "linters-flow.svg", "fetchers-flow.svg"}
 
 # Palette hexes -> site CSS vars, so inlined SVGs re-theme with the
 # palette picker (an <img> can't inherit page CSS).

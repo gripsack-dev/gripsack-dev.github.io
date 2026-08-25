@@ -1,0 +1,73 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 380" font-family="DejaVu Sans Mono, monospace">
+  <!-- the fetcher plugin flow: module plugin_fetch (blue) → core
+       discovery + one JSON request (green) → gripfetch-* plugin
+       (peach, matching architecture.svg) → bytes through the lockfile
+       verification gate (yellow) → store. build.py swaps hexes for
+       site CSS vars — same palette as linters-flow.svg. -->
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#89b4fa"/>
+    </marker>
+    <marker id="arrg" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#a6e3a1"/>
+    </marker>
+    <marker id="arrp" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#fab387"/>
+    </marker>
+  </defs>
+  <rect width="960" height="380" rx="16" fill="#11111b"/>
+
+  <text x="24" y="30" font-size="11" fill="#6c7086">FETCH — bespoke transport, hash-verified bytes</text>
+
+  <!-- module opt-in -->
+  <rect x="24" y="46" width="264" height="92" rx="14" fill="#1e1e2e" stroke="#89b4fa" stroke-width="2"/>
+  <text x="156" y="74" text-anchor="middle" font-size="12.5" font-weight="bold" fill="#cdd6f4">your module</text>
+  <text x="156" y="96" text-anchor="middle" font-size="9.5" fill="#89b4fa">plugin_fetch("artifactory", args={…})</text>
+  <text x="156" y="116" text-anchor="middle" font-size="9.5" fill="#6c7086">args opaque to the core</text>
+
+  <line x1="294" y1="92" x2="338" y2="92" stroke="#89b4fa" stroke-width="2" marker-end="url(#arr)"/>
+
+  <!-- the core: discovery + request -->
+  <rect x="344" y="46" width="296" height="92" rx="14" fill="#1e1e2e" stroke="#a6e3a1" stroke-width="2"/>
+  <text x="492" y="72" text-anchor="middle" font-size="12.5" font-weight="bold" fill="#a6e3a1">grip core</text>
+  <text x="492" y="94" text-anchor="middle" font-size="10" fill="#a6adc8">discovers the executable:</text>
+  <text x="492" y="114" text-anchor="middle" font-size="9.5" fill="#6c7086">env.toml path → venv bin → PATH</text>
+
+  <line x1="646" y1="92" x2="698" y2="92" stroke="#a6e3a1" stroke-width="2" marker-end="url(#arrg)"/>
+  <text x="672" y="122" text-anchor="middle" font-size="8" fill="#6c7086">one JSON</text>
+  <text x="672" y="133" text-anchor="middle" font-size="8" fill="#6c7086">on stdin</text>
+
+  <!-- the plugin -->
+  <rect x="704" y="46" width="232" height="92" rx="14" fill="#1e1e2e" stroke="#fab387" stroke-width="2"/>
+  <text x="820" y="74" text-anchor="middle" font-size="12.5" font-weight="bold" fill="#fab387">gripfetch-artifactory</text>
+  <text x="820" y="96" text-anchor="middle" font-size="10" fill="#a6adc8">NDJSON · stdio</text>
+  <text x="820" y="116" text-anchor="middle" font-size="9.5" fill="#6c7086">internal registry · mTLS</text>
+
+  <!-- lockfile pin + returned bytes down to the gate -->
+  <line x1="492" y1="142" x2="492" y2="194" stroke="#a6e3a1" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#arrg)"/>
+  <text x="476" y="172" text-anchor="end" font-size="9.5" fill="#a6e3a1">locked pin</text>
+  <line x1="820" y1="142" x2="820" y2="194" stroke="#fab387" stroke-width="2" marker-end="url(#arrp)"/>
+  <text x="820" y="172" text-anchor="middle" font-size="9.5" fill="#fab387">bytes + NDJSON</text>
+
+  <!-- the verification gate, with the store behind it -->
+  <rect x="344" y="200" width="592" height="92" rx="14" fill="#1e1e2e" stroke="#f9e2af" stroke-width="2.5"/>
+  <text x="560" y="228" text-anchor="middle" font-size="13" font-weight="bold" fill="#f9e2af">verify — the gate</text>
+  <text x="560" y="250" text-anchor="middle" font-size="10.5" fill="#a6adc8">bytes hash-verified against the lockfile — before the store</text>
+  <text x="560" y="270" text-anchor="middle" font-size="9.5" fill="#6c7086">wrong or malicious → failed apply, never a poisoned store</text>
+
+  <rect x="776" y="216" width="144" height="60" rx="10" fill="#181825" stroke="#585b70" stroke-width="1.5"/>
+  <text x="848" y="240" text-anchor="middle" font-size="11" font-weight="bold" fill="#cdd6f4">store</text>
+  <text x="848" y="260" text-anchor="middle" font-size="8.5" fill="#a6adc8">/store/&lt;hash&gt;-&lt;name&gt;</text>
+
+  <!-- request anatomy -->
+  <text x="24" y="224" font-size="10" fill="#a6adc8">request: {"op":"fetch", args,</text>
+  <text x="40" y="240" font-size="10" fill="#a6adc8">dest_dir, locked?}</text>
+  <text x="24" y="258" font-size="9.5" fill="#6c7086">locked? — the lockfile pin (first-fetch vs re-fetch)</text>
+  <text x="24" y="274" font-size="9.5" fill="#6c7086">back: progress / diagnostic / response</text>
+  <text x="24" y="290" font-size="9.5" fill="#6c7086">stderr drains concurrently · 600s deadline</text>
+
+  <!-- in-tree strip -->
+  <rect x="24" y="312" width="912" height="44" rx="10" fill="#1e1e2e" stroke="#585b70" stroke-width="1.5"/>
+  <text x="480" y="331" text-anchor="middle" font-size="11" font-weight="bold" fill="#cdd6f4">in-tree fetchers — <tspan font-weight="normal" fill="#a6adc8">file · tarball · git · github_release · brew · pixi</tspan></text>
+  <text x="480" y="347" text-anchor="middle" font-size="9.5" fill="#6c7086">the bespoke long tail — internal registries, mTLS, credentialed dances — is gripfetch-* territory</text>
+</svg>

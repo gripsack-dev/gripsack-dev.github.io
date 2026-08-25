@@ -5,6 +5,10 @@ name: pages
 # repo is all it takes to update the site.
 on:
   workflow_dispatch:
+  # The app repo's demo/release workflows ping us to redeploy (fresh
+  # demo GIF + version chip) — needs SITE_REPO_TOKEN on their side.
+  repository_dispatch:
+    types: [rebuild]
   push:
     branches: [main]
     paths:
