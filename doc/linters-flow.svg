@@ -1,0 +1,62 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 320" font-family="DejaVu Sans Mono, monospace">
+  <!-- the lint flow: module lint= opt-in (blue) → frontend registry
+       lookup + provisioning (blue) → NDJSON request to the griplint-*
+       plugin (mauve) → span diagnostics → the core renders (green).
+       build.py swaps hexes for site CSS vars — same palette as
+       architecture.svg. -->
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#89b4fa"/>
+    </marker>
+    <marker id="arrg" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#a6e3a1"/>
+    </marker>
+    <marker id="arrm" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#cba6f7"/>
+    </marker>
+  </defs>
+  <rect width="960" height="320" rx="16" fill="#11111b"/>
+
+  <text x="24" y="30" font-size="11" fill="#6c7086">LINT — runs at eval, before anything stages</text>
+
+  <!-- module opt-in -->
+  <rect x="24" y="46" width="272" height="92" rx="14" fill="#1e1e2e" stroke="#89b4fa" stroke-width="2"/>
+  <text x="160" y="74" text-anchor="middle" font-size="12.5" font-weight="bold" fill="#cdd6f4">your module</text>
+  <text x="160" y="96" text-anchor="middle" font-size="10.5" fill="#89b4fa">lint = "yazi"</text>
+  <text x="160" y="116" text-anchor="middle" font-size="9.5" fill="#6c7086">configs, post-tree()</text>
+
+  <line x1="302" y1="92" x2="362" y2="92" stroke="#89b4fa" stroke-width="2" marker-end="url(#arr)"/>
+
+  <!-- frontend eval + registry -->
+  <rect x="368" y="46" width="272" height="92" rx="14" fill="#1e1e2e" stroke="#89b4fa" stroke-width="2"/>
+  <text x="504" y="74" text-anchor="middle" font-size="12.5" font-weight="bold" fill="#cdd6f4">frontend eval</text>
+  <text x="504" y="96" text-anchor="middle" font-size="10" fill="#a6adc8">env.toml [linters.yazi]</text>
+  <text x="504" y="116" text-anchor="middle" font-size="9.5" fill="#6c7086">provisioned · package == pinned</text>
+
+  <line x1="646" y1="92" x2="706" y2="92" stroke="#89b4fa" stroke-width="2" marker-end="url(#arr)"/>
+  <text x="676" y="126" text-anchor="middle" font-size="8.5" fill="#6c7086">NDJSON</text>
+
+  <!-- the linter plugin -->
+  <rect x="712" y="46" width="224" height="92" rx="14" fill="#1e1e2e" stroke="#cba6f7" stroke-width="2"/>
+  <text x="824" y="74" text-anchor="middle" font-size="12.5" font-weight="bold" fill="#cba6f7">griplint-yazi</text>
+  <text x="824" y="96" text-anchor="middle" font-size="10" fill="#a6adc8">NDJSON · stdio</text>
+  <text x="824" y="116" text-anchor="middle" font-size="9.5" fill="#6c7086">vendored schema per version</text>
+
+  <!-- envelope + diagnostics down to the core -->
+  <line x1="504" y1="142" x2="504" y2="194" stroke="#89b4fa" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#arr)"/>
+  <text x="488" y="174" text-anchor="end" font-size="9.5" fill="#89b4fa">{ir, diagnostics}</text>
+  <line x1="824" y1="142" x2="824" y2="194" stroke="#cba6f7" stroke-width="2" marker-end="url(#arrm)"/>
+  <text x="824" y="174" text-anchor="middle" font-size="9.5" fill="#cba6f7">diagnostics</text>
+
+  <!-- the core renders -->
+  <rect x="368" y="200" width="568" height="92" rx="14" fill="#1e1e2e" stroke="#a6e3a1" stroke-width="2.5"/>
+  <text x="652" y="228" text-anchor="middle" font-size="13" font-weight="bold" fill="#a6e3a1">grip core — the one renderer</text>
+  <text x="652" y="250" text-anchor="middle" font-size="10.5" fill="#a6adc8">same snippet, colors, codespacing — griplint-yazi/A01</text>
+  <text x="652" y="270" text-anchor="middle" font-size="9.5" fill="#6c7086">error severity fails eval before staging · warnings flow</text>
+
+  <!-- request anatomy -->
+  <text x="24" y="224" font-size="10" fill="#a6adc8">request: {"op":"lint", paths, tool_version}</text>
+  <text x="24" y="246" font-size="9.5" fill="#6c7086">paths — the module's config files, post-tree()</text>
+  <text x="24" y="262" font-size="9.5" fill="#6c7086">tool_version — the host lockfile pin</text>
+  <text x="24" y="278" font-size="9.5" fill="#6c7086">unknown files ignored · death never silent</text>
+</svg>

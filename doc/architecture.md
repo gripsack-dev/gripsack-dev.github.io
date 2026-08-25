@@ -5,7 +5,7 @@ packages from any source, dotfiles included — on any machine, with
 rollback. This page is the friendly tour; the design docs under
 [plan/](plan/) have the full details and the reasoning.
 
-![gripsack architecture: eval row (env repo → frontend → IR → lockfile) feeding the execute row (core → store → generations → $HOME), with fetcher plugins below](architecture.svg)
+![gripsack architecture: eval row (env repo → frontend → IR → lockfile) with linter plugins validating configs at eval, feeding the execute row (core → store → generations → $HOME), with fetcher plugins below](architecture.svg)
 
 ## The two halves
 

@@ -1,8 +1,9 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 560" font-family="DejaVu Sans Mono, monospace">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 608" font-family="DejaVu Sans Mono, monospace">
   <!-- gripsack architecture: three bands — your env repo (eval, blue),
        the IR contract (yellow), the core (execute, green) — with fetcher
-       plugins feeding the core (peach). build.py swaps hexes for site
-       CSS vars, so the diagram re-themes with the palette picker. -->
+       plugins feeding the core (peach) and linter plugins feeding eval
+       (mauve). build.py swaps hexes for site CSS vars, so the diagram
+       re-themes with the palette picker. -->
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
       <path d="M 0 0 L 10 5 L 0 10 z" fill="#89b4fa"/>
@@ -13,8 +14,11 @@
     <marker id="arrp" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
       <path d="M 0 0 L 10 5 L 0 10 z" fill="#fab387"/>
     </marker>
+    <marker id="arrm" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#cba6f7"/>
+    </marker>
   </defs>
-  <rect width="960" height="560" rx="16" fill="#11111b"/>
+  <rect width="960" height="608" rx="16" fill="#11111b"/>
 
   <!-- ===== band 1: your env repo ===== -->
   <text x="24" y="32" font-size="11" fill="#6c7086">EVAL — your repo, your language, your credentials</text>
@@ -38,36 +42,44 @@
   <text x="700" y="180" text-anchor="middle" font-size="9.5" fill="#6c7086">any frontend can emit it — python and</text>
   <text x="700" y="194" text-anchor="middle" font-size="9.5" fill="#6c7086">typescript ship in-tree</text>
 
-  <line x1="700" y1="212" x2="700" y2="260" stroke="#a6e3a1" stroke-width="2" marker-end="url(#arrg)"/>
+  <line x1="700" y1="212" x2="700" y2="308" stroke="#a6e3a1" stroke-width="2" marker-end="url(#arrg)"/>
   <text x="718" y="240" font-size="10" fill="#6c7086">resolved + locked</text>
 
+  <!-- ===== linter plugins: invoked by the frontend at eval ===== -->
+  <rect x="24" y="224" width="360" height="56" rx="10" fill="#1e1e2e" stroke="#cba6f7" stroke-width="2"/>
+  <text x="204" y="246" text-anchor="middle" font-size="11.5" font-weight="bold" fill="#cba6f7">griplint-* — linter plugins</text>
+  <text x="204" y="264" text-anchor="middle" font-size="9.5" fill="#a6adc8">run by the frontend at eval · NDJSON</text>
+  <line x1="204" y1="220" x2="204" y2="212" stroke="#cba6f7" stroke-width="2" marker-end="url(#arrm)"/>
+  <text x="404" y="248" font-size="10" fill="#6c7086">diagnostics ride the eval envelope —</text>
+  <text x="404" y="264" font-size="10" fill="#6c7086">plugins serialize; only the core renders (0011)</text>
+
   <!-- ===== band 3: the core ===== -->
-  <text x="24" y="252" font-size="11" fill="#6c7086">EXECUTE — one static musl binary, no daemon, no root</text>
-  <rect x="24" y="268" width="912" height="196" rx="14" fill="#1e1e2e" stroke="#a6e3a1" stroke-width="2.5"/>
-  <text x="48" y="298" font-size="14" font-weight="bold" fill="#a6e3a1">grip core</text>
-  <text x="48" y="324" font-size="11" fill="#a6adc8">parse → validate → resolve → lower → plan → execute</text>
-  <text x="48" y="342" font-size="9.5" fill="#6c7086">compiler passes — structured, span-labeled diagnostics</text>
+  <text x="24" y="300" font-size="11" fill="#6c7086">EXECUTE — one static musl binary, no daemon, no root</text>
+  <rect x="24" y="316" width="912" height="196" rx="14" fill="#1e1e2e" stroke="#a6e3a1" stroke-width="2.5"/>
+  <text x="48" y="346" font-size="14" font-weight="bold" fill="#a6e3a1">grip core</text>
+  <text x="48" y="372" font-size="11" fill="#a6adc8">parse → validate → resolve → lower → plan → execute</text>
+  <text x="48" y="390" font-size="9.5" fill="#6c7086">compiler passes — structured, span-labeled diagnostics</text>
 
-  <rect x="48" y="356" width="264" height="88" rx="10" fill="#181825" stroke="#585b70" stroke-width="1.5"/>
-  <text x="180" y="382" text-anchor="middle" font-size="12" font-weight="bold" fill="#cdd6f4">store</text>
-  <text x="180" y="404" text-anchor="middle" font-size="10" fill="#a6adc8">/store/&lt;hash&gt;-&lt;name&gt;</text>
-  <text x="180" y="422" text-anchor="middle" font-size="10" fill="#a6adc8">immutable · input-addressed</text>
+  <rect x="48" y="404" width="264" height="88" rx="10" fill="#181825" stroke="#585b70" stroke-width="1.5"/>
+  <text x="180" y="430" text-anchor="middle" font-size="12" font-weight="bold" fill="#cdd6f4">store</text>
+  <text x="180" y="452" text-anchor="middle" font-size="10" fill="#a6adc8">/store/&lt;hash&gt;-&lt;name&gt;</text>
+  <text x="180" y="470" text-anchor="middle" font-size="10" fill="#a6adc8">immutable · input-addressed</text>
 
-  <rect x="348" y="356" width="264" height="88" rx="10" fill="#181825" stroke="#585b70" stroke-width="1.5"/>
-  <text x="480" y="382" text-anchor="middle" font-size="12" font-weight="bold" fill="#cdd6f4">generations</text>
-  <text x="480" y="404" text-anchor="middle" font-size="10" fill="#a6adc8">1..N, immutable</text>
-  <text x="480" y="422" text-anchor="middle" font-size="10" fill="#a6adc8">current → N — one atomic flip</text>
+  <rect x="348" y="404" width="264" height="88" rx="10" fill="#181825" stroke="#585b70" stroke-width="1.5"/>
+  <text x="480" y="430" text-anchor="middle" font-size="12" font-weight="bold" fill="#cdd6f4">generations</text>
+  <text x="480" y="452" text-anchor="middle" font-size="10" fill="#a6adc8">1..N, immutable</text>
+  <text x="480" y="470" text-anchor="middle" font-size="10" fill="#a6adc8">current → N — one atomic flip</text>
 
-  <rect x="648" y="356" width="264" height="88" rx="10" fill="#181825" stroke="#585b70" stroke-width="1.5"/>
-  <text x="780" y="382" text-anchor="middle" font-size="12" font-weight="bold" fill="#cdd6f4">$HOME</text>
-  <text x="780" y="404" text-anchor="middle" font-size="10" fill="#a6adc8">configs per ownership mode</text>
-  <text x="780" y="422" text-anchor="middle" font-size="10" fill="#a6adc8">bin/ on PATH once</text>
+  <rect x="648" y="404" width="264" height="88" rx="10" fill="#181825" stroke="#585b70" stroke-width="1.5"/>
+  <text x="780" y="430" text-anchor="middle" font-size="12" font-weight="bold" fill="#cdd6f4">$HOME</text>
+  <text x="780" y="452" text-anchor="middle" font-size="10" fill="#a6adc8">configs per ownership mode</text>
+  <text x="780" y="470" text-anchor="middle" font-size="10" fill="#a6adc8">bin/ on PATH once</text>
 
   <!-- ===== fetcher plugins ===== -->
-  <rect x="24" y="484" width="400" height="56" rx="10" fill="#1e1e2e" stroke="#fab387" stroke-width="2"/>
-  <text x="224" y="506" text-anchor="middle" font-size="11.5" font-weight="bold" fill="#fab387">gripfetch-* — fetcher plugins</text>
-  <text x="224" y="524" text-anchor="middle" font-size="9.5" fill="#a6adc8">NDJSON over stdio · every byte hash-verified</text>
-  <line x1="224" y1="478" x2="224" y2="470" stroke="#fab387" stroke-width="2" marker-end="url(#arrp)"/>
-  <text x="452" y="510" font-size="10" fill="#6c7086">resolvers run at eval (your python/TS); fetcher plugins</text>
-  <text x="452" y="526" font-size="10" fill="#6c7086">only when the transport itself is bespoke (0002)</text>
+  <rect x="24" y="532" width="400" height="56" rx="10" fill="#1e1e2e" stroke="#fab387" stroke-width="2"/>
+  <text x="224" y="554" text-anchor="middle" font-size="11.5" font-weight="bold" fill="#fab387">gripfetch-* — fetcher plugins</text>
+  <text x="224" y="572" text-anchor="middle" font-size="9.5" fill="#a6adc8">NDJSON over stdio · every byte hash-verified</text>
+  <line x1="224" y1="526" x2="224" y2="518" stroke="#fab387" stroke-width="2" marker-end="url(#arrp)"/>
+  <text x="452" y="558" font-size="10" fill="#6c7086">resolvers run at eval (your python/TS); fetcher plugins</text>
+  <text x="452" y="574" font-size="10" fill="#6c7086">only when the transport itself is bespoke (0002)</text>
 </svg>

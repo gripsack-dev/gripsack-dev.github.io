@@ -122,6 +122,22 @@ Linters are **static shape** (does this key exist in yazi 25.x);
 `verify` contracts are **runtime smoke** (does the deployed thing
 work). A mode that shells out to the tool itself belongs to the verify
 side — the two stay apart.
+## The lint flow
+
+![the lint flow: module lint= opt-in → frontend registry lookup and provisioning → NDJSON request to griplint-yazi → span diagnostics → the core renders](linters-flow.svg)
+
+a typo'd key fails `grip check` with a span — before anything is
+staged, before the tool ever runs:
+
+<div class="window">
+  <div class="titlebar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="wtitle">grip check — eval + sema + linters, zero side effects</span></div>
+<pre><span class="err">error[griplint-helix/A01]</span>: unknown key [editor] <span class="s">'scrollof'</span>
+  <span class="loc">--&gt;</span> <span class="loc">/home/you/env/configs/helix/config.toml:4:1</span>
+   <span class="gutter">|</span>
+ <span class="gutter">4 |</span> scrollof = 5
+   <span class="gutter">|</span> <span class="err">^ not a real key</span>
+  <span class="loc">help</span>: did you mean <span class="s">'scrolloff'</span>?</pre>
+</div>
 
 ## Writing a linter
 
