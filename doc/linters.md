@@ -21,7 +21,7 @@ long tail is yours to claim.
 </div>
 
 <div class="lint-grid">
-  <a class="lint-tool lt-reference" style="--lt:var(--green)" href="https://github.com/gripsack-dev/linters-py"><span class="lt-name">helix</span><span class="lt-status">reference</span></a>
+  <a class="lint-tool lt-reference" style="--lt:var(--green)" href="https://github.com/gripsack-dev/griplint-py"><span class="lt-name">helix</span><span class="lt-status">reference</span></a>
   <span class="lint-tool" style="--lt:var(--blue)"><span class="lt-name">deno</span></span>
   <span class="lint-tool" style="--lt:var(--peach)"><span class="lt-name">zed</span></span>
   <span class="lint-tool" style="--lt:var(--yellow)"><span class="lt-name">lazygit</span></span>
@@ -71,7 +71,7 @@ long tail is yours to claim.
   <span class="lint-tool" style="--lt:var(--teal)"><span class="lt-name">editorconfig</span></span>
   <span class="lint-tool" style="--lt:var(--red)"><span class="lt-name">bacon</span></span>
   <span class="lint-tool" style="--lt:var(--blue)"><span class="lt-name">zathura</span></span>
-  <a class="lint-tool lt-more" href="https://github.com/gripsack-dev/linters-py/issues?q=label:linter"><span class="lt-name">+ more</span><span class="lt-status">help wanted ↗</span></a>
+  <a class="lint-tool lt-more" href="https://github.com/gripsack-dev/griplint-py/issues?q=label:linter"><span class="lt-name">+ more</span><span class="lt-status">help wanted ↗</span></a>
 </div>
 
 Every planned tool has an open tracking issue — pick one up, or file
@@ -151,7 +151,7 @@ request per module–linter pair:
 ## Where linters live
 
 Linters are plain Python with vendored schemas per tool version. The
-`linters-py` monorepo holds them — one PyPI package per tool
+`griplint-py` monorepo holds them — one PyPI package per tool
 (`griplint-yazi`, `griplint-helix`, …), each shipping a console
 script. The tables are community-maintained, and the north star is
 DefinitelyTyped: the tool's owners eventually own their linter, and
