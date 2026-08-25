@@ -40,7 +40,17 @@ def latest_release() -> str:
 
             return json.load(r)["tag_name"].removeprefix("core-v")
     except Exception:
-        return "0.4.1"
+        return "0.8.0"
+
+_SITE_VERSION: str | None = None
+
+
+def site_version() -> str:
+    """latest_release(), fetched once per build (docs footers reuse it)."""
+    global _SITE_VERSION
+    if _SITE_VERSION is None:
+        _SITE_VERSION = latest_release()
+    return _SITE_VERSION
 
 
 def asset_version() -> str:
@@ -179,10 +189,12 @@ def page(title: str, body: str, active: str, toc: list[tuple[str, str]]) -> str:
 {body}
 </article>
 <footer>
+  <span><span class="blink"></span> © 2026 <a href="https://github.com/tknawara">Tarek Nawara</a></span>
   <span>MIT license</span>
+  <a href="https://github.com/gripsack-dev">gripsack-dev</a>
   <a href="{REPO}">source</a>
   <a href="../index.html">home</a>
-  <span style="margin-left:auto">a gripsack-dev project · eleven palettes</span>
+  <span style="margin-left:auto"><span class="fversion">v{site_version()}</span> · eleven palettes</span>
 </footer>
 </main>
 </div>
@@ -253,9 +265,15 @@ def assemble() -> None:
     index = (ROOT / "website" / "index.html").read_text()
     assert "<!--LOGO-->" in index, "index.html lost its <!--LOGO--> placeholder"
     index = index.replace("<!--LOGO-->", themed_logo())
-    index = index.replace("<!--VERSION-->", latest_release())
+    index = index.replace("<!--VERSION-->", site_version())
     index = index.replace("./assets/site.css", f"./assets/site.css?v={asset_version()}")
     index = index.replace("./assets/site.js", f"./assets/site.js?v={asset_version()}")
+    # Stamp the demo variants that actually shipped into the img tag, so
+    # site.js never guesses a missing variant (and never 404s).
+    variants = ",".join(
+        sorted(p.stem.removeprefix("demo-") for p in (ROOT / "img").glob("demo-*.gif"))
+    )
+    index = index.replace('data-demo-variants=""', f'data-demo-variants="{variants}"')
     (OUT / "index.html").write_text(index)
     # Custom domain — GitHub Pages reads this from the deployed artifact.
     (OUT / "CNAME").write_text("gripsack.dev\n")
@@ -272,6 +290,8 @@ def assemble() -> None:
     (OUT / "img").mkdir(exist_ok=True)
     for gif in (ROOT / "img").glob("*.gif"):
         shutil.copy(gif, OUT / "img" / gif.name)
+    # Stamp the demo variants that actually shipped into the img tag, so
+    # site.js never guesses a missing variant (and never 404s).
     for name in DOC_ASSETS:
         shutil.copy(ROOT / "doc" / name, OUT / "assets" / name)
     print("copied landing page + assets")

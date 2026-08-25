@@ -79,7 +79,7 @@
     <div class="step"><b>[01]</b><h3>describe</h3><p>modules are typed Python in your repo: sources, build steps, config files, ownership.</p></div>
     <div class="step"><b>[02]</b><h3>evaluate</h3><p>modules evaluate to IR — pure data. host facts &amp; tags resolve here, nowhere else.</p></div>
     <div class="step"><b>[03]</b><h3>lock</h3><p>the resolved plan pins URLs and content hashes per host. reproducible, no sandbox.</p></div>
-    <div class="step"><b>[04]</b><h3>build</h3><p>fetchers and builders run as a DAG into hash-addressed store paths.</p></div>
+    <div class="step"><b>[04]</b><h3>build</h3><p>fetchers and builders run as a parallel DAG, N = cores, into hash-addressed store paths.</p></div>
     <div class="step"><b>[05]</b><h3>activate</h3><p>one atomic symlink flip. dotfiles deployed per ownership mode.</p></div>
     <div class="step"><b>[06]</b><h3>roll back</h3><p>flip <code>current</code> to any previous generation. that's the whole mechanism.</p></div>
   </div>
@@ -89,7 +89,7 @@
   <h2 class="section">see it happen</h2>
   <div class="window demo">
     <div class="titlebar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="wtitle">grip apply — a fixture env, end to end</span></div>
-    <img src="./img/demo.gif" data-demo-img data-demo-base="./img/demo" alt="grip apply on a fixture environment: modules resolve and fetch into the store, configs deploy per ownership mode, and the current symlink flips to the new generation — a second apply is a satisfied no-op">
+    <img src="./img/demo.gif" data-demo-img data-demo-base="./img/demo" data-demo-variants="" alt="grip apply on a fixture environment: modules resolve and fetch into the store, configs deploy per ownership mode, and the current symlink flips to the new generation — a second apply is a satisfied no-op">
   </div>
   <p class="note">re-rendered by CI from real demo runs — always the current CLI.</p>
 </section>
@@ -300,14 +300,17 @@ module(<span class="s">"helix"</span>, {
   <h2 class="section">follow along</h2>
   <p class="alt">shipped so far: fetchers for github releases, brew bottles, git, tarballs,
   pixi — plus plugin fetchers over NDJSON, generations with rollback, and ownership
-  modes that never clobber. latest: corporate proxy support and system CA roots.
+  modes that never clobber. latest: grip check, 22 config linters, and the parallel scheduler.
   star the <a href="https://github.com/gripsack-dev/gripsack">repo</a> if this is the package manager you also wish existed.</p>
 </section>
 
 <footer>
+  <span><span class="blink"></span> © 2026 <a href="https://github.com/tknawara">Tarek Nawara</a></span>
   <span>MIT license</span>
+  <a href="https://github.com/gripsack-dev">gripsack-dev</a>
   <a href="https://github.com/gripsack-dev/gripsack">source</a>
-  <span style="margin-left:auto">a gripsack-dev project · eleven palettes</span>
+  <a href="./docs/architecture.html">docs</a>
+  <span style="margin-left:auto"><span class="fversion">v<!--VERSION--></span> · eleven palettes</span>
 </footer>
 
 </main>

@@ -63,6 +63,23 @@ pre .n { color: var(--peach); }
 footer {
   margin-top: 64px; border-top: 1px solid var(--border); padding: 24px 0 44px;
   color: var(--faint); font-size: 14px; display: flex; gap: 18px; flex-wrap: wrap;
+  align-items: baseline;
+}
+
+/* tuicr-style credit cursor: a block caret pulsing at 1.5s */
+@keyframes blink { 50% { opacity: 0; } }
+footer .blink {
+  display: inline-block; width: 8px; height: 14px; background: var(--green);
+  vertical-align: -2px; margin-right: 6px;
+  animation: blink 1.5s steps(2) infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  footer .blink { animation: none; }
+}
+footer .fversion {
+  font-family: var(--mono); font-size: 12px; color: var(--green);
+  border: 1px solid color-mix(in srgb, var(--green) 55%, var(--border));
+  border-radius: 999px; padding: 1px 10px;
 }
 
 /* ---- hero ---- */

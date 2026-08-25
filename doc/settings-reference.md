@@ -48,6 +48,8 @@ Repo entries override user entries of the same name.
 |---|---|
 | `GRIPSACK_HOME` | base directory for store, generations, and the `current` symlink (default: `$XDG_DATA_HOME/gripsack` or `~/.local/share/gripsack`) |
 | `GRIPSACK_BIN` | path to the `grip` binary (used by the e2e harness) |
+| `GRIPSACK_PYTHON` | bring-your-own interpreter: skip eval provisioning (provisioned plugins are then absent) |
+| `HTTPS_PROXY` / `NO_PROXY` | corporate proxy support; the system CA roots are trusted |
 | `XDG_DATA_HOME` | honored for the default `GRIPSACK_HOME` |
 
 ## CLI surface
@@ -55,12 +57,14 @@ Repo entries override user entries of the same name.
 ```bash
 grip apply [--host H] [MODULE...]   # fetch, build, deploy — one new generation
 grip plan [--host H] [MODULE...]    # show what apply would change
+grip check                         # eval + sema + linters; exit code = validity
+grip update [MODULE]               # re-resolve pins into the lockfile
 grip rollback [N]                   # flip current back to generation N
 grip generations                    # list generations and their status
 grip gc                             # collect unreferenced store paths
+grip gc --dry-run                  # show what gc would reclaim
 grip why-owns <path>                # which module owns a deployed path
 grip doctor                         # check config, runtime, frontend env
 ```
 
-Subcommands other than `doctor` are being implemented; the config
-schema on this page is their stable contract.
+All shipped; the config schema on this page is their stable contract.

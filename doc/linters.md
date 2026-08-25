@@ -13,8 +13,8 @@ today and what's queued, sorted by github stars.
 ## Coverage
 
 <div class="lint-stats">
-  <span><b>18</b> available</span>
-  <span><b>31</b> planned</span>
+  <span><b>22</b> available</span>
+  <span><b>27</b> planned</span>
   <span><b>∞</b> the long tail</span>
 </div>
 
@@ -40,8 +40,11 @@ today and what's queued, sorted by github stars.
   <span class="lint-tool lt-available" style="--lt:var(--mauve)"><span class="lt-name">television</span></span>
   <span class="lint-tool lt-available" style="--lt:var(--teal)"><span class="lt-name">procs</span></span>
   <span class="lint-tool lt-available" style="--lt:var(--red)"><span class="lt-name">bacon</span></span>
+  <span class="lint-tool lt-available" style="--lt:var(--blue)"><span class="lt-name">claude-code</span></span>
+  <span class="lint-tool lt-available" style="--lt:var(--peach)"><span class="lt-name">zed</span></span>
+  <span class="lint-tool lt-available" style="--lt:var(--yellow)"><span class="lt-name">gh-dash</span></span>
+  <span class="lint-tool lt-available" style="--lt:var(--mauve)"><span class="lt-name">tuicr</span></span>
   <span class="lint-tool"><span class="lt-name">deno</span></span>
-  <span class="lint-tool"><span class="lt-name">zed</span></span>
   <span class="lint-tool"><span class="lt-name">lazygit</span></span>
   <span class="lint-tool"><span class="lt-name">ghostty</span></span>
   <span class="lint-tool"><span class="lt-name">lazydocker</span></span>
@@ -61,23 +64,19 @@ today and what's queued, sorted by github stars.
   <span class="lint-tool"><span class="lt-name">lsd</span></span>
   <span class="lint-tool"><span class="lt-name">pre-commit</span></span>
   <span class="lint-tool"><span class="lt-name">tmuxinator</span></span>
-  <span class="lint-tool"><span class="lt-name">gh-dash</span></span>
   <span class="lint-tool"><span class="lt-name">posting</span></span>
   <span class="lint-tool"><span class="lt-name">eza</span></span>
   <span class="lint-tool"><span class="lt-name">waybar</span></span>
   <span class="lint-tool"><span class="lt-name">lf</span></span>
   <span class="lint-tool"><span class="lt-name">taskwarrior</span></span>
   <span class="lint-tool"><span class="lt-name">dunst</span></span>
-  <span class="lint-tool"><span class="lt-name">newsboat</span></span>
   <span class="lint-tool"><span class="lt-name">editorconfig</span></span>
-  <span class="lint-tool"><span class="lt-name">zathura</span></span>
-  <a class="lint-tool lt-more" href="https://github.com/gripsack-dev/griplint-py/issues?q=label:linter"><span class="lt-name">+ more</span><span class="lt-status">help wanted ↗</span></a>
+<a class="lint-tool lt-more" href="https://github.com/gripsack-dev/griplint-py/issues?q=label:linter"><span class="lt-name">+ more</span><span class="lt-status">help wanted ↗</span></a>
 </div>
 
 Available means merged on main in
 [griplint-py](https://github.com/gripsack-dev/griplint-py) — PyPI
-publishing is rolling out (4 of 18 live today, the rest queued).
-Every planned tool has an open tracking issue: pick one up, or file
+publishing is rolling out behind it. Every planned tool has an open tracking issue: pick one up, or file
 the one your dotfiles need.
 
 ## Using a linter
@@ -166,6 +165,12 @@ request per module–linter pair:
   layout it doesn't recognize is a bad linter, not a bad config.
 - Death is never silent: a linter that crashes, hangs, or emits
   garbage surfaces as a diagnostic, not a missing check.
+The contract made executable:
+[griplint-conformance](https://github.com/gripsack-dev/griplint-conformance)
+and
+[gripfetch-conformance](https://github.com/gripsack-dev/gripfetch-conformance)
+— run your plugin against the suite and the envelope stops being
+prose.
 
 ## Where linters live
 

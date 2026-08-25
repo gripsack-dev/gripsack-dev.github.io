@@ -14,7 +14,7 @@ verifies).
 | `tarball(url, sha256)` | live | pinned sha256, verified before the store |
 | `git(url, rev)` | live | the rev is immutable; shallow-fetched |
 | `github_release(repo, asset)` | live | resolved release + asset hash, locked |
-| `brew(...)` (bottles) | live | bottle hash, locked |
+| `brew(...)` (bottles) | live | bottle hash, locked; **floats to the current formula** — the API only serves stable, so `version=` is a tripwire that fails at resolve (`grip update` to move), never a range. Payload is the raw bottle layout: install paths look like `jq/{version}/bin/jq` (`{version}` substitutes from the lock) |
 | `pixi(...)` (conda) | live | package hashes from the pixi resolution, locked |
 
 `mise` is deliberately not a fetcher: its backends are mostly GitHub
@@ -32,6 +32,9 @@ A `gripfetch-<name>` executable on your `PATH` (or wired via
 The core hash-verifies every returned byte against the lockfile before
 it enters the store — a plugin can be wrong or malicious and the worst
 outcome is a failed apply, never a poisoned store.
+Writing one? The contract made executable:
+[gripfetch-conformance](https://github.com/gripsack-dev/gripfetch-conformance)
+— the suite every plugin runs against.
 
 This is the home for: distro packages (apt/dnf — their pinning is repo
 snapshots and maintainer scripts, not ours to own), internal company

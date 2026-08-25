@@ -29,7 +29,12 @@
     var demo = document.querySelector("[data-demo-img]");
     if (demo) {
       var base = demo.getAttribute("data-demo-base") || "./img/demo";
-      var src = name && name !== DEFAULT ? base + "-" + name + ".gif" : base + ".gif";
+      /* variants that actually shipped, stamped at build time */
+      var variants = (demo.getAttribute("data-demo-variants") || "").split(",");
+      var src =
+        name && name !== DEFAULT && variants.indexOf(name) !== -1
+          ? base + "-" + name + ".gif"
+          : base + ".gif";
       if (demo.getAttribute("src") !== src) {
         demo.onerror = function () {
           demo.onerror = null;
