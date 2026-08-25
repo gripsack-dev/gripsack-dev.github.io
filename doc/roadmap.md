@@ -56,12 +56,14 @@ typo in a module.*
 - `merge` + `template` ownership modes — a managed block inside
   foreign files (`.bashrc`), and payloads rendered from `{{ vars }}`
   at deploy time
+- `grip init` — scaffold an env repo from the embedded template
+- `[throttle]` token buckets + the `capabilities` op — rate budgets
+  live in fetchers; `[throttle]` in env.toml outranks them, and
+  buckets persist across runs
 
 ## Next
 
 - TypeScript frontend
-- `[throttle]` token buckets + the `capabilities` op — rate budgets
-  live in fetchers
 - Fetcher `package =` provisioning (the linter story, for transports)
 - Fonts and desktop-entry activation adapters
 - Module env inheritance for dependents

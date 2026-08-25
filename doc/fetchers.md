@@ -27,7 +27,12 @@ A `gripfetch-<name>` executable on your `PATH` (or wired via
 
 - `fetch {args, dest_dir, locked}` → bytes into `dest_dir`, responds
   `{sha256}`
-- `capabilities` → features + rate budget (the engine throttles to it)
+- `capabilities` → `{"capabilities": {"throttle": {"registry.example.com":
+  "60/min"}}}` — the fetcher declares its registry's rate budget; the
+  engine runs a token bucket per domain and throttles to it. Budgets
+  live in fetchers because the fetcher knows its registry; `[throttle]`
+  in env.toml outranks any declaration. A plugin that predates the op
+  is tolerated (no declared budgets) but must not pretend success.
 
 The core hash-verifies every returned byte against the lockfile before
 it enters the store — a plugin can be wrong or malicious and the worst

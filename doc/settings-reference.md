@@ -36,6 +36,25 @@ data and is always read before module evaluation.
 
 Repo entries override user entries of the same name.
 
+## `[throttle]` — env.toml only
+
+Rate budgets per domain, as `"domain" = "N/unit"` (units: `s`, `min`,
+`hr`). The engine runs a token bucket per domain and blocks until a
+token is available; bucket state persists in
+`$GRIPSACK_HOME/throttle.json`, so back-to-back applies share one
+budget.
+
+```toml
+[throttle]
+"api.github.com" = "30/min"
+```
+
+Precedence: built-in defaults for the internal fetchers' registries
+(`api.github.com`, `ghcr.io`, `formulae.brew.sh`) < budgets declared
+by a fetcher via the `capabilities` op < `[throttle]` here. Downloads
+from release CDNs are not throttled — rate limits live on API
+endpoints.
+
 ## `[settings]` — env.toml or user config
 
 | key | type | default | what |
