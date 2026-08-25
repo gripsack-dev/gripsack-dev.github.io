@@ -270,7 +270,8 @@ def assemble() -> None:
         shutil.copy(ROOT / "website" / "assets" / name, OUT / "assets" / name)
     shutil.copy(ROOT / "doc" / "logo.svg", OUT / "assets" / "logo.svg")
     (OUT / "img").mkdir(exist_ok=True)
-    shutil.copy(ROOT / "img" / "demo.gif", OUT / "img" / "demo.gif")
+    for gif in (ROOT / "img").glob("*.gif"):
+        shutil.copy(gif, OUT / "img" / gif.name)
     for name in DOC_ASSETS:
         shutil.copy(ROOT / "doc" / name, OUT / "assets" / name)
     print("copied landing page + assets")

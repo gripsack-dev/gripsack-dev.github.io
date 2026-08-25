@@ -192,7 +192,6 @@ table.compare .part { color: var(--yellow); font-size: 13px; }
 }
 .window pre { border: none; border-radius: 0; margin: 0; background: var(--card); }
 .window img { width: 100%; display: block; }
-.window.demo { max-width: 900px; margin-inline: auto; }
 
 /* ---- narrow ---- */
 @media (max-width: 880px) {

@@ -18,6 +18,26 @@
         buttons[i].getAttribute("data-set-palette") === (name || DEFAULT)
       );
     }
+    /* the readout on docs rails is plain text — keep it in sync too */
+    var labels = document.querySelectorAll("[data-palette-name]");
+    for (var j = 0; j < labels.length; j++) {
+      labels[j].textContent = name || DEFAULT;
+    }
+    /* theme-reactive demo: one GIF per palette (rendered by the app
+       repo's demo workflow); unknown/missing variants fall back to the
+       default render */
+    var demo = document.querySelector("[data-demo-img]");
+    if (demo) {
+      var base = demo.getAttribute("data-demo-base") || "./img/demo";
+      var src = name && name !== DEFAULT ? base + "-" + name + ".gif" : base + ".gif";
+      if (demo.getAttribute("src") !== src) {
+        demo.onerror = function () {
+          demo.onerror = null;
+          demo.src = base + ".gif";
+        };
+        demo.src = src;
+      }
+    }
   }
 
   var stored = null;
