@@ -269,6 +269,8 @@ def assemble() -> None:
     for name in ("icon.svg", "favicon.svg", "site.css", "site.js"):
         shutil.copy(ROOT / "website" / "assets" / name, OUT / "assets" / name)
     shutil.copy(ROOT / "doc" / "logo.svg", OUT / "assets" / "logo.svg")
+    (OUT / "img").mkdir(exist_ok=True)
+    shutil.copy(ROOT / "img" / "demo.gif", OUT / "img" / "demo.gif")
     for name in DOC_ASSETS:
         shutil.copy(ROOT / "doc" / name, OUT / "assets" / name)
     print("copied landing page + assets")
