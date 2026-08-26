@@ -34,6 +34,12 @@ data and is always read before module evaluation.
 | key | type | default | what |
 |---|---|---|---|
 | `plugin` | string | — | fetcher plugin for this source; default discovery is `gripfetch-<name>` on `PATH` |
+| `package` | string | — | provision the fetcher from a GitHub release: `owner/repo@tag`. grip manages the lifecycle — downloaded at eval, sha256-verified against the mandatory sidecar asset, receipted into `$GRIPSACK_HOME/plugins/`; the tag is the pin. Mutually exclusive with `plugin` |
+
+The same form works for linter plugins: `[linters.<name>] package =
+"owner/repo@tag"` provisions an executable `griplint-<name>` (a bare
+package name keeps the wheel meaning). A fresh install prints its
+source — a new plugin runs with your user rights.
 
 Repo entries override user entries of the same name.
 
