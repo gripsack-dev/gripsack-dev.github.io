@@ -21,13 +21,14 @@ and proves it: `plan` clean, apply works, second apply satisfied.
 
 ## griplint-author
 
-Author a `griplint-*` config linter for a new tool: research the
-tool's config surface end to end (official docs first, schemas and
-parser source over memory — never guess a key), build versioned key
-tables, and pin behavior with fixture tests. The reference
-implementation is `griplint-helix`. Then prove it:
-[griplint-conformance](https://github.com/gripsack-dev/griplint-conformance)
-— the contract made executable; the suite drives your plugin exactly
+Author a config linter as a **data pack** in `crates/griplint/packs/`:
+research the tool's config surface end to end (official docs first,
+schemas and parser source over memory — never guess a key), write the
+versioned key table as TOML data, and pin behavior with the golden
+fixture corpus. The reference pack is `helix.toml`. Exotic formats
+(RON, KDL, custom) stay external plugins — prove those against
+[griplint-conformance](https://github.com/gripsack-dev/griplint-conformance),
+the contract made executable; the suite drives your plugin exactly
 like the core does.
 
 ## gripfetch-author

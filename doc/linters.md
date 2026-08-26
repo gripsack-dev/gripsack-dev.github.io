@@ -1,14 +1,23 @@
 # Linters
 
-Config linters are eval-time validation plugins: `griplint-*`
-executables that check your config files against the tool's own
-schema before anything is staged. A typo'd key in `yazi.toml` deploys
-cleanly today and fails at tool runtime, in a different terminal, an
-hour later — linters close that gap at eval, where the error points
-at the offending line.
+Config linters check your config files against the tool's own schema
+before anything is staged. A typo'd key in `yazi.toml` deploys cleanly
+and fails at tool runtime, in a different terminal, an hour later —
+linters close that gap at check time, where the error points at the
+offending line.
 
-Status: the engine is shipped — the linter set below is what exists
-today and what's queued, sorted by github stars.
+Since 0.13 the **core** drives linters: `lint = "name"` travels in the
+IR, and `grip check`/`apply` spawn the linter exactly like a fetcher
+plugin — no Python venv involved, so linting works under
+`GRIPSACK_PYTHON` and in CI without a frontend runtime. And the
+linters themselves are becoming **data**: `crates/griplint` holds every
+shipped linter as a versioned data pack (key tables as TOML) plus the
+golden fixture corpus — the in-crate engine that runs them in-process
+is the next move (plan/0012). A new structured-format linter is a data
+PR, not a package.
+
+Status: the pack set below is what exists today and what's queued,
+sorted by github stars.
 
 ## Coverage
 
@@ -21,7 +30,7 @@ today and what's queued, sorted by github stars.
 <p class="lint-legend"><span class="lg lg-a"></span>available on main<span class="lg lg-p"></span>planned<span class="lg lg-m"></span>help wanted</p>
 
 <div class="lint-grid">
-  <a class="lint-tool lt-reference" style="--lt:var(--green)" href="https://github.com/gripsack-dev/griplint-py"><span class="lt-name">helix</span><span class="lt-status">reference</span></a>
+  <a class="lint-tool lt-reference" style="--lt:var(--green)" href="https://github.com/gripsack-dev/gripsack/tree/main/crates/griplint/packs"><span class="lt-name">helix</span><span class="lt-status">reference</span></a>
   <span class="lint-tool lt-available" style="--lt:var(--blue)"><span class="lt-name">alacritty</span></span>
   <span class="lint-tool lt-available" style="--lt:var(--peach)"><span class="lt-name">starship</span></span>
   <span class="lint-tool lt-available" style="--lt:var(--yellow)"><span class="lt-name">yazi</span></span>
@@ -73,13 +82,13 @@ today and what's queued, sorted by github stars.
   <span class="lint-tool"><span class="lt-name">newsboat</span></span>
   <span class="lint-tool"><span class="lt-name">editorconfig</span></span>
   <span class="lint-tool"><span class="lt-name">zathura</span></span>
-<a class="lint-tool lt-more" href="https://github.com/gripsack-dev/griplint-py/issues?q=label:linter"><span class="lt-name">+ more</span><span class="lt-status">help wanted ↗</span></a>
+<a class="lint-tool lt-more" href="https://github.com/gripsack-dev/gripsack/issues?q=label:linter"><span class="lt-name">+ more</span><span class="lt-status">help wanted ↗</span></a>
 </div>
 
-Available means merged on main in
-[griplint-py](https://github.com/gripsack-dev/griplint-py) — PyPI
-publishing is rolling out behind it. Every planned tool has an open tracking issue: pick one up, or file
-the one your dotfiles need.
+Available means a data pack on main in
+[crates/griplint/packs](https://github.com/gripsack-dev/gripsack/tree/main/crates/griplint/packs).
+Every planned tool has an open tracking issue — a pack is data, so
+picking one up is a research-and-tables PR, not a packaging exercise.
 
 ## Using a linter
 
@@ -87,20 +96,22 @@ Two halves: register the plugin in `env.toml`, opt in from the module.
 
 ```toml
 [linters.yazi]
-package = "griplint-yazi==1.2.0"      # provisioned into the frontend venv
+package = "griplint-yazi==1.2.0"      # the published wheel, resolved next to the frontend python
 
 [linters.internal]
-path = "/opt/bin/griplint-internal"   # explicit override
+path = "/opt/bin/griplint-internal"   # explicit executable — the out-of-tree form
 ```
 
 ```python
 module("yazi", ..., lint="yazi")
 ```
 
-- `package` requires an `==` pin. Pins join the venv hash, so the same
-  env.toml yields identical linter behavior on every machine. Python
-  linters are provisioned automatically — no PATH mutation, no
-  separate tool installs. Non-Python linters keep the `path` form.
+- `package` requires an `==` pin and resolves the published wheel's
+  console script — the core finds it next to the frontend python, so
+  no PATH mutation and no separate installs. (The published wheels are
+  frozen in place; new linter work is data packs in `crates/griplint`,
+  and the plugin lifecycle manager — `package = "owner/repo@tag"` for
+  executables — is on the roadmap.)
 - `lint = "<name>"` must resolve against the registry: an
   unregistered name is a hard eval error with the module-line span,
   never a silent skip. There is deliberately no PATH-discovery
@@ -113,8 +124,8 @@ module("yazi", ..., lint="yazi")
 
 ## The command surface
 
-Linting runs wherever eval runs, so every command that evaluates gets
-diagnostics for free:
+The core lints after eval and sema, so every command that evaluates
+gets diagnostics for free:
 
 | command | behavior |
 |---|---|
@@ -176,12 +187,16 @@ prose.
 
 ## Where linters live
 
-Linters are plain Python with vendored schemas per tool version. The
-`griplint-py` monorepo holds them — one PyPI package per tool
-(`griplint-yazi`, `griplint-helix`, …), each shipping a console
-script. The tables are community-maintained, and the north star is
-DefinitelyTyped: the tool's owners eventually own their linter, and
-gripsack just provides the envelope and the renderer.
+In the gripsack repo as data:
+[`crates/griplint/packs`](https://github.com/gripsack-dev/gripsack/tree/main/crates/griplint/packs)
+— one TOML pack per tool, keyed by tool version, with the golden
+fixture corpus beside it. The engine reading them lands in-crate
+(plan/0012 move 3); exotic formats (RON, KDL, custom) stay external
+`griplint-*` executables over the protocol above, forever. The tables
+are community-maintained, and the north star is DefinitelyTyped: the
+tool's owners eventually own their linter, and gripsack just provides
+the envelope and the renderer.
 
-Full design: [plan/0010](https://github.com/gripsack-dev/gripsack/blob/main/plan/0010-plugin-provisioning.md)
-and [plan/0011](https://github.com/gripsack-dev/gripsack/blob/main/plan/0011-validation-plugins.md).
+Full design: [plan/0010](https://github.com/gripsack-dev/gripsack/blob/main/plan/0010-plugin-provisioning.md),
+[plan/0011](https://github.com/gripsack-dev/gripsack/blob/main/plan/0011-validation-plugins.md),
+and [plan/0012](https://github.com/gripsack-dev/gripsack/blob/main/plan/0012-linters-in-core.md).

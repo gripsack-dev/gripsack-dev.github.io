@@ -29,9 +29,9 @@
 
   <!-- frontend eval + registry -->
   <rect x="368" y="46" width="272" height="92" rx="14" fill="#1e1e2e" stroke="#89b4fa" stroke-width="2"/>
-  <text x="504" y="74" text-anchor="middle" font-size="12.5" font-weight="bold" fill="#cdd6f4">frontend eval</text>
-  <text x="504" y="96" text-anchor="middle" font-size="10" fill="#a6adc8">env.toml [linters.yazi]</text>
-  <text x="504" y="116" text-anchor="middle" font-size="9.5" fill="#6c7086">provisioned · package == pinned</text>
+  <text x="504" y="74" text-anchor="middle" font-size="12.5" font-weight="bold" fill="#cdd6f4">grip check · core</text>
+  <text x="504" y="96" text-anchor="middle" font-size="10" fill="#a6adc8">IR: lint = "yazi"</text>
+  <text x="504" y="116" text-anchor="middle" font-size="9.5" fill="#6c7086">the core spawns the linter</text>
 
   <line x1="646" y1="92" x2="706" y2="92" stroke="#89b4fa" stroke-width="2" marker-end="url(#arr)"/>
   <text x="676" y="126" text-anchor="middle" font-size="8.5" fill="#6c7086">NDJSON</text>

@@ -44,8 +44,8 @@ typo in a module.*
 - Activation adapters (`SystemdUser` first)
 - 22 config linters — `griplint-*` for the tools your dotfiles
   actually configure (helix, yazi, starship, zed, claude-code, …),
-  with the griplint-py registry and a weekly upstream-watch that files
-  freshness issues; see [linters](linters.md)
+  as data packs in `crates/griplint`, with a weekly upstream-watch
+  that files freshness issues; see [linters](linters.md)
 - Corporate proxy support, trusting the system CA roots, `NO_PROXY`
   honored
 - `GRIPSACK_PYTHON` — the bring-your-own-interpreter escape hatch
@@ -76,5 +76,7 @@ typo in a module.*
   the exact line — that moment.
 - **Fetcher registry**: `gripfetch-*` plugins for the long tail, under
   `gripsack-dev` and beyond.
-- **griplint-ts**: the TypeScript mirror of griplint-py — same contract,
-  same conformance suite, the other frontend.
+- **griplint engine in-crate**: the data packs run in-process — no
+  plugin lifecycle for first-party linters (plan/0012 move 3). (This
+  replaces the old "griplint-ts" idea — with linters as data there is
+  nothing to mirror.)
