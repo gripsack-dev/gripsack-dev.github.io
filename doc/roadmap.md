@@ -57,6 +57,10 @@ typo in a module.*
   foreign files (`.bashrc`), and payloads rendered from `{{ vars }}`
   at deploy time
 - `grip init` — scaffold an env repo from the embedded template
+- Plugin lifecycle: `package = "owner/repo@tag"` provisions fetcher and
+  linter binaries — sha256-verified, receipted, store-resolved
+- Enterprise-grade GitHub releases: authenticated API downloads,
+  host-scoped tokens, `version=` pins, bare-host `base_url`
 - `[throttle]` token buckets + the `capabilities` op — rate budgets
   live in fetchers; `[throttle]` in env.toml outranks them, and
   buckets persist across runs
@@ -64,7 +68,8 @@ typo in a module.*
 ## Next
 
 - TypeScript frontend
-- Fetcher `package =` provisioning (the linter story, for transports)
+- (the fetcher `package =` line landed — grip manages the plugin
+  lifecycle for fetchers AND external linters)
 - Fonts and desktop-entry activation adapters
 - Module env inheritance for dependents
 
