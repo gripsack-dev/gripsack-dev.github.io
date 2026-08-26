@@ -70,9 +70,20 @@ ever half-applied, and rollback is flipping one symlink back. Because
 the profile's bin directory is a fixed PATH entry, a flip takes effect
 instantly — no shell reload.
 
-Reproducibility comes from the **lockfile**, not from sandboxing: URLs,
-revisions, and content hashes are pinned per host at resolve time.
-Machine B matches machine A because the lockfile says so.
+**What rollback covers, exactly.** Transactional per generation: store
+payloads, symlinks, tracked copies, managed blocks inside foreign
+files, and the exported env profile — all restored to the previous
+generation's bytes. Not transactional: side effects that already ran
+— a service an activation adapter already enabled stays enabled (a
+new apply with the adapter removed disables it), and downloads stay
+downloaded. The flip is the environment; the world outside it is
+yours.
+
+Reproducibility is **pinned inputs and reproducible deployment**, not
+hermetic builds: URLs, revisions, and content hashes are locked per
+host at resolve time, so machine B deploys what machine A deployed.
+gripsack has no sandbox — a shell build step can observe ambient
+machine state; hermetic builds are Nix's guarantee, honestly theirs.
 
 ## Errors that point at your code
 

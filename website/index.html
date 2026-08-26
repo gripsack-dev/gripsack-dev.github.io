@@ -16,6 +16,7 @@
     <img src="./assets/icon.svg" alt="gripsack icon"><span class="wordmark">gripsack</span>
   </a>
   <nav>
+    <a href="./docs/adopting.html">adopting</a>
     <a href="./docs/architecture.html">architecture</a>
     <a href="./docs/modules.html">modules</a>
     <a href="./docs/fetchers.html">fetchers</a>
@@ -43,15 +44,20 @@
     <span class="chip">generations &amp; rollback</span>
     <span class="chip status">alpha</span>
   </div>
-  <div class="install">
-    <pre><span class="p">$</span> curl -fsSL https://gripsack.dev/install.sh | sh</pre>
+  <div class="installbox">
+    <span class="tab-bar">
+      <button data-tab="curl" class="active" aria-current="true">curl</button><button data-tab="brew">brew</button><button data-tab="cargo">cargo</button><button data-tab="mise">mise</button>
+    </span>
+    <span class="tab-pane ib-cmd" data-pane="curl" data-cmd="curl -fsSL https://gripsack.dev/install.sh | sh"><span class="p">$</span> curl -fsSL https://gripsack.dev/install.sh | sh</span>
+    <span class="tab-pane ib-cmd" data-pane="brew" data-cmd="brew install --cask gripsack-dev/tap/gripsack" hidden><span class="p">$</span> brew install --cask gripsack-dev/tap/gripsack</span>
+    <span class="tab-pane ib-cmd" data-pane="cargo" data-cmd="cargo install gripsack" hidden><span class="p">$</span> cargo install gripsack</span>
+    <span class="tab-pane ib-cmd" data-pane="mise" data-cmd="mise use cargo:gripsack" hidden><span class="p">$</span> mise use cargo:gripsack</span>
     <button class="copy" data-copy="curl -fsSL https://gripsack.dev/install.sh | sh">copy</button>
+    <span class="ib-os">linux · macOS</span>
   </div>
-  <p class="alt">one line is enough; other paths: <code>brew install --cask gripsack-dev/tap/gripsack</code> · per-platform binaries:
-      <a href="https://github.com/gripsack-dev/gripsack/releases/download/core-v{version}/gripsack-{version}-x86_64-unknown-linux-musl.tar.gz">linux x86_64</a> ·
-      <a href="https://github.com/gripsack-dev/gripsack/releases/download/core-v{version}/gripsack-{version}-aarch64-unknown-linux-musl.tar.gz">linux aarch64</a> ·
-      <a href="https://github.com/gripsack-dev/gripsack/releases/download/core-v{version}/gripsack-{version}-aarch64-apple-darwin.tar.gz">macOS arm</a> ·
-      <a href="https://github.com/gripsack-dev/gripsack/releases/download/core-v{version}/gripsack-{version}-x86_64-apple-darwin.tar.gz">macOS intel</a></p>
+  <p class="alt"><a href="https://github.com/gripsack-dev/gripsack/releases">release binaries</a> ·
+      frontends: <code>pip install gripsack</code> · <code>npm i @gripsack/core</code> ·
+      then <code>grip init my-env</code> or <code>grip apply --repo git@github.com:you/myenv</code></p>
   <div class="cta">
     <a class="primary" href="https://github.com/gripsack-dev/gripsack">GitHub ↗</a>
   </div>
@@ -80,7 +86,7 @@
   <div class="steps">
     <div class="step"><b>[01]</b><h3>describe</h3><p>modules are typed Python in your repo: sources, build steps, config files, ownership.</p></div>
     <div class="step"><b>[02]</b><h3>evaluate</h3><p>modules evaluate to IR — pure data. host facts &amp; tags resolve here, nowhere else.</p></div>
-    <div class="step"><b>[03]</b><h3>lock</h3><p>the resolved plan pins URLs and content hashes per host. reproducible, no sandbox.</p></div>
+    <div class="step"><b>[03]</b><h3>lock</h3><p>the resolved plan pins URLs and content hashes per host. reproducible inputs — deliberately not hermetic builds.</p></div>
     <div class="step"><b>[04]</b><h3>build</h3><p>fetchers and builders run as a parallel DAG, N = cores, into hash-addressed store paths.</p></div>
     <div class="step"><b>[05]</b><h3>activate</h3><p>one atomic symlink flip. dotfiles deployed per ownership mode.</p></div>
     <div class="step"><b>[06]</b><h3>roll back</h3><p>flip <code>current</code> to any previous generation. that's the whole mechanism.</p></div>
@@ -189,79 +195,44 @@ module(<span class="s">"helix"</span>, {
     <div class="feature">
       <span class="fnum">01</span>
       <div class="fbody">
-        <h3>modules</h3>
-        <p>everything is a module: how to get it, build it, where its files and
-        configs live. modules depend on modules; build-only deps are ephemeral.</p>
-      </div>
-      <div class="fchips"><span class="fchip">dep("rust", Edge.BUILD)</span></div>
-    </div>
-    <div class="feature">
-      <span class="fnum">02</span>
-      <div class="fbody">
         <h3>any source</h3>
-        <p>github releases, brew bottles, git, tarballs, pixi — and anything
-        else as a <code>gripfetch-*</code> plugin speaking NDJSON, hash-verified
-        by the core. <a href="./docs/fetchers.html">the tiers</a>.</p>
+        <p>install tools from anywhere: github releases, brew bottles, git,
+        tarballs, conda — and anything with a weirder download dance as a
+        small plugin. every byte is hash-checked.
+        <a href="./docs/fetchers.html">the fetchers</a>.</p>
       </div>
       <div class="fchips"><span class="fchip">github_release(…)</span><span class="fchip">brew(…)</span></div>
     </div>
     <div class="feature">
-      <span class="fnum">03</span>
+      <span class="fnum">02</span>
       <div class="fbody">
         <h3>dotfiles, first-class</h3>
-        <p>ownership per file: store-owned symlinks, tracked copies with drift
-        detection that never clobbers your edits, merge blocks and templates.</p>
+        <p>your config files, managed per file: read-only links for
+        disciplined tools, copies that never overwrite your edits, managed
+        blocks in shared files. per-host variants pick files by machine
+        facts — no templating language.</p>
       </div>
       <div class="fchips"><span class="fchip">tracked_copy(…)</span></div>
     </div>
     <div class="feature">
-      <span class="fnum">04</span>
+      <span class="fnum">03</span>
       <div class="fbody">
         <h3>generations</h3>
-        <p>every apply — one module or the whole graph — is a new generation.
-        activation is one atomic rename; rollback is flipping it back. a no-op
-        apply creates nothing.</p>
+        <p>every apply is a complete new generation; switching is one atomic
+        flip, so nothing is ever half-deployed. roll back by flipping to any
+        previous one. a no-op apply creates nothing.</p>
       </div>
       <div class="fchips"><span class="fchip">grip rollback</span></div>
     </div>
     <div class="feature">
-      <span class="fnum">05</span>
+      <span class="fnum">04</span>
       <div class="fbody">
         <h3>lockfiles, not sandboxes</h3>
-        <p>impure by default, reproducible by pinned URLs and content hashes,
+        <p>impure by default; inputs pinned by URL and content hash (not
+        hermetic builds — that guarantee is Nix's, honestly theirs),
         per host. nix's ergonomics without nix's enforcement.</p>
       </div>
       <div class="fchips"><span class="fchip">grip update</span></div>
-    </div>
-    <div class="feature">
-      <span class="fnum">06</span>
-      <div class="fbody">
-        <h3>hosts &amp; facts</h3>
-        <p>one repo, many machines. fedora laptop, macos desktop: facts
-        auto-detected (os, arch, libc), tags declared, conditionals resolved
-        at eval.</p>
-      </div>
-      <div class="fchips"><span class="fchip">tags = ["gui"]</span></div>
-    </div>
-    <div class="feature">
-      <span class="fnum">07</span>
-      <div class="fbody">
-        <h3>agent skills</h3>
-        <p>installable skills teach your agent to debug a run from its
-        structured log, and to migrate an existing tool into a module,
-        interview-style. <a href="./docs/skills.html">the skills</a>.</p>
-      </div>
-      <div class="fchips"><span class="fchip">runs/latest</span></div>
-    </div>
-    <div class="feature">
-      <span class="fnum">08</span>
-      <div class="fbody">
-        <h3>config linters</h3>
-        <p><code>griplint-*</code> plugins validate configs at eval: a typo'd
-        key fails <code>grip check</code> with a rendered snippet and a span,
-        before anything deploys. <a href="./docs/linters.html">the linters</a>.</p>
-      </div>
-      <div class="fchips"><span class="fchip">lint = "yazi"</span><span class="fchip">grip check</span></div>
     </div>
   </div>
 </section>
@@ -271,51 +242,22 @@ module(<span class="s">"helix"</span>, {
   <div class="table-wrap">
   <table class="compare">
     <tr><th></th><th>gripsack</th><th>nix + home-manager</th><th>chezmoi · stow</th><th>apt · brew · mise</th></tr>
-    <tr><td>packages from any source</td><td class="yes">✓</td><td class="part">nixpkgs</td><td class="no">·</td><td class="part">own repos</td></tr>
+    <tr><td>packages from any source</td><td class="yes">✓ fetchers</td><td class="part">✓ via fetchGit/fetchurl — in Nix</td><td class="no">·</td><td class="part">own repos</td></tr>
     <tr><td>dotfiles managed</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td class="no">·</td></tr>
     <tr><td>generations &amp; rollback</td><td class="yes">✓</td><td class="yes">✓</td><td class="part">git history</td><td class="no">·</td></tr>
-    <tr><td>config ownership modes</td><td class="yes">✓</td><td class="part">owned only</td><td class="part">templates</td><td class="no">·</td></tr>
+    <tr><td>config ownership modes</td><td class="yes">symlink · tracked copy · managed block · template</td><td class="part">whole files (text, source, trees, hooks) — no managed blocks, no drift detection</td><td class="part">templates</td><td class="no">·</td></tr>
     <tr><td>no custom language</td><td class="yes">python</td><td class="no">nix lang</td><td class="yes">✓</td><td class="yes">✓</td></tr>
-    <tr><td>reproducible without sandbox</td><td class="yes">lockfiles</td><td class="part">flakes</td><td class="yes">✓</td><td class="no">·</td></tr>
+    <tr><td>reproducible inputs, no hermetic builds</td><td class="yes">lockfile pins</td><td class="yes">flakes + sandboxed builds (stronger)</td><td class="yes">✓</td><td class="no">·</td></tr>
     <tr><td>no daemon, no root</td><td class="yes">✓</td><td class="no">daemon · /nix</td><td class="yes">✓</td><td class="part">apt needs root</td></tr>
     <tr><td>per-host conditionals</td><td class="yes">facts + tags</td><td class="part">modules</td><td class="part">templates</td><td class="no">·</td></tr>
     <tr><td>config linters, at eval, with spans</td><td class="yes">✓</td><td class="no">·</td><td class="no">·</td><td class="no">·</td></tr>
+    <tr><td colspan="5" class="part">fair is the point: Nix is the stronger guarantee; gripsack is that rigor without the language, the daemon, or /nix — and your existing dotfiles participate.</td></tr>
   </table>
   </div>
 </section>
 
 <section class="outro">
   <h2 class="section">install</h2>
-  <div class="install-grid">
-    <div class="install-block">
-      <span class="install-label">the one-liner</span>
-      <div class="install">
-        <pre><span class="p">$</span> curl -fsSL https://gripsack.dev/install.sh | sh</pre>
-        <button class="copy" data-copy="curl -fsSL https://gripsack.dev/install.sh | sh">copy</button>
-      </div>
-    </div>
-    <div class="install-block">
-      <span class="install-label">homebrew</span>
-      <div class="install">
-        <pre><span class="p">$</span> brew install "gripsack-dev/tap/gripsack"</pre>
-        <button class="copy" data-copy="brew install &quot;gripsack-dev/tap/gripsack&quot;">copy</button>
-      </div>
-    </div>
-    <div class="install-block">
-      <span class="install-label">cargo</span>
-      <div class="install">
-        <pre><span class="p">$</span> cargo install gripsack</pre>
-        <button class="copy" data-copy="cargo install gripsack">copy</button>
-      </div>
-    </div>
-    <div class="install-block">
-      <span class="install-label">mise</span>
-      <div class="install">
-        <pre><span class="p">$</span> mise use cargo:gripsack</pre>
-        <button class="copy" data-copy="mise use cargo:gripsack">copy</button>
-      </div>
-    </div>
-  </div>
   <p class="alt">
     <a href="https://github.com/gripsack-dev/gripsack/releases">release binaries</a> ·
     frontends: <code>pip install gripsack</code> · <code>npm i @gripsack/core</code><br>

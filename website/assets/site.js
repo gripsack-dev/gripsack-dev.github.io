@@ -183,4 +183,11 @@ document.addEventListener("click", function (ev) {
   win.querySelectorAll("[data-pane]").forEach(function (p) {
     p.hidden = p.getAttribute("data-pane") !== name;
   });
+  /* installbox: the single copy button tracks the active command */
+  var box = bar.closest(".installbox");
+  if (box) {
+    var pane = win.querySelector('[data-pane="' + name + '"]');
+    var copy = box.querySelector(".copy");
+    if (pane && copy) copy.setAttribute("data-copy", pane.getAttribute("data-cmd"));
+  }
 });

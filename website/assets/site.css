@@ -107,27 +107,38 @@ footer .fversion {
   padding: 2px 12px; background: var(--card);
 }
 .chips .chip.status { color: var(--yellow); }
-.install {
-  display: flex; align-items: stretch; max-width: 620px; margin: 0 auto 10px;
+/* ---- install box: method tabs left, one command, copy + OS right ---- */
+.installbox {
+  display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
+  max-width: 880px; margin: 0 auto 10px; padding: 8px 14px;
   border: 1px solid var(--border); border-radius: 12px;
-  background: var(--deep); overflow: hidden;
+  background: var(--deep); font-family: var(--mono);
 }
-.install pre {
-  flex: 1; margin: 0; border: none; background: none; border-radius: 0;
-  padding: 13px 18px; font-size: 13.5px; white-space: nowrap; overflow-x: auto;
-  text-align: left;
+.installbox .tab-bar { display: flex; gap: 2px; }
+.installbox .tab-bar button {
+  font-family: var(--mono); font-size: 11px; letter-spacing: 1.2px;
+  text-transform: uppercase; color: var(--faint);
+  background: none; border: none; border-radius: 6px;
+  padding: 4px 8px; cursor: pointer;
 }
-.install .copy {
+.installbox .tab-bar button:hover { color: var(--text); }
+.installbox .tab-bar button.active { color: var(--blue); }
+.installbox .ib-cmd {
+  flex: 1; min-width: 220px; font-size: 13.5px; color: var(--text);
+  white-space: nowrap; overflow-x: auto; text-align: left;
+}
+.installbox .ib-cmd .p { color: var(--green); }
+.installbox .copy {
   font-family: var(--mono); font-size: 13px; color: var(--blue);
-  background: var(--card); border: none; border-left: 1px solid var(--border);
-  padding: 0 16px; cursor: pointer;
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 8px; padding: 4px 14px; cursor: pointer;
 }
-.install .copy:hover { color: var(--text); background: var(--border); }
-.install .copy.ok { color: var(--green); }
+.installbox .copy:hover { color: var(--text); border-color: var(--border-strong); }
+.installbox .copy.ok { color: var(--green); }
+.installbox .ib-os { font-size: 11px; color: var(--faint); white-space: nowrap; }
 p.alt { font-size: 13.5px; color: var(--faint); margin: 0 0 22px; }
 p.alt code { border: none; padding: 0 2px; }
 .hero p.alt, .outro { text-align: center; }
-.outro .install { margin-top: 0; }
 
 /* ---- palette picker ---- */
 .palette-bar { display: flex; gap: 10px; flex-wrap: wrap; }
@@ -543,24 +554,4 @@ pre::-webkit-scrollbar-track, .table-wrap::-webkit-scrollbar-track { background:
 @media (max-width: 880px) {
   .feature { grid-template-columns: 34px 1fr; }
   .fchips { display: none; }
-}
-
-/* ---- install: one block per channel ---- */
-.install-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 14px;
-  max-width: 900px;
-  margin: 0 auto 14px;
-  text-align: left;
-}
-.install-block .install-label {
-  display: block;
-  font-family: var(--mono); font-size: 11px; letter-spacing: 1.2px;
-  text-transform: lowercase; color: var(--faint);
-  margin: 0 0 6px 4px;
-}
-.install-block .install { margin: 0; }
-@media (max-width: 720px) {
-  .install-grid { grid-template-columns: 1fr; }
 }

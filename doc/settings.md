@@ -57,8 +57,10 @@ and gripsack provisions the frontend environment for you:
 deps = ["gripsack-fetcher-artifactory==1.2.0"]
 ```
 
-Pinned, cached, and reproducible: the same spec builds the same
-environment on every machine. This is how an env repo "carries its own
+Pinned and cached: the same spec resolves the same inputs and the
+store is content-addressed, so every machine gets the same deployed
+environment. Builds are not hermetic (no sandbox — that guarantee is
+Nix's, honestly theirs). This is how an env repo "carries its own
 skills" — clone it elsewhere and the skills come with it.
 
 ## Custom sources (fetchers)
