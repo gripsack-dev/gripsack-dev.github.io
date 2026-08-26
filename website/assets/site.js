@@ -26,8 +26,10 @@
     /* theme-reactive demo: one GIF per palette (rendered by the app
        repo's demo workflow); unknown/missing variants fall back to the
        default render */
-    var demo = document.querySelector("[data-demo-img]");
-    if (demo) {
+    /* every demo slide is palette-reactive, with its own base/variants */
+    var demos = document.querySelectorAll("[data-demo-img]");
+    for (var d = 0; d < demos.length; d++) {
+      var demo = demos[d];
       var base = demo.getAttribute("data-demo-base") || "./img/demo";
       /* variants that actually shipped, stamped at build time */
       var variants = (demo.getAttribute("data-demo-variants") || "").split(",");
@@ -36,10 +38,12 @@
           ? base + "-" + name + ".gif"
           : base + ".gif";
       if (demo.getAttribute("src") !== src) {
-        demo.onerror = function () {
-          demo.onerror = null;
-          demo.src = base + ".gif";
-        };
+        demo.onerror = (function (el, b) {
+          return function () {
+            el.onerror = null;
+            el.src = b + ".gif";
+          };
+        })(demo, base);
         demo.src = src;
       }
     }
@@ -173,6 +177,8 @@ document.addEventListener("click", function (ev) {
   var name = btn.getAttribute("data-tab");
   bar.querySelectorAll("[data-tab]").forEach(function (b) {
     b.classList.toggle("active", b === btn);
+    if (b === btn) b.setAttribute("aria-current", "true");
+    else b.removeAttribute("aria-current");
   });
   win.querySelectorAll("[data-pane]").forEach(function (p) {
     p.hidden = p.getAttribute("data-pane") !== name;

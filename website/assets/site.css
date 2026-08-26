@@ -209,6 +209,17 @@ table.compare .part { color: var(--yellow); font-size: 13px; }
 }
 .window pre { border: none; border-radius: 0; margin: 0; background: var(--card); }
 .window img { width: 100%; display: block; }
+/* ---- demo slider: tab bar above per-slide terminal windows ---- */
+.demo-slider .tab-bar {
+  display: flex; gap: 6px; flex-wrap: wrap; margin: 0 0 12px;
+}
+.demo-slider .tab-bar button {
+  font-family: var(--mono); font-size: 12.5px; color: var(--faint);
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 8px; padding: 5px 14px; cursor: pointer;
+}
+.demo-slider .tab-bar button:hover { color: var(--text); border-color: var(--blue); }
+.demo-slider .tab-bar button.active { color: var(--blue); border-color: var(--blue); }
 
 /* ---- narrow ---- */
 @media (max-width: 880px) {

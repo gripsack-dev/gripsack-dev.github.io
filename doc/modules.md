@@ -5,9 +5,14 @@ where its files and configs live. Two authoring styles, same IR.
 
 ## Data style (most modules)
 
-```python
-from gripsack import module, github_release, symlink, tracked_copy
-
+<div class="window">
+  <div class="titlebar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="wtitle">helix — python ships today · the typescript api is not final</span>
+    <span class="tab-bar">
+      <button data-tab="py" class="active" aria-current="true">python</button><button data-tab="ts">typescript</button>
+    </span>
+  </div>
+  <div class="tab-pane" data-pane="py">
+<pre><code class="language-python">from gripsack import module, github_release, symlink, tracked_copy
 module(
     "helix",
     fetch=github_release(
@@ -16,27 +21,58 @@ module(
     ),
     install={"bin/hx": symlink("~/.local/bin/hx")},
     config={"config.toml": tracked_copy("~/.config/helix/config.toml")},
-)
-```
+)</code></pre>
+  </div>
+  <div class="tab-pane" data-pane="ts" hidden>
+<pre><code class="language-typescript">import { module, githubRelease, symlink, trackedCopy } from "@gripsack/core";
+module("helix", {
+  fetch: githubRelease({
+    repo: "helix-editor/helix",
+    asset: "helix-{version}-x86_64-linux.tar.xz",
+  }),
+  install: { "bin/hx": symlink("~/.local/bin/hx") },
+  config: { "config.toml": trackedCopy("~/.config/helix/config.toml") },
+});</code></pre>
+  </div>
+</div>
 
 The core expands the fields into the conventional pipeline:
 `fetch → build → install → config → verify → activate`.
 
 ## Class style (full control)
 
-```python
-from gripsack import Module, fetch_step, shell_step, install_step, file_fetch, symlink
-
+<div class="window">
+  <div class="titlebar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="wtitle">class style — full control · the typescript api is not final</span>
+    <span class="tab-bar">
+      <button data-tab="py" class="active" aria-current="true">python</button><button data-tab="ts">typescript</button>
+    </span>
+  </div>
+  <div class="tab-pane" data-pane="py">
+<pre><code class="language-python">from gripsack import Module, fetch_step, shell_step, install_step, file_fetch, symlink
 class Patched(Module):
     def fetch(self):
         return fetch_step(file_fetch("payloads/hello.tar.gz"))
-
     def build(self):
-        return shell_step("patch -p1 < fix.patch", id="patch")
-
+        return shell_step("patch -p1 &lt; fix.patch", id="patch")
     def install(self):
-        return install_step({"bin/hx": symlink("~/.local/bin/hx")})
-```
+        return install_step({"bin/hx": symlink("~/.local/bin/hx")})</code></pre>
+  </div>
+  <div class="tab-pane" data-pane="ts" hidden>
+<pre><code class="language-typescript">import { Module, define, fetchStep, shellStep, installStep, fileFetch, symlink } from "@gripsack/core";
+class Patched extends Module {
+  fetch() {
+    return fetchStep(fileFetch("payloads/hello.tar.gz"));
+  }
+  build() {
+    return shellStep("patch -p1 &lt; fix.patch", "patch");
+  }
+  install() {
+    return installStep({ "bin/hx": symlink("~/.local/bin/hx") });
+  }
+}
+define(Patched);</code></pre>
+  </div>
+</div>
 
 Phase methods return a step or a list of steps; the pipeline chains
 them in order — within a phase and across boundaries — so you write
@@ -82,29 +118,52 @@ The runner evaluates the host entrypoint first, then modules — so
 modules can read the shared `facts` object (`facts.os`, `facts.arch`,
 `facts.libc`, `facts.has("gui")`) and gate whole modules with `when`:
 
-```python
-from gripsack import module, when
-
+<div class="window">
+  <div class="titlebar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="wtitle">gating a module on the host · the typescript api is not final</span>
+    <span class="tab-bar">
+      <button data-tab="py" class="active" aria-current="true">python</button><button data-tab="ts">typescript</button>
+    </span>
+  </div>
+  <div class="tab-pane" data-pane="py">
+<pre><code class="language-python">from gripsack import module, when
 module("steam", fetch=..., when=when(os="linux", tags=["gui"]))
-```
-
-```python
+# class style: the decorator form
 @when(os="linux", not_tags=["headless"])
-class Steam(Module): ...
-```
-
-typescript: `moduleIf("steam", {...}, { os: "linux", tags: ["gui"] })`
-and `defineIf(Steam, {...})`.
+class Steam(Module): ...</code></pre>
+  </div>
+  <div class="tab-pane" data-pane="ts" hidden>
+<pre><code class="language-typescript">import { moduleIf, defineIf } from "@gripsack/core";
+moduleIf("steam", { fetch: /* … */ }, { os: "linux", tags: ["gui"] });
+// class style
+defineIf(Steam, { os: "linux", notTags: ["headless"] });</code></pre>
+  </div>
+</div>
 
 Per-file conditionals are plain code — different source, same
 destination, per host:
 
-```python
-module("zed", config={
+<div class="window">
+  <div class="titlebar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="wtitle">per-file conditionals · the typescript api is not final</span>
+    <span class="tab-bar">
+      <button data-tab="py" class="active" aria-current="true">python</button><button data-tab="ts">typescript</button>
+    </span>
+  </div>
+  <div class="tab-pane" data-pane="py">
+<pre><code class="language-python">module("zed", config={
     ("settings.spaces.json" if facts.has("spaces") else "settings.laptop.json"):
         tracked_copy("~/.config/zed/settings.json"),
-})
-```
+})</code></pre>
+  </div>
+  <div class="tab-pane" data-pane="ts" hidden>
+<pre><code class="language-typescript">import { module, trackedCopy, hasTag } from "@gripsack/core";
+module("zed", {
+  config: {
+    [hasTag("spaces") ? "settings.spaces.json" : "settings.laptop.json"]:
+      trackedCopy("~/.config/zed/settings.json"),
+  },
+});</code></pre>
+  </div>
+</div>
 
 Facts stay curated on purpose: os/arch/libc/tags. Anything beyond that
 is eval-time code in your repo — the frontend *is* the extension point.

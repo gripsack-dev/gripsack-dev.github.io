@@ -23,6 +23,22 @@ import markdown
 ROOT = Path(__file__).resolve().parent.parent
 OUT = ROOT / "public"
 
+# The palette picker's set (website/index.html data-set-palette) — demo
+# variants are stamped only for these.
+PALETTES = {
+    "catppuccin-mocha",
+    "catppuccin-latte",
+    "tokyo-night",
+    "gruvbox-dark",
+    "nord",
+    "dracula",
+    "one-dark",
+    "one-light",
+    "github-light",
+    "solarized-dark",
+    "solarized-light",
+}
+
 REPO = "https://github.com/gripsack-dev/gripsack"
 
 # Cache-busting: content hash of the shared assets, stamped into every
@@ -269,12 +285,34 @@ def assemble() -> None:
     index = index.replace("{version}", site_version())
     index = index.replace("./assets/site.css", f"./assets/site.css?v={asset_version()}")
     index = index.replace("./assets/site.js", f"./assets/site.js?v={asset_version()}")
-    # Stamp the demo variants that actually shipped into the img tag, so
-    # site.js never guesses a missing variant (and never 404s).
-    variants = ",".join(
-        sorted(p.stem.removeprefix("demo-") for p in (ROOT / "img").glob("demo-*.gif"))
+    # Stamp the demo variants that actually shipped into every demo img, so
+    # site.js never guesses a missing variant (and never 404s). Each slide's
+    # base gets its own list: <base>-<palette>.gif on disk = available.
+    def stamp_demo_variants(m: re.Match) -> str:
+        tag = m.group(0)
+        stem = Path(m.group(1)).name
+        if not (ROOT / "img" / f"{stem}.gif").exists():
+            # the slide's own GIF hasn't shipped yet — fall back to the
+            # default demo (palette variants included) instead of 404ing
+            tag = tag.replace(f'src="./img/{stem}.gif"', 'src="./img/demo.gif"')
+            tag = tag.replace(
+                f'data-demo-base="./img/{stem}"', 'data-demo-base="./img/demo"'
+            )
+            stem = "demo"
+        # filter to real palette names — demo-init-*.gif etc. would
+        # otherwise pollute the base demo's list ("init-nord", …)
+        variants = ",".join(
+            sorted(
+                v
+                for p in (ROOT / "img").glob(f"{stem}-*.gif")
+                if (v := p.stem.removeprefix(f"{stem}-")) in PALETTES
+            )
+        )
+        return tag.replace('data-demo-variants=""', f'data-demo-variants="{variants}"')
+
+    index = re.sub(
+        r'<img[^>]*data-demo-base="([^"]+)"[^>]*>', stamp_demo_variants, index
     )
-    index = index.replace('data-demo-variants=""', f'data-demo-variants="{variants}"')
     (OUT / "index.html").write_text(index)
     # Custom domain — GitHub Pages reads this from the deployed artifact.
     (OUT / "CNAME").write_text("gripsack.dev\n")

@@ -44,11 +44,10 @@
     <span class="chip status">alpha</span>
   </div>
   <div class="install">
-    <pre><span class="p">$</span> curl -fsSL https://gripsack.dev/install.sh | sh
-<span class="p">$</span> grip init my-env && cd my-env && grip apply</pre>
+    <pre><span class="p">$</span> curl -fsSL https://gripsack.dev/install.sh | sh</pre>
     <button class="copy" data-copy="curl -fsSL https://gripsack.dev/install.sh | sh">copy</button>
   </div>
-  <p class="alt">also: <code>brew install --cask gripsack-dev/tap/gripsack</code> · binaries:
+  <p class="alt">one line is enough; other paths: <code>brew install --cask gripsack-dev/tap/gripsack</code> · per-platform binaries:
       <a href="https://github.com/gripsack-dev/gripsack/releases/download/core-v{version}/gripsack-{version}-x86_64-unknown-linux-musl.tar.gz">linux x86_64</a> ·
       <a href="https://github.com/gripsack-dev/gripsack/releases/download/core-v{version}/gripsack-{version}-aarch64-unknown-linux-musl.tar.gz">linux aarch64</a> ·
       <a href="https://github.com/gripsack-dev/gripsack/releases/download/core-v{version}/gripsack-{version}-aarch64-apple-darwin.tar.gz">macOS arm</a> ·
@@ -90,11 +89,36 @@
 
 <section>
   <h2 class="section">see it happen</h2>
-  <div class="window demo">
-    <div class="titlebar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="wtitle">grip apply — a fixture env, end to end</span></div>
-    <img src="./img/demo.gif" data-demo-img data-demo-base="./img/demo" data-demo-variants="" alt="grip apply on a fixture environment: modules resolve and fetch into the store, configs deploy per ownership mode, and the current symlink flips to the new generation — a second apply is a satisfied no-op">
+  <div class="demo-slider">
+    <span class="tab-bar">
+      <button data-tab="apply" class="active" aria-current="true">apply</button><button data-tab="init">first run</button><button data-tab="check">lint errors</button><button data-tab="rollback">rollback</button>
+    </span>
+    <div class="tab-pane" data-pane="apply">
+      <div class="window demo">
+        <div class="titlebar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="wtitle">grip apply — a fixture env, end to end</span></div>
+        <img src="./img/demo.gif" data-demo-img data-demo-base="./img/demo" data-demo-variants="" alt="grip apply on a fixture environment: modules resolve and fetch into the store, configs deploy per ownership mode, and the current symlink flips to the new generation — a second apply is a satisfied no-op">
+      </div>
+    </div>
+    <div class="tab-pane" data-pane="init" hidden>
+      <div class="window demo">
+        <div class="titlebar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="wtitle">grip init my-env — scaffold, then the first apply</span></div>
+        <img src="./img/demo-init.gif" data-demo-img data-demo-base="./img/demo-init" data-demo-variants="" alt="grip init my-env scaffolds an env repo — modules, env.toml, hosts — and the first grip apply fetches, builds, and deploys it into generation 1">
+      </div>
+    </div>
+    <div class="tab-pane" data-pane="check" hidden>
+      <div class="window demo">
+        <div class="titlebar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="wtitle">grip check — a typo'd key, caught at eval</span></div>
+        <img src="./img/demo-check.gif" data-demo-img data-demo-base="./img/demo-check" data-demo-variants="" alt="grip check catching a typo'd config key at eval: the linter diagnostic renders with a source span and a did-you-mean, and nothing ever stages">
+      </div>
+    </div>
+    <div class="tab-pane" data-pane="rollback" hidden>
+      <div class="window demo">
+        <div class="titlebar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="wtitle">grip rollback — one symlink flip back</span></div>
+        <img src="./img/demo-rollback.gif" data-demo-img data-demo-base="./img/demo-rollback" data-demo-variants="" alt="grip generations lists the history, then grip rollback flips the current symlink to a previous generation — the whole environment is back in one atomic step">
+      </div>
+    </div>
   </div>
-  <p class="note">re-rendered by CI from real demo runs — always the current CLI.</p>
+  <p class="note">re-rendered by CI from real demo runs — always the current CLI, in your palette.</p>
 </section>
 
 <section>
