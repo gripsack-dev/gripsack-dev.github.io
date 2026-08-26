@@ -13,12 +13,16 @@ verifies).
 | `file_fetch(path)` | live | content hash |
 | `tarball(url, sha256)` | live | pinned sha256, verified before the store |
 | `git(url, rev)` | live | the rev is immutable; shallow-fetched |
-| `github_release(repo, asset)` | live | resolved release + asset hash, locked |
+| `github_release(repo, asset, version=, base_url=)` | live | resolved release + asset hash, locked; `version=` pins the tag (resolved via `/releases/tags/`, never floats). `base_url` accepts the bare GHE host (`/api/v3` is appended for you). Private/GHE releases download through the API asset endpoint when a token is bound — tokens are host-scoped the gh-CLI way: `GH_TOKEN`/`GITHUB_TOKEN` only ever go to github.com; `GH_ENTERPRISE_TOKEN`/`GITHUB_ENTERPRISE_TOKEN` only to enterprise hosts. A download that comes back `text/html` fails as "looks like a login page", not as a hash mismatch |
 | `brew(...)` (bottles) | live | bottle hash, locked; **floats to the current formula** — the API only serves stable, so `version=` is a tripwire that fails at resolve (`grip update` to move), never a range. Payload is the raw bottle layout: install paths look like `jq/{version}/bin/jq` (`{version}` substitutes from the lock) |
-| `pixi(...)` (conda) | live | package hashes from the pixi resolution, locked |
+| `pixi(...)` (conda) | live | package hashes from the pixi resolution, locked. Two caveats: `grip update` can't re-resolve pixi modules yet (they stay pinned until then — pin deliberately), and behind a TLS-intercepting proxy pixi uses its bundled roots only — export `SSL_CERT_FILE` (it inherits it) so the corporate CA verifies |
 
 `mise` is deliberately not a fetcher: its backends are mostly GitHub
 releases, which `github_release` already covers.
+
+A gzipped *single file* (`.gz` that isn't a tar) stages decompressed as
+one executable, named for the asset minus the suffix — alongside
+`.tar.gz`/`.tar.xz`/`.zip` archives and bare uncompressed binaries.
 
 ## Out-of-tree (plugins)
 

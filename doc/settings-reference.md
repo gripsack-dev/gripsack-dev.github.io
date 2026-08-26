@@ -21,6 +21,7 @@ data and is always read before module evaluation.
 |---|---|---|---|
 | `name` | string | — | human name for the env (used in output) |
 | `frontend` | `"python"` \| `"typescript"` | `"python"` | which frontend evaluates this repo |
+| `default_host` | string | — | the host entrypoint when no `--host` is given and the machine's hostname matches nothing in `hosts/` — role-named host files for ephemeral containers with random hostnames. An unmatched host with a non-empty `hosts/` is an error, not silently-empty tags |
 
 ## `[eval]` — env.toml only
 
