@@ -44,7 +44,8 @@
     <span class="chip status">alpha</span>
   </div>
   <div class="install">
-    <pre><span class="p">$</span> curl -fsSL https://gripsack.dev/install.sh | sh</pre>
+    <pre><span class="p">$</span> curl -fsSL https://gripsack.dev/install.sh | sh
+<span class="p">$</span> grip init my-env && cd my-env && grip apply</pre>
     <button class="copy" data-copy="curl -fsSL https://gripsack.dev/install.sh | sh">copy</button>
   </div>
   <p class="alt">also: <code>brew install --cask gripsack-dev/tap/gripsack</code> · binaries:
@@ -294,7 +295,8 @@ module(<span class="s">"helix"</span>, {
   <p class="alt">
     <a href="https://github.com/gripsack-dev/gripsack/releases">release binaries</a> ·
     frontends: <code>pip install gripsack</code> · <code>npm i @gripsack/core</code><br>
-    then: <code>grip apply --repo git@github.com:you/myenv</code> and you're home.
+    then: <code>grip init my-env</code> to start fresh, or
+    <code>grip apply --repo git@github.com:you/myenv</code> and you're home.
   </p>
 </section>
 
@@ -302,7 +304,8 @@ module(<span class="s">"helix"</span>, {
   <h2 class="section">follow along</h2>
   <p class="alt">shipped so far: fetchers for github releases, brew bottles, git, tarballs,
   pixi — plus plugin fetchers over NDJSON, generations with rollback, and ownership
-  modes that never clobber. latest: grip check, 22 config linters, and the parallel scheduler.
+  modes that never clobber. latest: merge + template ownership modes, grip init,
+  and [throttle] rate budgets that live in fetchers.
   star the <a href="https://github.com/gripsack-dev/gripsack">repo</a> if this is the package manager you also wish existed.</p>
 </section>
 

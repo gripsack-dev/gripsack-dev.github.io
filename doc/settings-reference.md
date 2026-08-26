@@ -75,6 +75,7 @@ endpoints.
 ## CLI surface
 
 ```bash
+grip init [DIR]                     # scaffold an env repo from the embedded template
 grip apply [--host H] [MODULE...]   # fetch, build, deploy — one new generation
 grip plan [--host H] [MODULE...]    # show what apply would change
 grip check                         # eval + sema + linters; exit code = validity
