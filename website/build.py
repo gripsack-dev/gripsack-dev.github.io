@@ -82,13 +82,13 @@ def asset_version() -> str:
 # Docs mirrored onto the site: url-slug -> (source file, nav label).
 PAGES: dict[str, tuple[str, str]] = {
     "architecture": ("doc/architecture.md", "architecture"),
-    "apt": ("doc/apt.md", "apt fetcher"),
     "adopting": ("doc/adopting.md", "adopting your dotfiles"),
     "modules": ("doc/modules.md", "modules"),
     "settings": ("doc/settings.md", "settings"),
     "settings-reference": ("doc/settings-reference.md", "settings reference"),
     "runs": ("doc/runs.md", "run logs"),
     "fetchers": ("doc/fetchers.md", "fetchers"),
+    "fetchers/apt": ("doc/fetchers/apt.md", "apt"),
     "linters": ("doc/linters.md", "linters"),
     "skills": ("doc/skills.md", "skills"),
     "roadmap": ("doc/roadmap.md", "roadmap"),
@@ -157,8 +157,13 @@ PALETTE_DOTS = [
 
 
 def rail(active: str, toc: list[tuple[str, str]]) -> str:
+    # nested slugs (fetchers/apt) render indented under their parent
     links = "".join(
-        f'    <a{" class=\"active\"" if href == active else ""} href="../{href}">{label}</a>\n'
+        f'    <a{" class=\"active child\"" if href == active else ""}'
+        f'{" class=\"child\"" if href != active else ""}'
+        f' href="../{href}">{"↳ " if href.count("/") > 1 else ""}{label}</a>\n'
+        if href.count("/") > 1
+        else f'    <a{" class=\"active\"" if href == active else ""} href="../{href}">{label}</a>\n'
         for href, label in RAIL_LINKS
     )
     toc_html = "".join(f'    <a href="#{anchor}">{label}</a>\n' for label, anchor in toc)
@@ -318,6 +323,12 @@ def assemble() -> None:
     (OUT / "index.html").write_text(index)
     # Custom domain — GitHub Pages reads this from the deployed artifact.
     (OUT / "CNAME").write_text("gripsack.dev\n")
+    # docs/apt.html lived flat for a day — redirect to its folder home
+    (OUT / "docs" / "apt.html").write_text(
+        '<!DOCTYPE html><meta charset="utf-8">'
+        '<meta http-equiv="refresh" content="0; url=./fetchers/apt.html">'
+        '<link rel="canonical" href="./fetchers/apt.html">'
+    )
     # The installer, served at gripsack.dev/install.sh (source of truth:
     # the gripsack repo).
     installer = urllib.request.urlopen(

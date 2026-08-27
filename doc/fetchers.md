@@ -26,8 +26,16 @@ one executable, named for the asset minus the suffix — alongside
 
 ## Out-of-tree (plugins)
 
-A `gripfetch-<name>` executable on your `PATH` (or wired via
-`[fetchers.<name>]` in `env.toml`), speaking NDJSON over stdio:
+A `gripfetch-<name>` executable — declared in `env.toml` and
+provisioned by grip's plugin lifecycle, or hand-placed on `PATH` —
+speaking NDJSON over stdio:
+
+<div class="plugin-cards">
+  <a class="plugin-card" href="fetchers/apt.html">
+    <span class="pc-name">apt</span>
+    <span class="pc-blurb">distro packages via the host's apt — wraps, never reimplements; enterprise mirrors inherit free</span>
+  </a>
+</div>
 
 - `fetch {args, dest_dir, locked}` → bytes into `dest_dir`, responds
   `{sha256}`
