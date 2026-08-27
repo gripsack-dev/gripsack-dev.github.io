@@ -43,7 +43,8 @@ typo in a module.*
 - `gc` (+ `--dry-run`) and `why-owns`
 - Exported env: `profile.sh` written at activation, plus `[eval] env`
   build-time injection
-- Activation adapters (`SystemdUser` first)
+- Activation adapters (SystemdUser, fonts via `fc-cache`, and
+  desktop-entry via `update-desktop-database`)
 - 22 config linters — `griplint-*` for the tools your dotfiles
   actually configure (helix, yazi, starship, zed, claude-code, …),
   as data packs in `crates/griplint`, with a weekly upstream-watch
@@ -74,9 +75,6 @@ typo in a module.*
 
 ## Next
 
-- (the fetcher `package =` line landed — grip manages the plugin
-  lifecycle for fetchers AND external linters)
-- Fonts and desktop-entry activation adapters
 - Module env inheritance for dependents
 
 ## North star
