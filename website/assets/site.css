@@ -90,7 +90,6 @@ footer .fversion {
 .hero p.tagline { font-size: 24px; color: var(--text); margin: 8px 0 4px; }
 .hero p.kicker { font-size: 12px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--accent); margin: 0 0 6px; }
 .hero p.sub { font-size: 15px; color: var(--faint); margin: 0 0 24px; }
-.hero p.sub.stack { font-size: 13px; margin: -16px 0 24px; }
 .cta { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
 .cta a {
   font-family: var(--mono); font-size: 15px; padding: 10px 22px;

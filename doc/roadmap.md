@@ -75,36 +75,38 @@ typo in a module.*
 
 ## Next
 
+Order is priority: adoption UX first, reliability of the core loop
+next, ecosystems last.
+
 - **`grip adopt`** — the adoption flow as a first-class CLI experience:
   point it at `~/.config/helix`, it explains what it sees, recommends
   `owned` vs `tracked_copy` (does the app rewrite its own config?),
   generates the module, shows the plan, touches nothing until you
   confirm. Migration cost, not fetchers, is the enemy; the agent skill
   stays, but the CLI is the canonical path.
-- **Module env inheritance for dependents** — a dependent sees the env
-  its dependencies export (build-time today).
 - **Zero-provisioning bootstrap** — the Python frontend embedded as a
   zipapp, so a config-only repo applies with zero network and zero
-  provisioning (`[eval] deps`/plugins still provision on demand). The
-  Level-1 adoption story must never be hostage to PyPI.
-- **Content-addressed store paths, deeper** — `grip store verify
-  --repair` shipped as the middle step; the full move from
-  input-addressed to content-addressed identity is the remaining
-  decision.
+  provisioning (`[eval] deps`/plugins still provision on demand).
+  "Try gripsack on one dotfile" must be conceptually *and* practically
+  lightweight; Level-1 adoption must never be hostage to PyPI.
 - **`grip update --dry-run`** — the fetched-module half of plan
   (lockfile vs registry; the terraform refresh/plan split).
-- **Fetch cache** — a content-addressed on-disk cache, so identity
-  churn doesn't re-download (nearly free once content-addressing
-  lands).
 - **Rollback adapters** — user-initiated `grip rollback` re-runs
   post-link/post-activate adapters (the unified engine covers
   destinations; adapters still don't re-run on rollback).
+- **Content-addressed store paths, deeper** — `grip store verify
+  --repair` shipped as the middle step; the full move from
+  input-addressed to content-addressed identity is the remaining
+  decision. A content-addressed fetch cache is nearly free once this
+  lands.
+- **Module env inheritance for dependents** — a dependent sees the env
+  its dependencies export (build-time today).
 - **More reference fetchers** — `pip` (corporate PyPI mirrors) and the
   internal-registry patterns, out-of-tree like `gripfetch-apt`.
 - **Dual-frontend corpus, widened** — the golden parity fixture covers
   the IR surface today; per-mode and error-path twins next (the corpus
-  already caught four absence-class TS bugs: `brew(version=)`, env
-  contributions, arch naming, `baseUrl`).
+  already caught five absence-class TS bugs: `brew(version=)`, env
+  contributions, arch naming, `baseUrl`, musl libc).
 
 ## North star
 

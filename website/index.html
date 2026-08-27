@@ -33,16 +33,17 @@
 
 <section class="hero">
   <div class="logo" role="img" aria-label="gripsack — a traveler's bag with a config file and a terminal chip peeking out"><!--LOGO--></div>
-  <p class="kicker">personal environment manager</p>
+  <p class="kicker">gripsack — personal environment manager</p>
   <p class="tagline">your whole environment, in one bag.</p>
-  <p class="sub">keep your packages and dotfiles in one repo, reproduce them on another
-  machine, and roll the entire setup back when something goes wrong.</p>
-  <p class="sub stack">typed Python/TypeScript. Rust executor. no daemon, no root, no /nix.</p>
+  <p class="sub">set up a new machine from one repo — packages, dotfiles and
+  machine-specific config, with generations and rollback.</p>
   <div class="chips">
     <span class="chip version">v<!--VERSION--></span>
+    <span class="chip">typed python · typescript</span>
     <span class="chip">rust core</span>
     <span class="chip">generations &amp; rollback</span>
     <span class="chip">never clobbers</span>
+    <span class="chip">no daemon · root · /nix</span>
     <span class="chip status">alpha</span>
   </div>
   <div class="installbox">
@@ -205,7 +206,7 @@ module(<span class="s">"helix"</span>, {
     <div class="feature">
       <span class="fnum">01</span>
       <div class="fbody">
-        <h3>dotfiles, first-class</h3>
+        <h3>dotfiles that don't fight their applications</h3>
         <p>your config files, managed per file: read-only links for
         disciplined tools, copies that never overwrite your edits, managed
         blocks in shared files. per-host variants pick files by machine
@@ -239,8 +240,7 @@ module(<span class="s">"helix"</span>, {
       <div class="fbody">
         <h3>lockfiles, not sandboxes</h3>
         <p>inputs pinned by URL and content hash, per host. reproducible
-        inputs, deliberately not hermetic builds — that guarantee is Nix's,
-        honestly theirs.</p>
+        inputs, without requiring hermetic builds.</p>
       </div>
       <div class="fchips"><span class="fchip">grip update</span></div>
     </div>
