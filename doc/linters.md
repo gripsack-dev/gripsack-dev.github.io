@@ -6,17 +6,15 @@ and fails at tool runtime, in a different terminal, an hour later —
 linters close that gap at check time, where the error points at the
 offending line.
 
-Since 0.13 the **core** drives linters: `lint = "name"` travels in the
-IR, and `grip check`/`apply` run the linter — no Python venv involved,
-so linting works under `GRIPSACK_PYTHON` and in CI without a frontend
-runtime. Since 0.15 the linters themselves are **data**: every shipped
-linter is a versioned data pack embedded in grip
-(`crates/griplint/packs`, key tables as TOML) checked by the in-crate
-engine **in-process** — no venv, no provisioning, no plugin lifecycle
-for first-party linters, and the golden corpus replays byte-exact
-against the reference implementation. A new structured-format linter
-is a data PR, not a package. External `griplint-*` executables keep
-the protocol path for exotic formats.
+Linters are **data**: every shipped linter is a versioned data pack
+embedded in grip (`crates/griplint/packs`, key tables as TOML) checked
+by the in-crate engine **in-process** — no venv, no provisioning, no
+plugin lifecycle, and the golden corpus replays byte-exact against the
+reference implementation. `lint = "name"` travels in the IR; `grip
+check` and `grip apply` run the linter, so linting works under
+`GRIPSACK_PYTHON` and in CI without a frontend runtime. A new
+structured-format linter is a data PR, not a package. External
+`griplint-*` executables keep the protocol path for exotic formats.
 
 Status: the engine is shipped and every pack below runs in-process —
 the set is what exists today and what's queued, sorted by github stars.
@@ -111,10 +109,9 @@ module("yazi", ..., lint="yazi")
 ```
 
 - `package` requires an `==` pin (a wheel, resolved next to the
-  frontend python — the frozen 0.10–0.13 path) or names a repo ref
-  `"owner/repo@tag"` (a provisioned executable — the lifecycle manager,
-  sha256-verified into the plugin store). `path` is the explicit
-  executable for development.
+  frontend python — the legacy published linters) or names a repo ref
+  `"owner/repo@tag"` (a provisioned executable — sha256-verified into
+  the plugin store). `path` is the explicit executable for development.
 - `lint = "<name>"` must resolve against the registry: an
   unregistered name is a hard eval error with the module-line span,
   never a silent skip. There is deliberately no PATH-discovery

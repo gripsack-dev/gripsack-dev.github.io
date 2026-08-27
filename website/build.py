@@ -82,6 +82,7 @@ def asset_version() -> str:
 # Docs mirrored onto the site: url-slug -> (source file, nav label).
 PAGES: dict[str, tuple[str, str]] = {
     "architecture": ("doc/architecture.md", "architecture"),
+    "apt": ("doc/apt.md", "apt fetcher"),
     "adopting": ("doc/adopting.md", "adopting your dotfiles"),
     "modules": ("doc/modules.md", "modules"),
     "settings": ("doc/settings.md", "settings"),
