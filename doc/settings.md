@@ -14,7 +14,7 @@ a module computes — so there's no bootstrap paradox, ever.
 
 > Heads up: gripsack is pre-alpha. The schema below is stable, but some
 > keys are wired up only as `grip apply` lands. This page documents the
-> config surface; [settings reference](settings-reference.md) has every
+> config surface; [settings reference](settings/reference.md) has every
 > key in table form.
 
 ## A minimal env.toml

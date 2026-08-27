@@ -85,7 +85,7 @@ PAGES: dict[str, tuple[str, str]] = {
     "adopting": ("doc/adopting.md", "adopting your dotfiles"),
     "modules": ("doc/modules.md", "modules"),
     "settings": ("doc/settings.md", "settings"),
-    "settings-reference": ("doc/settings-reference.md", "settings reference"),
+    "settings/reference": ("doc/settings/reference.md", "settings reference"),
     "runs": ("doc/runs.md", "run logs"),
     "fetchers": ("doc/fetchers.md", "fetchers"),
     "fetchers/apt": ("doc/fetchers/apt.md", "apt"),
@@ -156,14 +156,14 @@ PALETTE_DOTS = [
 ]
 
 
-def rail(active: str, toc: list[tuple[str, str]]) -> str:
+def rail(active: str, toc: list[tuple[str, str]], root: str = "../") -> str:
     # nested slugs (fetchers/apt) render indented under their parent
     links = "".join(
         f'    <a{" class=\"active child\"" if href == active else ""}'
         f'{" class=\"child\"" if href != active else ""}'
-        f' href="../{href}">{"↳ " if href.count("/") > 1 else ""}{label}</a>\n'
+        f' href="{root}{href}">{"↳ " if href.count("/") > 1 else ""}{label}</a>\n'
         if href.count("/") > 1
-        else f'    <a{" class=\"active\"" if href == active else ""} href="../{href}">{label}</a>\n'
+        else f'    <a{" class=\"active\"" if href == active else ""} href="{root}{href}">{label}</a>\n'
         for href, label in RAIL_LINKS
     )
     toc_html = "".join(f'    <a href="#{anchor}">{label}</a>\n' for label, anchor in toc)
@@ -178,7 +178,7 @@ def rail(active: str, toc: list[tuple[str, str]]) -> str:
         for name, color in PALETTE_DOTS
     )
     return f"""<aside class="rail">
-  <a class="brand" href="../index.html">
+  <a class="brand" href="{root}index.html">
     <img src="../assets/icon.svg" alt="gripsack icon"><span class="wordmark">gripsack</span>
   </a>
   <span class="rail-head">menu</span>
@@ -192,7 +192,7 @@ def rail(active: str, toc: list[tuple[str, str]]) -> str:
 </aside>"""
 
 
-def page(title: str, body: str, active: str, toc: list[tuple[str, str]]) -> str:
+def page(title: str, body: str, active: str, toc: list[tuple[str, str]], root: str = "../") -> str:
     return f"""<!doctype html>
 <html lang="en">
 <head>
@@ -200,13 +200,13 @@ def page(title: str, body: str, active: str, toc: list[tuple[str, str]]) -> str:
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{title}</title>
 <meta name="description" content="gripsack — your whole environment in one bag. Packages from any source plus your dotfiles, with generations and rollback.">
-<link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
-<link rel="stylesheet" href="../assets/site.css?v={asset_version()}">
-<script src="../assets/site.js?v={asset_version()}" defer></script>
+<link rel="icon" href="{root}assets/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="{root}assets/site.css?v={asset_version()}">
+<script src="{root}assets/site.js?v={asset_version()}" defer></script>
 </head>
 <body class="docs">
 <div class="shell">
-{rail(active, toc)}
+{rail(active, toc, root)}
 <main class="content">
 <article class="md">
 {body}
@@ -216,7 +216,7 @@ def page(title: str, body: str, active: str, toc: list[tuple[str, str]]) -> str:
   <span>MIT license</span>
   <a href="https://github.com/gripsack-dev">gripsack-dev</a>
   <a href="{REPO}">source</a>
-  <a href="../index.html">home</a>
+  <a href="{root}index.html">home</a>
   <span style="margin-left:auto"><span class="fversion">v{site_version()}</span> · eleven palettes</span>
 </footer>
 </main>
@@ -234,12 +234,12 @@ def extract_toc(md_body: str) -> list[tuple[str, str]]:
     return toc
 
 
-def rewrite(body: str, slugs: set[str]) -> str:
+def rewrite(body: str, slugs: set[str], root: str = "../") -> str:
     """Fix links/images in converted doc HTML for their new home."""
     for name in DOC_ASSETS:
-        body = body.replace(f'src="{name}"', f'src="../assets/{name}"')
+        body = body.replace(f'src="{name}"', f'src="{root}assets/{name}"')
     for slug in slugs:
-        body = body.replace(f'href="{slug}.md"', f'href="./{slug}.html"')
+        body = body.replace(f'href="{slug}.md"', f'href="{root}docs/{slug}.html"')
     for src, dst in GITHUB_LINKS.items():
         body = body.replace(f'href="{src}', f'href="{dst}')
     return body
@@ -248,11 +248,12 @@ def rewrite(body: str, slugs: set[str]) -> str:
 def build_docs() -> None:
     slugs = set(PAGES)
     for slug, (src, _) in PAGES.items():
+        root = "../" * (1 + slug.count("/"))
         text = (ROOT / src).read_text()
         body = markdown.markdown(
             text, extensions=["fenced_code", "tables", "toc", "sane_lists"]
         )
-        body = rewrite(body, slugs)
+        body = rewrite(body, slugs, root)
         # Inline + theme doc-local SVG diagrams.
         for name in DOC_ASSETS:
             if name.endswith(".svg"):
@@ -275,7 +276,7 @@ def build_docs() -> None:
         dst = OUT / "docs" / f"{slug}.html"
         dst.parent.mkdir(parents=True, exist_ok=True)
         dst.write_text(
-            page(f"gripsack — {title.lower()}", body, f"docs/{slug}.html", toc)
+            page(f"gripsack — {title.lower()}", body, f"docs/{slug}.html", toc, root)
         )
         print(f"built docs/{slug}.html from {src} ({len(toc)} toc entries)")
 
@@ -323,12 +324,16 @@ def assemble() -> None:
     (OUT / "index.html").write_text(index)
     # Custom domain — GitHub Pages reads this from the deployed artifact.
     (OUT / "CNAME").write_text("gripsack.dev\n")
-    # docs/apt.html lived flat for a day — redirect to its folder home
-    (OUT / "docs" / "apt.html").write_text(
-        '<!DOCTYPE html><meta charset="utf-8">'
-        '<meta http-equiv="refresh" content="0; url=./fetchers/apt.html">'
-        '<link rel="canonical" href="./fetchers/apt.html">'
-    )
+    # flat URLs that moved into folders — redirect stubs
+    for flat, nested in (
+        ("apt", "fetchers/apt"),
+        ("settings-reference", "settings/reference"),
+    ):
+        (OUT / "docs" / f"{flat}.html").write_text(
+            '<!DOCTYPE html><meta charset="utf-8">'
+            f'<meta http-equiv="refresh" content="0; url=./{nested}.html">'
+            f'<link rel="canonical" href="./{nested}.html">'
+        )
     # The installer, served at gripsack.dev/install.sh (source of truth:
     # the gripsack repo).
     installer = urllib.request.urlopen(
