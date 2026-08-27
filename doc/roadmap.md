@@ -75,7 +75,30 @@ typo in a module.*
 
 ## Next
 
-- Module env inheritance for dependents
+- **Module env inheritance for dependents** — a dependent sees the env
+  its dependencies export (build-time today).
+- **Zero-provisioning bootstrap** — the Python frontend embedded as a
+  zipapp, so a config-only repo applies with zero network and zero
+  provisioning (`[eval] deps`/plugins still provision on demand). The
+  Level-1 adoption story must never be hostage to PyPI.
+- **Content-addressed store paths, deeper** — `grip store verify
+  --repair` shipped as the middle step; the full move from
+  input-addressed to content-addressed identity is the remaining
+  decision.
+- **`grip update --dry-run`** — the fetched-module half of plan
+  (lockfile vs registry; the terraform refresh/plan split).
+- **Fetch cache** — a content-addressed on-disk cache, so identity
+  churn doesn't re-download (nearly free once content-addressing
+  lands).
+- **Rollback adapters** — user-initiated `grip rollback` re-runs
+  post-link/post-activate adapters (the unified engine covers
+  destinations; adapters still don't re-run on rollback).
+- **More reference fetchers** — `pip` (corporate PyPI mirrors) and the
+  internal-registry patterns, out-of-tree like `gripfetch-apt`.
+- **Dual-frontend corpus, widened** — the golden parity fixture covers
+  the IR surface today; per-mode and error-path twins next (the corpus
+  already caught four absence-class TS bugs: `brew(version=)`, env
+  contributions, arch naming, `baseUrl`).
 
 ## North star
 
