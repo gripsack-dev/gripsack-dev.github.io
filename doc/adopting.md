@@ -26,15 +26,29 @@ flip. That's the whole mechanism; everything else is detail.
 Pick the boring one — the tool whose config never fights back (helix,
 git, starship). Copy its config directory into the repo and declare it:
 
-```python
-from gripsack import module, tree
+<div class="window">
+  <div class="titlebar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="wtitle">a first real module — both frontends, same IR</span>
+    <span class="tab-bar">
+      <button data-tab="py" class="active" aria-current="true">python</button><button data-tab="ts">typescript</button>
+    </span>
+  </div>
+  <div class="tab-pane" data-pane="py">
+<pre><code class="language-python">from gripsack import module, tree
 from gripsack.entries import Ownership
 
 module(
     "helix",
     config=tree("configs/helix", "~/.config/helix", mode=Ownership.OWNED),
-)
-```
+)</code></pre>
+  </div>
+  <div class="tab-pane" data-pane="ts" hidden>
+<pre><code class="language-typescript">import { module, tree } from "@gripsack/core";
+
+module("helix", {
+  config: tree("configs/helix", "~/.config/helix", "owned"),
+});</code></pre>
+  </div>
+</div>
 
 `tree()` expands the directory into one entry per file. `OWNED` means
 symlinks into the store: your repo is the only editor, and `git diff`
