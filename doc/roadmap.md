@@ -75,6 +75,12 @@ typo in a module.*
 
 ## Next
 
+- **`grip adopt`** — the adoption flow as a first-class CLI experience:
+  point it at `~/.config/helix`, it explains what it sees, recommends
+  `owned` vs `tracked_copy` (does the app rewrite its own config?),
+  generates the module, shows the plan, touches nothing until you
+  confirm. Migration cost, not fetchers, is the enemy; the agent skill
+  stays, but the CLI is the canonical path.
 - **Module env inheritance for dependents** — a dependent sees the env
   its dependencies export (build-time today).
 - **Zero-provisioning bootstrap** — the Python frontend embedded as a
