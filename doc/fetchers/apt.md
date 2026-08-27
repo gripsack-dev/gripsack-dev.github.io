@@ -23,30 +23,53 @@ overrides. (Or: `cargo install gripfetch-apt` and it's on PATH.)
 
 ## Use
 
-```python
-from gripsack import module, plugin_fetch, symlink, verify_binary
+<div class="window">
+  <div class="titlebar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="wtitle">a module fetching from apt — both frontends, same IR</span>
+    <span class="tab-bar">
+      <button data-tab="py" class="active" aria-current="true">python</button><button data-tab="ts">typescript</button>
+    </span>
+  </div>
+  <div class="tab-pane" data-pane="py">
+<pre><code class="language-python">from gripsack import module, plugin_fetch, symlink, verify_binary
 
 module(
     "jq",
     fetch=plugin_fetch("apt", package="jq", version="1.7.1-3build1"),
     install={"bin/jq": symlink("~/.local/bin/jq")},
     verify=verify_binary("bin/jq", args=["--version"]),
-)
-```
+)</code></pre>
+  </div>
+  <div class="tab-pane" data-pane="ts" hidden>
+<pre><code class="language-typescript">import { module, pluginFetch, symlink, verifyBinary } from "@gripsack/core";
+
+module("jq", {
+  fetch: pluginFetch("apt", { package: "jq", version: "1.7.1-3build1" }),
+  install: { "bin/jq": symlink("~/.local/bin/jq") },
+  verify: verifyBinary("bin/jq", ["--version"]),
+});</code></pre>
+  </div>
+</div>
 
 Or with the sugar package (`pip install gripfetch-apt` /
 `npm i gripfetch-apt`) — same IR, native spelling:
 
-```python
-from gripfetch_apt import apt
+<div class="window">
+  <div class="titlebar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="wtitle">the sugar spelling</span>
+    <span class="tab-bar">
+      <button data-tab="py" class="active" aria-current="true">python</button><button data-tab="ts">typescript</button>
+    </span>
+  </div>
+  <div class="tab-pane" data-pane="py">
+<pre><code class="language-python">from gripfetch_apt import apt
 
-module("jq", fetch=apt("jq", version="1.7.1-3build1"), ...)
-```
+module("jq", fetch=apt("jq", version="1.7.1-3build1"), ...)</code></pre>
+  </div>
+  <div class="tab-pane" data-pane="ts" hidden>
+<pre><code class="language-typescript">import { apt } from "gripfetch-apt";
 
-```typescript
-import { apt } from "gripfetch-apt";
-
-module("jq", { fetch: apt("jq", "1.7.1-3build1"), ... });
+module("jq", { fetch: apt("jq", "1.7.1-3build1"), ... });</code></pre>
+  </div>
+</div>
 ```
 
 ## What works
