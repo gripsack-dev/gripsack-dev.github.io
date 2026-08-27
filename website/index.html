@@ -130,7 +130,7 @@
 <section>
   <h2 class="section">a module</h2>
   <div class="window">
-    <div class="titlebar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="wtitle">myenv/modules/helix — sketch; the api is not final</span>
+    <div class="titlebar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="wtitle">myenv/modules/helix — python and typescript, both typed, same IR</span>
       <span class="tab-bar">
         <button data-tab="py" class="active">python</button><button data-tab="ts">typescript</button>
       </span>
@@ -170,7 +170,8 @@ module(<span class="s">"helix"</span>, {
   <p class="note">the frontends are libraries — <code>pip install gripsack</code> or
   <code>npm i @gripsack/core</code> — and fully typed: pyright or tsc gives you
   autocomplete, inline errors, and refactors, because a module is just typed code.
-  evaluation emits IR (JSON); the Rust core only ever consumes IR.</p>
+  evaluation emits IR (JSON); the Rust core only ever consumes IR. the typescript
+  frontend evaluates through bun, provisioned and pinned like everything else.</p>
 </section>
 
 <section>

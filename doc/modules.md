@@ -6,7 +6,7 @@ where its files and configs live. Two authoring styles, same IR.
 ## Data style (most modules)
 
 <div class="window">
-  <div class="titlebar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="wtitle">helix — python ships today · the typescript api is not final</span>
+  <div class="titlebar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="wtitle">helix — python ships today</span>
     <span class="tab-bar">
       <button data-tab="py" class="active" aria-current="true">python</button><button data-tab="ts">typescript</button>
     </span>
@@ -42,7 +42,7 @@ The core expands the fields into the conventional pipeline:
 ## Class style (full control)
 
 <div class="window">
-  <div class="titlebar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="wtitle">class style — full control · the typescript api is not final</span>
+  <div class="titlebar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="wtitle">class style — full control</span>
     <span class="tab-bar">
       <button data-tab="py" class="active" aria-current="true">python</button><button data-tab="ts">typescript</button>
     </span>
@@ -119,7 +119,7 @@ modules can read the shared `facts` object (`facts.os`, `facts.arch`,
 `facts.libc`, `facts.has("gui")`) and gate whole modules with `when`:
 
 <div class="window">
-  <div class="titlebar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="wtitle">gating a module on the host · the typescript api is not final</span>
+  <div class="titlebar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="wtitle">gating a module on the host</span>
     <span class="tab-bar">
       <button data-tab="py" class="active" aria-current="true">python</button><button data-tab="ts">typescript</button>
     </span>
@@ -143,7 +143,7 @@ Per-file conditionals are plain code — different source, same
 destination, per host:
 
 <div class="window">
-  <div class="titlebar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="wtitle">per-file conditionals · the typescript api is not final</span>
+  <div class="titlebar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="wtitle">per-file conditionals</span>
     <span class="tab-bar">
       <button data-tab="py" class="active" aria-current="true">python</button><button data-tab="ts">typescript</button>
     </span>

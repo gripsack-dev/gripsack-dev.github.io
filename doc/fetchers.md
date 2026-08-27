@@ -45,8 +45,13 @@ Writing one? The contract made executable:
 [gripfetch-conformance](https://github.com/gripsack-dev/gripfetch-conformance)
 — the suite every plugin runs against.
 
-This is the home for: distro packages (apt/dnf — their pinning is repo
-snapshots and maintainer scripts, not ours to own), internal company
+The reference implementation is
+[gripfetch-apt](https://github.com/gripsack-dev/gripfetch-apt) —
+distro packages via the host's apt (wraps, never reimplements; honors
+the host's mirrors), conformance-gated, and provisionable through the
+plugin lifecycle (`package = "gripsack-dev/gripfetch-apt@0.1.0"`).
+
+This is also the home for: internal company
 registries, and anything bespoke. If your registry just needs
 *resolution* logic ("latest artifact X" → pinned URL), that's even
 simpler — an eval-time resolver in your env repo's `lib/`, no plugin

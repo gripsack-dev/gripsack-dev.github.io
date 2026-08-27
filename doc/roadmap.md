@@ -57,6 +57,11 @@ typo in a module.*
   foreign files (`.bashrc`), and payloads rendered from `{{ vars }}`
   at deploy time
 - `grip init` — scaffold an env repo from the embedded template
+- TypeScript frontend — bun-provisioned, version-locked, same IR; the
+  repo's own install wins when it shadows the provisioned copy
+- The griplint engine in-crate — all 22 linters as embedded data packs
+  running in-process (the golden corpus replays byte-exact); no venv,
+  no provisioning, no lifecycle for first-party linters
 - Plugin lifecycle: `package = "owner/repo@tag"` provisions fetcher and
   linter binaries — sha256-verified, receipted, store-resolved
 - Enterprise-grade GitHub releases: authenticated API downloads,
@@ -67,7 +72,6 @@ typo in a module.*
 
 ## Next
 
-- TypeScript frontend
 - (the fetcher `package =` line landed — grip manages the plugin
   lifecycle for fetchers AND external linters)
 - Fonts and desktop-entry activation adapters
@@ -81,7 +85,4 @@ typo in a module.*
   the exact line — that moment.
 - **Fetcher registry**: `gripfetch-*` plugins for the long tail, under
   `gripsack-dev` and beyond.
-- **griplint engine in-crate**: the data packs run in-process — no
-  plugin lifecycle for first-party linters (plan/0012 move 3). (This
-  replaces the old "griplint-ts" idea — with linters as data there is
-  nothing to mirror.)
+

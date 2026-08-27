@@ -7,17 +7,19 @@ linters close that gap at check time, where the error points at the
 offending line.
 
 Since 0.13 the **core** drives linters: `lint = "name"` travels in the
-IR, and `grip check`/`apply` spawn the linter exactly like a fetcher
-plugin — no Python venv involved, so linting works under
-`GRIPSACK_PYTHON` and in CI without a frontend runtime. And the
-linters themselves are becoming **data**: `crates/griplint` holds every
-shipped linter as a versioned data pack (key tables as TOML) plus the
-golden fixture corpus — the in-crate engine that runs them in-process
-is the next move (plan/0012). A new structured-format linter is a data
-PR, not a package.
+IR, and `grip check`/`apply` run the linter — no Python venv involved,
+so linting works under `GRIPSACK_PYTHON` and in CI without a frontend
+runtime. Since 0.15 the linters themselves are **data**: every shipped
+linter is a versioned data pack embedded in grip
+(`crates/griplint/packs`, key tables as TOML) checked by the in-crate
+engine **in-process** — no venv, no provisioning, no plugin lifecycle
+for first-party linters, and the golden corpus replays byte-exact
+against the reference implementation. A new structured-format linter
+is a data PR, not a package. External `griplint-*` executables keep
+the protocol path for exotic formats.
 
-Status: the pack set below is what exists today and what's queued,
-sorted by github stars.
+Status: the engine is shipped and every pack below runs in-process —
+the set is what exists today and what's queued, sorted by github stars.
 
 ## Coverage
 
@@ -92,7 +94,9 @@ picking one up is a research-and-tables PR, not a packaging exercise.
 
 ## Using a linter
 
-Two halves: register the plugin in `env.toml`, opt in from the module.
+For first-party packs: nothing to register — `lint = "helix"` runs the
+embedded pack. External plugins register in `env.toml`; opt in from the
+module either way.
 
 ```toml
 [linters.yazi]
@@ -106,12 +110,11 @@ path = "/opt/bin/griplint-internal"   # explicit executable — the out-of-tree 
 module("yazi", ..., lint="yazi")
 ```
 
-- `package` requires an `==` pin and resolves the published wheel's
-  console script — the core finds it next to the frontend python, so
-  no PATH mutation and no separate installs. (The published wheels are
-  frozen in place; new linter work is data packs in `crates/griplint`,
-  and the plugin lifecycle manager — `package = "owner/repo@tag"` for
-  executables — is on the roadmap.)
+- `package` requires an `==` pin (a wheel, resolved next to the
+  frontend python — the frozen 0.10–0.13 path) or names a repo ref
+  `"owner/repo@tag"` (a provisioned executable — the lifecycle manager,
+  sha256-verified into the plugin store). `path` is the explicit
+  executable for development.
 - `lint = "<name>"` must resolve against the registry: an
   unregistered name is a hard eval error with the module-line span,
   never a silent skip. There is deliberately no PATH-discovery
