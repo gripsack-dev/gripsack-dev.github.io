@@ -25,6 +25,12 @@ The payoff of the split: `grip plan` can show you exactly what would
 change without changing anything, errors point at your source instead of
 at JSON, and the core stays a small, boring, auditable program.
 
+The Python frontend is also **embedded in the binary**: for a repo with
+no `[eval] deps` and no packaged linters, eval runs it as a directory
+app under any system `python3` — zero network, zero provisioning, first
+apply included. Repos that declare extras still provision a pinned venv
+on demand (uv, sha256-verified).
+
 ## Modules and sources
 
 Everything is a **module** — a tool, a font, a set of dotfiles. A module

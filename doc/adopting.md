@@ -5,6 +5,11 @@ deliberately refuses to be magic.
 
 ## Start with one directory, not your whole setup
 
+A config-only repo needs nothing but `grip` and any `python3`: the
+frontend is embedded in the binary, so your first apply touches no
+network and provisions nothing.
+
+
 ```bash
 grip init my-env && cd my-env
 ```

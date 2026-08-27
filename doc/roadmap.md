@@ -72,6 +72,10 @@ typo in a module.*
 - `[throttle]` token buckets + the `capabilities` op — rate budgets
   live in fetchers; `[throttle]` in env.toml outranks them, and
   buckets persist across runs
+- Zero-provisioning bootstrap: the Python frontend is embedded in the
+  binary — a config-only repo applies with zero network and zero
+  provisioning (`[eval] deps`/packaged linters still provision on
+  demand)
 
 ## Next
 
@@ -84,11 +88,6 @@ next, ecosystems last.
   generates the module, shows the plan, touches nothing until you
   confirm. Migration cost, not fetchers, is the enemy; the agent skill
   stays, but the CLI is the canonical path.
-- **Zero-provisioning bootstrap** — the Python frontend embedded as a
-  zipapp, so a config-only repo applies with zero network and zero
-  provisioning (`[eval] deps`/plugins still provision on demand).
-  "Try gripsack on one dotfile" must be conceptually *and* practically
-  lightweight; Level-1 adoption must never be hostage to PyPI.
 - **`grip update --dry-run`** — the fetched-module half of plan
   (lockfile vs registry; the terraform refresh/plan split).
 - **Rollback adapters** — user-initiated `grip rollback` re-runs
