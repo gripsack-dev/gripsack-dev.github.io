@@ -90,7 +90,7 @@
     <div class="step"><b>[03]</b><h3>lock</h3><p>the resolved plan pins URLs and content hashes per host. reproducible inputs — deliberately not hermetic builds.</p></div>
     <div class="step"><b>[04]</b><h3>build</h3><p>fetchers and builders run as a parallel DAG, N = cores, into hash-addressed store paths.</p></div>
     <div class="step"><b>[05]</b><h3>activate</h3><p>one atomic symlink flip. dotfiles deployed per ownership mode.</p></div>
-    <div class="step"><b>[06]</b><h3>roll back</h3><p>flip <code>current</code> to any previous generation. that's the whole mechanism.</p></div>
+    <div class="step"><b>[06]</b><h3>roll back</h3><p>flip <code>current</code> back, and every managed destination follows — symlinks, tracked copies, merge blocks, rendered templates. that's the whole mechanism.</p></div>
   </div>
 </section>
 

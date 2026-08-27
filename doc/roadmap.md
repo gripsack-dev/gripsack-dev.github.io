@@ -8,8 +8,10 @@ typo in a module.*
 
 - The core flow: `apply` / `plan` / `generations` / `rollback` —
   generations on disk, atomic flip, no-op satisfaction
-- Run-level rollback: a failed apply flips back or never happened — no
-  half-applied deployments
+- Run-level rollback: an apply that fails mid-graph restores every
+  touched destination to the previous generation — no half-applied
+  deployments. Post-activation adapter failures never auto-rollback
+  (a service that failed to start must not bounce your configs back)
 - `grip check` — eval + sema + linters, exit code = validity, zero
   side effects; the CI gate for your dotfiles repo
 - Python frontend (typed, doctest-enforced)
