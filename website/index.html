@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>gripsack</title>
-<meta name="description" content="gripsack — your whole environment in one bag. Packages from any source plus your dotfiles, described once in Python, deployed by a Rust core with generations and rollback.">
+<title>gripsack — personal environment manager</title>
+<meta name="description" content="gripsack — personal environment manager. Keep your packages and dotfiles in one repo, reproduce them on another machine, and roll the entire setup back when something goes wrong.">
 <link rel="icon" href="./assets/favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="./assets/site.css">
 <script src="./assets/site.js" defer></script>
@@ -33,16 +33,16 @@
 
 <section class="hero">
   <div class="logo" role="img" aria-label="gripsack — a traveler's bag with a config file and a terminal chip peeking out"><!--LOGO--></div>
+  <p class="kicker">personal environment manager</p>
   <p class="tagline">your whole environment, in one bag.</p>
-  <p class="sub">set up a new machine from one repo — packages, dotfiles, and machine-specific
-  config, with generations and rollback. typed Python/TypeScript, a Rust executor.
-  no daemon, no root, no /nix.</p>
+  <p class="sub">keep your packages and dotfiles in one repo, reproduce them on another
+  machine, and roll the entire setup back when something goes wrong.</p>
+  <p class="sub stack">typed Python/TypeScript. Rust executor. no daemon, no root, no /nix.</p>
   <div class="chips">
     <span class="chip version">v<!--VERSION--></span>
     <span class="chip">rust core</span>
-    <span class="chip">python modules</span>
-    <span class="chip">hash-addressed store</span>
     <span class="chip">generations &amp; rollback</span>
+    <span class="chip">never clobbers</span>
     <span class="chip status">alpha</span>
   </div>
   <div class="installbox">
@@ -57,40 +57,9 @@
     <span class="ib-os">linux · macOS</span>
   </div>
   <p class="alt"><a href="https://github.com/gripsack-dev/gripsack/releases">release binaries</a> ·
-      frontends: <code>pip install gripsack</code> · <code>npm i @gripsack/core</code> ·
-      then <code>grip init my-env</code> or <code>grip apply --repo git@github.com:you/myenv</code></p>
+      frontends: <code>pip install gripsack</code> · <code>npm i @gripsack/core</code></p>
   <div class="cta">
     <a class="primary" href="https://github.com/gripsack-dev/gripsack">GitHub ↗</a>
-  </div>
-</section>
-
-<section>
-  <h2 class="section">pick a palette</h2>
-  <div class="palette-bar">
-    <button data-set-palette="catppuccin-mocha" class="active"><span class="sw" style="--sw:#89b4fa"></span>catppuccin-mocha</button>
-    <button data-set-palette="tokyo-night"><span class="sw" style="--sw:#7aa2f7"></span>tokyo-night</button>
-    <button data-set-palette="gruvbox-dark"><span class="sw" style="--sw:#83a598"></span>gruvbox-dark</button>
-    <button data-set-palette="nord"><span class="sw" style="--sw:#88c0d0"></span>nord</button>
-    <button data-set-palette="dracula"><span class="sw" style="--sw:#bd93f9"></span>dracula</button>
-    <button data-set-palette="one-dark"><span class="sw" style="--sw:#61afef"></span>one-dark</button>
-    <button data-set-palette="solarized-dark"><span class="sw" style="--sw:#268bd2"></span>solarized-dark</button>
-    <button data-set-palette="catppuccin-latte"><span class="sw" style="--sw:#1e66f5"></span>catppuccin-latte</button>
-    <button data-set-palette="github-light"><span class="sw" style="--sw:#0969da"></span>github-light</button>
-    <button data-set-palette="one-light"><span class="sw" style="--sw:#4078f2"></span>one-light</button>
-    <button data-set-palette="solarized-light"><span class="sw" style="--sw:#268bd2"></span>solarized-light</button>
-  </div>
-  <p class="note">pure CSS variables — the logo re-tints too. your pick persists per browser.</p>
-</section>
-
-<section>
-  <h2 class="section">how it works</h2>
-  <div class="steps">
-    <div class="step"><b>[01]</b><h3>describe</h3><p>modules are typed Python in your repo: sources, build steps, config files, ownership.</p></div>
-    <div class="step"><b>[02]</b><h3>evaluate</h3><p>modules evaluate to IR — pure data. host facts &amp; tags resolve here, nowhere else.</p></div>
-    <div class="step"><b>[03]</b><h3>lock</h3><p>the resolved plan pins URLs and content hashes per host. reproducible inputs — deliberately not hermetic builds.</p></div>
-    <div class="step"><b>[04]</b><h3>build</h3><p>fetchers and builders run as a parallel DAG, N = cores, into hash-addressed store paths.</p></div>
-    <div class="step"><b>[05]</b><h3>activate</h3><p>one atomic symlink flip. dotfiles deployed per ownership mode.</p></div>
-    <div class="step"><b>[06]</b><h3>roll back</h3><p>flip <code>current</code> back, and every managed destination follows — symlinks, tracked copies, merge blocks, rendered templates. that's the whole mechanism.</p></div>
   </div>
 </section>
 
@@ -126,6 +95,45 @@
     </div>
   </div>
   <p class="note">re-rendered by CI from real demo runs — always the current CLI, in your palette.</p>
+</section>
+
+<section>
+  <h2 class="section">start with one dotfile</h2>
+  <p class="note" style="margin-bottom:14px">you don't have to rebuild your life. brew or apt keep
+  handling binaries; gripsack starts with <code>~/.config</code>, and package fetching is
+  adopted later, tool by tool. the ownership question is the whole game:</p>
+  <div class="window">
+    <div class="titlebar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="wtitle">adopting helix — every step is a design principle</span></div>
+<pre><span class="p">$</span> grip init my-env <span class="gutter">&& cd my-env</span>
+<span class="p">$</span> cp -r ~/.config/helix configs/   <span class="gutter"># your config becomes the payload</span>
+<span class="p">$</span> <span class="gutter"># modules/helix.py: config = { "configs/helix": tree("~/.config/helix") }</span>
+<span class="p">$</span> grip apply
+<span class="err">error[E109]</span>: ~/.config/helix/config.toml exists (not deployed by gripsack) — kept
+  <span class="gutter">|</span> pass <span class="s">--take-over</span> to adopt it
+<span class="p">$</span> grip apply --take-over   <span class="gutter"># explicit handover — never a silent clobber</span>
+<span class="p">$</span> <span class="gutter"># edit the file in your repo, apply, break something…</span>
+<span class="p">$</span> grip rollback              <span class="gutter"># the whole setup is back. one flip.</span></pre>
+  </div>
+  <p class="note">four ownership modes, because real dotfiles are messy:
+  <b>owned</b> — a read-only symlink for disciplined tools;
+  <b>tracked_copy</b> — a real copy for apps that rewrite their own config (Zed), with
+  your edits detected, never overwritten;
+  <b>merge</b> — a managed block inside a shared file like <code>.bashrc</code>;
+  <b>template</b> — rendered from per-host vars.
+  <a href="./docs/adopting.html">the full adopting guide</a>.</p>
+</section>
+
+<section>
+  <h2 class="section">treat your computer like code</h2>
+  <div class="steps">
+    <div class="step"><b>[01]</b><h3>describe</h3><p>modules are typed Python or TypeScript in your repo: sources, config files, ownership.</p></div>
+    <div class="step"><b>[02]</b><h3>check</h3><p>eval + semantic passes + 22 config linters, with spans pointing at the exact line. nothing stages on a red check.</p></div>
+    <div class="step"><b>[03]</b><h3>plan</h3><p>review the diff against the live generation before anything moves.</p></div>
+    <div class="step"><b>[04]</b><h3>apply</h3><p>one atomic flip into a new generation. nothing is ever half-deployed.</p></div>
+    <div class="step"><b>[05]</b><h3>roll back</h3><p>flip <code>current</code> back — every managed destination follows. that's the whole mechanism.</p></div>
+  </div>
+  <p class="note">changing your machine should feel like changing code: typecheck it,
+  inspect the plan, apply it atomically, roll it back.</p>
 </section>
 
 <section>
@@ -197,17 +205,6 @@ module(<span class="s">"helix"</span>, {
     <div class="feature">
       <span class="fnum">01</span>
       <div class="fbody">
-        <h3>any source</h3>
-        <p>install tools from anywhere: github releases, brew bottles, git,
-        tarballs, conda — and anything with a weirder download dance as a
-        small plugin. every byte is hash-checked.
-        <a href="./docs/fetchers.html">the fetchers</a>.</p>
-      </div>
-      <div class="fchips"><span class="fchip">github_release(…)</span><span class="fchip">brew(…)</span></div>
-    </div>
-    <div class="feature">
-      <span class="fnum">02</span>
-      <div class="fbody">
         <h3>dotfiles, first-class</h3>
         <p>your config files, managed per file: read-only links for
         disciplined tools, copies that never overwrite your edits, managed
@@ -215,6 +212,17 @@ module(<span class="s">"helix"</span>, {
         facts — no templating language.</p>
       </div>
       <div class="fchips"><span class="fchip">tracked_copy(…)</span></div>
+    </div>
+    <div class="feature">
+      <span class="fnum">02</span>
+      <div class="fbody">
+        <h3>any source</h3>
+        <p>install tools from anywhere: github releases, brew bottles, git,
+        tarballs, conda — and anything with a weirder download dance as a
+        small plugin. every byte is hash-checked.
+        <a href="./docs/fetchers.html">the fetchers</a>.</p>
+      </div>
+      <div class="fchips"><span class="fchip">github_release(…)</span><span class="fchip">brew(…)</span></div>
     </div>
     <div class="feature">
       <span class="fnum">03</span>
@@ -230,12 +238,42 @@ module(<span class="s">"helix"</span>, {
       <span class="fnum">04</span>
       <div class="fbody">
         <h3>lockfiles, not sandboxes</h3>
-        <p>impure by default; inputs pinned by URL and content hash (not
-        hermetic builds — that guarantee is Nix's, honestly theirs),
-        per host. nix's ergonomics without nix's enforcement.</p>
+        <p>inputs pinned by URL and content hash, per host. reproducible
+        inputs, deliberately not hermetic builds — that guarantee is Nix's,
+        honestly theirs.</p>
       </div>
       <div class="fchips"><span class="fchip">grip update</span></div>
     </div>
+  </div>
+</section>
+
+<section>
+  <h2 class="section">pick a palette</h2>
+  <div class="palette-bar">
+    <button data-set-palette="catppuccin-mocha" class="active"><span class="sw" style="--sw:#89b4fa"></span>catppuccin-mocha</button>
+    <button data-set-palette="tokyo-night"><span class="sw" style="--sw:#7aa2f7"></span>tokyo-night</button>
+    <button data-set-palette="gruvbox-dark"><span class="sw" style="--sw:#83a598"></span>gruvbox-dark</button>
+    <button data-set-palette="nord"><span class="sw" style="--sw:#88c0d0"></span>nord</button>
+    <button data-set-palette="dracula"><span class="sw" style="--sw:#bd93f9"></span>dracula</button>
+    <button data-set-palette="one-dark"><span class="sw" style="--sw:#61afef"></span>one-dark</button>
+    <button data-set-palette="solarized-dark"><span class="sw" style="--sw:#268bd2"></span>solarized-dark</button>
+    <button data-set-palette="catppuccin-latte"><span class="sw" style="--sw:#1e66f5"></span>catppuccin-latte</button>
+    <button data-set-palette="github-light"><span class="sw" style="--sw:#0969da"></span>github-light</button>
+    <button data-set-palette="one-light"><span class="sw" style="--sw:#4078f2"></span>one-light</button>
+    <button data-set-palette="solarized-light"><span class="sw" style="--sw:#268bd2"></span>solarized-light</button>
+  </div>
+  <p class="note">pure CSS variables — the logo re-tints too. your pick persists per browser.</p>
+</section>
+
+<section>
+  <h2 class="section">how it works</h2>
+  <div class="steps">
+    <div class="step"><b>[01]</b><h3>describe</h3><p>modules are typed Python in your repo: sources, build steps, config files, ownership.</p></div>
+    <div class="step"><b>[02]</b><h3>evaluate</h3><p>modules evaluate to IR — pure data. host facts &amp; tags resolve here, nowhere else.</p></div>
+    <div class="step"><b>[03]</b><h3>lock</h3><p>the resolved plan pins URLs and content hashes per host. reproducible inputs — deliberately not hermetic builds.</p></div>
+    <div class="step"><b>[04]</b><h3>build</h3><p>fetchers and builders run as a parallel DAG, N = cores, into hash-addressed store paths.</p></div>
+    <div class="step"><b>[05]</b><h3>activate</h3><p>one atomic symlink flip. dotfiles deployed per ownership mode.</p></div>
+    <div class="step"><b>[06]</b><h3>roll back</h3><p>flip <code>current</code> back, and every managed destination follows — symlinks, tracked copies, merge blocks, rendered templates. that's the whole mechanism.</p></div>
   </div>
 </section>
 
@@ -244,16 +282,16 @@ module(<span class="s">"helix"</span>, {
   <div class="table-wrap">
   <table class="compare">
     <tr><th></th><th>gripsack</th><th>nix + home-manager</th><th>chezmoi · stow</th><th>apt · brew · mise</th></tr>
-    <tr><td>packages from any source</td><td class="yes">✓ fetchers</td><td class="part">✓ via fetchGit/fetchurl — in Nix</td><td class="no">·</td><td class="part">own repos</td></tr>
-    <tr><td>dotfiles managed</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td class="no">·</td></tr>
-    <tr><td>generations &amp; rollback</td><td class="yes">✓</td><td class="yes">✓</td><td class="part">git history</td><td class="no">·</td></tr>
-    <tr><td>config ownership modes</td><td class="yes">symlink · tracked copy · managed block · template</td><td class="part">whole files (text, source, trees, hooks) — no managed blocks, no drift detection</td><td class="part">templates</td><td class="no">·</td></tr>
-    <tr><td>no custom language</td><td class="yes">python</td><td class="no">nix lang</td><td class="yes">✓</td><td class="yes">✓</td></tr>
-    <tr><td>reproducible inputs, no hermetic builds</td><td class="yes">lockfile pins</td><td class="yes">flakes + sandboxed builds (stronger)</td><td class="yes">✓</td><td class="no">·</td></tr>
+    <tr><td>manages your packages</td><td class="yes">✓ any source</td><td class="yes">✓</td><td class="no">·</td><td class="part">own repos</td></tr>
+    <tr><td>safely manages messy dotfiles</td><td class="yes">✓ never clobbers; drift detected</td><td class="part">whole files only</td><td class="part">templates</td><td class="no">·</td></tr>
+    <tr><td>rolls the whole thing back</td><td class="yes">✓ generations</td><td class="yes">✓</td><td class="part">git history</td><td class="no">·</td></tr>
+    <tr><td>config ownership modes</td><td class="yes">symlink · tracked copy · managed block · template</td><td class="part">no managed blocks, no drift detection</td><td class="part">templates</td><td class="no">·</td></tr>
+    <tr><td>no custom language</td><td class="yes">python · typescript</td><td class="no">nix lang</td><td class="yes">✓</td><td class="yes">✓</td></tr>
+    <tr><td>reproducible inputs</td><td class="yes">lockfile pins</td><td class="yes">flakes + sandboxed builds (stronger)</td><td class="yes">✓</td><td class="no">·</td></tr>
     <tr><td>no daemon, no root</td><td class="yes">✓</td><td class="no">daemon · /nix</td><td class="yes">✓</td><td class="part">apt needs root</td></tr>
     <tr><td>per-host conditionals</td><td class="yes">facts + tags</td><td class="part">modules</td><td class="part">templates</td><td class="no">·</td></tr>
     <tr><td>config linters, at eval, with spans</td><td class="yes">✓</td><td class="no">·</td><td class="no">·</td><td class="no">·</td></tr>
-    <tr><td colspan="5" class="part">fair is the point: Nix is the stronger guarantee; gripsack is that rigor without the language, the daemon, or /nix — and your existing dotfiles participate.</td></tr>
+    <tr><td colspan="5" class="part">fair is the point: Nix is the stronger guarantee. gripsack borrows one of its best ideas — generations — and stays a tool you can adopt one dotfile at a time.</td></tr>
   </table>
   </div>
 </section>

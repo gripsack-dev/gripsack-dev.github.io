@@ -11,7 +11,7 @@ rollback. This page is the friendly tour; the design docs under
 
 gripsack is a compiler, and it keeps its two halves strictly separate:
 
-- **Eval** happens in *your* repo, in *your* language (Python; TypeScript is next), with *your* credentials. Modules — plain code using a
+- **Eval** happens in *your* repo, in *your* language (Python or TypeScript, both shipped), with *your* credentials. Modules — plain code using a
   typed library — describe what you want: where a tool comes from, how
   to build it, which config files it owns. Evaluation emits **IR**, a
   JSON graph where every node carries a *span* pointing back at the
