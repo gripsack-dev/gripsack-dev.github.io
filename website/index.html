@@ -16,16 +16,7 @@
     <img src="./assets/icon.svg" alt="gripsack icon"><span class="wordmark">gripsack</span>
   </a>
   <nav>
-    <a href="./docs/adopting.html">adopting</a>
-    <a href="./docs/architecture.html">architecture</a>
-    <a href="./docs/modules.html">modules</a>
-    <a href="./docs/fetchers.html">fetchers</a>
-    <a href="./docs/linters.html">linters</a>
-    <a href="./docs/settings.html">settings</a>
-    <a href="./docs/runs.html">run logs</a>
-    <a href="./docs/skills.html">skills</a>
-    <a href="./docs/roadmap.html">roadmap</a>
-    <a href="./docs/changelog.html">what's new</a>
+    <a href="./docs/architecture.html">docs</a>
     <a href="https://github.com/gripsack-dev/gripsack">github ↗</a>
   </nav>
 </header>
@@ -39,14 +30,15 @@
   <p class="sub">set up a new machine from one repo — packages, dotfiles and
   machine-specific config, with generations and rollback.</p>
   <div class="chips">
-    <span class="chip version">v<!--VERSION--></span>
-    <span class="chip">typed python · typescript</span>
+    <a class="chip version" href="./docs/changelog.html">v<!--VERSION--></a>
+    <span class="chip">typed typescript</span>
     <span class="chip">rust core</span>
     <span class="chip">generations &amp; rollback</span>
-    <span class="chip">never clobbers</span>
+    <span class="chip">sandboxed eval</span>
     <span class="chip">no daemon · root · /nix</span>
     <span class="chip status">alpha</span>
   </div>
+  <div class="tabscope">
   <div class="installbox">
     <span class="tab-bar">
       <button data-tab="curl" class="active" aria-current="true">curl</button><button data-tab="brew">brew</button><button data-tab="cargo">cargo</button><button data-tab="mise">mise</button>
@@ -58,8 +50,13 @@
     <button class="copy" data-copy="curl -fsSL https://gripsack.dev/install.sh | sh">copy</button>
     <span class="ib-os">linux · macOS</span>
   </div>
+  <p class="alt">already installed?
+    <span data-pane="curl"><code>grip self-update</code></span><span data-pane="brew" hidden><code>brew upgrade --cask gripsack</code></span><span data-pane="cargo" hidden><code>cargo install gripsack</code></span><span data-pane="mise" hidden><code>mise up gripsack</code></span>
+    · <a href="./docs/changelog.html">what's new</a></p>
+  </div>
   <p class="alt"><a href="https://github.com/gripsack-dev/gripsack/releases">release binaries</a> ·
-      frontends: <code>pip install gripsack</code> · <code>npm i @gripsack/core</code></p>
+      the frontend is embedded in the binary — nothing to install for a plain repo;
+      <code>npm i @gripsack/core</code> only to pin your own copy</p>
   <div class="cta">
     <a class="primary" href="https://github.com/gripsack-dev/gripsack">GitHub ↗</a>
   </div>
@@ -108,7 +105,7 @@
     <div class="titlebar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="wtitle">adopting helix — every step is a design principle</span></div>
 <pre><span class="p">$</span> grip init my-env <span class="gutter">&& cd my-env</span>
 <span class="p">$</span> cp -r ~/.config/helix configs/   <span class="gutter"># your config becomes the payload</span>
-<span class="p">$</span> <span class="gutter"># modules/helix.py: config = { "configs/helix": tree("~/.config/helix") }</span>
+<span class="p">$</span> <span class="gutter"># modules/helix.ts: config: tree("configs/helix", "~/.config/helix")</span>
 <span class="p">$</span> grip apply
 <span class="err">error[E109]</span>: ~/.config/helix/config.toml exists (not deployed by gripsack) — kept
   <span class="gutter">|</span> pass <span class="s">--take-over</span> to adopt it
@@ -128,7 +125,7 @@
 <section>
   <h2 class="section">treat your computer like code</h2>
   <div class="steps">
-    <div class="step"><b>[01]</b><h3>describe</h3><p>modules are typed Python or TypeScript in your repo: sources, config files, ownership.</p></div>
+    <div class="step"><b>[01]</b><h3>describe</h3><p>modules are typed TypeScript in your repo: sources, config files, ownership.</p></div>
     <div class="step"><b>[02]</b><h3>check</h3><p>eval + semantic passes + 22 config linters, with spans pointing at the exact line. nothing stages on a red check.</p></div>
     <div class="step"><b>[03]</b><h3>plan</h3><p>review the diff against the live generation before anything moves.</p></div>
     <div class="step"><b>[04]</b><h3>apply</h3><p>one atomic flip into a new generation. nothing is ever half-deployed.</p></div>
@@ -141,31 +138,11 @@
 <section>
   <h2 class="section">a module</h2>
   <div class="window">
-    <div class="titlebar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="wtitle">myenv/modules/helix — python and typescript, both typed, same IR</span>
-      <span class="tab-bar">
-        <button data-tab="py" class="active">python</button><button data-tab="ts">typescript</button>
-      </span>
-    </div>
-    <div class="tab-pane" data-pane="py">
-<pre><span class="k">from</span> gripsack <span class="k">import</span> module, github_release, symlink, tracked_copy
+    <div class="titlebar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="wtitle">myenv — a module is a value, a host is a function, eval is sandboxed</span></div>
+<pre><span class="c">// modules/helix.ts — a module is a pure exported value</span>
+<span class="k">import</span> { module, githubRelease, symlink, trackedCopy } <span class="k">from</span> <span class="s">"@gripsack/core"</span>;
 
-helix = module(
-    <span class="s">"helix"</span>,
-    fetch=github_release(
-        repo=<span class="s">"helix-editor/helix"</span>,
-        asset=<span class="s">"helix-{version}-x86_64-linux.tar.xz"</span>,
-    ),
-    install={<span class="s">"bin/hx"</span>: symlink(<span class="s">"~/.local/bin/hx"</span>)},
-    config={
-        <span class="s">"config.toml"</span>: tracked_copy(<span class="s">"~/.config/helix/config.toml"</span>),
-        <span class="s">"languages.toml"</span>: tracked_copy(<span class="s">"~/.config/helix/languages.toml"</span>),
-    },
-)</pre>
-    </div>
-    <div class="tab-pane" data-pane="ts" hidden>
-<pre><span class="k">import</span> { module, githubRelease, symlink, trackedCopy } <span class="k">from</span> <span class="s">"@gripsack/core"</span>;
-
-module(<span class="s">"helix"</span>, {
+<span class="k">export const</span> helix = module(<span class="s">"helix"</span>, {
   fetch: githubRelease({
     repo: <span class="s">"helix-editor/helix"</span>,
     asset: <span class="s">"helix-{version}-x86_64-linux.tar.xz"</span>,
@@ -175,14 +152,27 @@ module(<span class="s">"helix"</span>, {
     <span class="s">"config.toml"</span>: trackedCopy(<span class="s">"~/.config/helix/config.toml"</span>),
     <span class="s">"languages.toml"</span>: trackedCopy(<span class="s">"~/.config/helix/languages.toml"</span>),
   },
-});</pre>
-    </div>
+});
+
+<span class="c">// hosts/laptop.ts — a host is a function; ctx carries facts and probes</span>
+<span class="k">import</span> { defineEnv } <span class="k">from</span> <span class="s">"@gripsack/core"</span>;
+<span class="k">import</span> { helix } <span class="k">from</span> <span class="s">"../modules/helix.ts"</span>;
+<span class="k">import</span> cuda <span class="k">from</span> <span class="s">"../modules/cuda.ts"</span>;
+
+<span class="k">export default</span> defineEnv((ctx) =&gt; ({
+  tags: [<span class="s">"desktop"</span>],
+  modules: [
+    helix,
+    ctx.probe.executable(<span class="s">"nvidia-smi"</span>) &amp;&amp; cuda, <span class="c">// the core binds the probe; eval never runs it</span>
+  ],
+}));</pre>
   </div>
-  <p class="note">the frontends are libraries — <code>pip install gripsack</code> or
-  <code>npm i @gripsack/core</code> — and fully typed: pyright or tsc gives you
-  autocomplete, inline errors, and refactors, because a module is just typed code.
-  evaluation emits IR (JSON); the Rust core only ever consumes IR. the typescript
-  frontend evaluates through bun, provisioned and pinned like everything else.</p>
+  <p class="note">evaluation is sandboxed — no env vars, no network, no subprocesses.
+  facts and probes arrive via <code>ctx</code>, injected by the core; effects are
+  declared, never performed. eval emits IR (JSON) — the Rust core only ever
+  consumes IR. the frontend is embedded in the binary and fully typed: your
+  editor gives you autocomplete and inline errors, because a module is just
+  typed code.</p>
 </section>
 
 <section>
@@ -191,9 +181,9 @@ module(<span class="s">"helix"</span>, {
     <div class="titlebar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="wtitle">every IR node carries a span back to the line that emitted it</span></div>
 <pre><span class="p">$</span> grip plan
 <span class="err">error[E101]</span>: module <span class="s">"helix"</span> depends on unknown module <span class="s">"nvim"</span>
-  <span class="loc">--&gt;</span> <span class="loc">modules/helix.py:4:7</span>
+  <span class="loc">--&gt;</span> <span class="loc">modules/helix.ts:4:7</span>
    <span class="gutter">|</span>
- <span class="loc">4</span> <span class="gutter">|</span> helix = module(<span class="s">"helix"</span>, fetch=..., depends=[dep(<span class="s">"nvim"</span>)])
+ <span class="loc">4</span> <span class="gutter">|</span> const helix = module(<span class="s">"helix"</span>, { fetch: ..., depends: [dep(<span class="s">"nvim"</span>)] })
    <span class="gutter">|</span>       <span class="err">^ dependency declared here</span></pre>
   </div>
   <p class="note">structured diagnostics with stable codes and source snippets — and
@@ -275,7 +265,7 @@ module(<span class="s">"helix"</span>, {
     <tr><td>safely manages messy dotfiles</td><td class="yes">✓ never clobbers; drift detected</td><td class="part">whole files only</td><td class="part">templates</td><td class="no">·</td></tr>
     <tr><td>rolls the whole thing back</td><td class="yes">✓ generations</td><td class="yes">✓</td><td class="part">git history</td><td class="no">·</td></tr>
     <tr><td>config ownership modes</td><td class="yes">symlink · tracked copy · managed block · template</td><td class="part">no managed blocks, no drift detection</td><td class="part">templates</td><td class="no">·</td></tr>
-    <tr><td>no custom language</td><td class="yes">python · typescript</td><td class="no">nix lang</td><td class="yes">✓</td><td class="yes">✓</td></tr>
+    <tr><td>no custom language</td><td class="yes">typescript</td><td class="no">nix lang</td><td class="yes">✓</td><td class="yes">✓</td></tr>
     <tr><td>reproducible inputs</td><td class="yes">lockfile pins</td><td class="yes">flakes + sandboxed builds (stronger)</td><td class="yes">✓</td><td class="no">·</td></tr>
     <tr><td>no daemon, no root</td><td class="yes">✓</td><td class="no">daemon · /nix</td><td class="yes">✓</td><td class="part">apt needs root</td></tr>
     <tr><td>per-host conditionals</td><td class="yes">facts + tags</td><td class="part">modules</td><td class="part">templates</td><td class="no">·</td></tr>
@@ -289,7 +279,7 @@ module(<span class="s">"helix"</span>, {
   <h2 class="section">install</h2>
   <p class="alt">
     <a href="https://github.com/gripsack-dev/gripsack/releases">release binaries</a> ·
-    frontends: <code>pip install gripsack</code> · <code>npm i @gripsack/core</code><br>
+    the frontend is embedded in the binary — nothing extra to install<br>
     then: <code>grip init my-env</code> to start fresh, or
     <code>grip apply --repo git@github.com:you/myenv</code> and you're home.
   </p>
@@ -299,8 +289,10 @@ module(<span class="s">"helix"</span>, {
   <h2 class="section">follow along</h2>
   <p class="alt">shipped so far: fetchers for github releases, brew bottles, git, tarballs,
   pixi — plus plugin fetchers over NDJSON, generations with rollback, and ownership
-  modes that never clobber. latest: the zero-provisioning bootstrap (a config-only
-  apply needs nothing but grip + python3) and <code>grip self-update</code> — the
+  modes that never clobber. latest: constrained eval — the frontend runs sandboxed
+  under a pinned, hash-verified deno (no env vars, no network, no subprocesses),
+  facts and probes arrive injected via ctx, and the first eval of an unfamiliar
+  repo is an explicit trust decision. <code>grip self-update</code> — the
   package manager updates itself.
   <a href="./docs/changelog.html">what's new</a>, every release.
   star the <a href="https://github.com/gripsack-dev/gripsack">repo</a> if this is the package manager you also wish existed.</p>

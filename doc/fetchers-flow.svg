@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 380" font-family="DejaVu Sans Mono, monospace">
-  <!-- the fetcher plugin flow: module plugin_fetch (blue) → core
+  <!-- the fetcher plugin flow: module pluginFetch (blue) → core
        discovery + one JSON request (green) → gripfetch-* plugin
        (peach, matching architecture.svg) → bytes through the lockfile
        verification gate (yellow) → store. build.py swaps hexes for
@@ -22,7 +22,7 @@
   <!-- module opt-in -->
   <rect x="24" y="46" width="264" height="92" rx="14" fill="#1e1e2e" stroke="#89b4fa" stroke-width="2"/>
   <text x="156" y="74" text-anchor="middle" font-size="12.5" font-weight="bold" fill="#cdd6f4">your module</text>
-  <text x="156" y="96" text-anchor="middle" font-size="9.5" fill="#89b4fa">plugin_fetch("artifactory", args={…})</text>
+  <text x="156" y="96" text-anchor="middle" font-size="9.5" fill="#89b4fa">pluginFetch("artifactory", {…})</text>
   <text x="156" y="116" text-anchor="middle" font-size="9.5" fill="#6c7086">args opaque to the core</text>
 
   <line x1="294" y1="92" x2="338" y2="92" stroke="#89b4fa" stroke-width="2" marker-end="url(#arr)"/>
@@ -31,8 +31,7 @@
   <rect x="344" y="46" width="296" height="92" rx="14" fill="#1e1e2e" stroke="#a6e3a1" stroke-width="2"/>
   <text x="492" y="72" text-anchor="middle" font-size="12.5" font-weight="bold" fill="#a6e3a1">grip core</text>
   <text x="492" y="94" text-anchor="middle" font-size="10" fill="#a6adc8">discovers the executable:</text>
-  <text x="492" y="114" text-anchor="middle" font-size="9.5" fill="#6c7086">env.toml path → venv bin → PATH</text>
-
+  <text x="492" y="114" text-anchor="middle" font-size="9.5" fill="#6c7086">env.toml path → plugin store → PATH</text>
   <line x1="646" y1="92" x2="698" y2="92" stroke="#a6e3a1" stroke-width="2" marker-end="url(#arrg)"/>
   <text x="672" y="122" text-anchor="middle" font-size="8" fill="#6c7086">one JSON</text>
   <text x="672" y="133" text-anchor="middle" font-size="8" fill="#6c7086">on stdin</text>

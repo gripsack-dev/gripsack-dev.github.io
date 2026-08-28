@@ -20,14 +20,17 @@ data and is always read before module evaluation.
 | key | type | default | what |
 |---|---|---|---|
 | `name` | string | — | human name for the env (used in output) |
-| `frontend` | `"python"` \| `"typescript"` | `"python"` | which frontend evaluates this repo |
 | `default_host` | string | — | the host entrypoint when no `--host` is given and the machine's hostname matches nothing in `hosts/` — role-named host files for ephemeral containers with random hostnames. An unmatched host with a non-empty `hosts/` is an error, not silently-empty tags |
+
+`frontend` is gone (0013): TypeScript is the only frontend and needs
+no declaration — `hosts/*.ts` and `modules/*.ts` are it. A stale
+`frontend = "python"` fails with a migration hint, not a mystery.
 
 ## `[eval]` — env.toml only
 
 | key | type | default | what |
 |---|---|---|---|
-| `deps` | string[] | `[]` | frontend-environment packages the modules import at eval time (resolvers, fetcher libraries). Pinned; content-cached |
+| `env` | string map | `{}` | build-time environment injected into the apply process for the run's duration — build steps, fetchers, and plugins inherit it (`SSL_CERT_FILE` is the canonical case). The sandboxed eval sees none of it |
 
 ## `[fetchers.<name>]` — env.toml or user config
 
@@ -37,9 +40,9 @@ data and is always read before module evaluation.
 | `package` | string | — | provision the fetcher from a GitHub release: `owner/repo@tag`. grip manages the lifecycle — downloaded at eval, sha256-verified against the mandatory sidecar asset, receipted into `$GRIPSACK_HOME/plugins/`; the tag is the pin. Mutually exclusive with `plugin` |
 
 The same form works for linter plugins: `[linters.<name>] package =
-"owner/repo@tag"` provisions an executable `griplint-<name>` (a bare
-package name keeps the wheel meaning). A fresh install prints its
-source — a new plugin runs with your user rights.
+"owner/repo@tag"` provisions an executable `griplint-<name>` —
+sha256-verified, receipted, exactly like a fetcher. A fresh install
+prints its source — a new plugin runs with your user rights.
 
 Repo entries override user entries of the same name.
 
@@ -74,10 +77,9 @@ endpoints.
 |---|---|
 | `GRIPSACK_HOME` | base directory for store, generations, and the `current` symlink (default: `$XDG_DATA_HOME/gripsack` or `~/.local/share/gripsack`) |
 | `GRIPSACK_BIN` | path to the `grip` binary (used by the e2e harness) |
-| `GRIPSACK_PYTHON` | bring-your-own interpreter: skip eval provisioning (provisioned plugins are then absent) |
-| `SSL_CERT_FILE` | the corporate CA bundle — rustls-based tooling grip provisions (uv, pixi) ignores the system trust store behind TLS-intercepting proxies; set this before invoking grip and the whole bootstrap verifies |
-| `UV_DEFAULT_INDEX` | override a corporate default index (uv.toml) that doesn't mirror gripsack — `https://pypi.org/simple` restores provisioning |
-| `GRIPSACK_EXTRA_INDEX` | extra package indexes for eval/plugin provisioning, comma-separated — e.g. `https://gripsack.dev/simple` (the `griplint-*` ecosystem index, mirrored at `https://gripsack.dev/packages`). Opt-in, not a default: it requires an egress that can reach `gripsack.dev`, which "reaches PyPI" does not guarantee — content-filtering proxies have been observed 403ing `/simple/*` while allowing the bare domain. PyPI remains the primary index everywhere |
+| `GRIPSACK_DENO` | bring-your-own eval runtime: a deno binary — wins over a deno on `PATH` and the pinned provisioned download |
+| `GRIPSACK_TRUST_ALL` | `=1` skips the repo trust prompt before eval — the CI escape hatch |
+| `SSL_CERT_FILE` | the corporate CA bundle — grip's rustls-based fetching honors it and the tools grip spawns inherit it, so TLS-intercepting proxies verify; set it before invoking grip |
 | `HTTPS_PROXY` / `NO_PROXY` | corporate proxy support; the system CA roots are trusted |
 | `XDG_DATA_HOME` | honored for the default `GRIPSACK_HOME` |
 
@@ -94,7 +96,8 @@ grip generations                    # list generations and their status
 grip gc                             # collect unreferenced store paths
 grip gc --dry-run                  # show what gc would reclaim
 grip why-owns <path>                # which module owns a deployed path
-grip doctor                         # check config, runtime, frontend env
+grip doctor                         # check config, deno, the embedded frontend
+grip trust list/add/remove          # the repo trust list — the gate before any eval
 ```
 
 All shipped; the config schema on this page is their stable contract.

@@ -5,9 +5,12 @@ deliberately refuses to be magic.
 
 ## Start with one directory, not your whole setup
 
-A config-only repo needs nothing but `grip` and any `python3`: the
-frontend is embedded in the binary, so your first apply touches no
-network and provisions nothing.
+A config-only repo needs nothing but `grip` itself: the frontend
+source rides inside the binary, and the only provisioning is the eval
+runtime — the first `grip check`/`apply` downloads a pinned,
+sha256-verified Deno once (~40MB, cached). And before a repo's code
+runs at all, grip asks once: an unfamiliar repo gets a trust prompt
+naming exactly what the sandbox allows. `y`, and you're in business.
 
 
 ```bash
@@ -32,30 +35,15 @@ Pick the boring one — the tool whose config never fights back (helix,
 git, starship). Copy its config directory into the repo and declare it:
 
 <div class="window">
-  <div class="titlebar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="wtitle">a first real module — both frontends, same IR</span>
-    <span class="tab-bar">
-      <button data-tab="py" class="active" aria-current="true">python</button><button data-tab="ts">typescript</button>
-    </span>
-  </div>
-  <div class="tab-pane" data-pane="py">
-<pre><code class="language-python">from gripsack import module, tree
-from gripsack.entries import Ownership
-
-module(
-    "helix",
-    config=tree("configs/helix", "~/.config/helix", mode=Ownership.OWNED),
-)</code></pre>
-  </div>
-  <div class="tab-pane" data-pane="ts" hidden>
+  <div class="titlebar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="wtitle">modules/helix.ts</span></div>
 <pre><code class="language-typescript">import { module, tree } from "@gripsack/core";
 
-module("helix", {
+export default module("helix", {
   config: tree("configs/helix", "~/.config/helix", "owned"),
 });</code></pre>
-  </div>
 </div>
 
-`tree()` expands the directory into one entry per file. `OWNED` means
+`tree()` expands the directory into one entry per file. `owned` means
 symlinks into the store: your repo is the only editor, and `git diff`
 is your changelog.
 
@@ -81,7 +69,8 @@ config?*
 - **Shared files** (`.bashrc`, `.profile`) → `merge`: gripsack owns one
   delimited block, everything outside the markers is never touched.
 - **Same file, per-host values** (work email vs personal) →
-  `template` with `vars` computed from `facts()`.
+  `template` with `vars` computed in the host entrypoint from
+  `ctx.facts`.
 
 ## What stays outside (on purpose)
 

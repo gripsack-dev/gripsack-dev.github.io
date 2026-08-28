@@ -72,10 +72,17 @@ typo in a module.*
 - `[throttle]` token buckets + the `capabilities` op — rate budgets
   live in fetchers; `[throttle]` in env.toml outranks them, and
   buckets persist across runs
-- Zero-provisioning bootstrap: the Python frontend is embedded in the
-  binary — a config-only repo applies with zero network and zero
-  provisioning (`[eval] deps`/packaged linters still provision on
-  demand)
+- **Constrained evaluation** ([plan 0013](https://github.com/gripsack-dev/gripsack/tree/main/plan/0013-constrained-evaluation.md)) —
+  one frontend: TypeScript under a pinned, hash-verified Deno with
+  deny-by-default capabilities (no env, no network, no subprocesses,
+  read-only within the repo). Facts are injected by the core, not
+  self-detected; host effects are declared probes the core binds in a
+  two-stage eval, shown in `grip plan`'s host-inputs header. Host
+  entrypoints are `defineEnv` functions — modules are pure values.
+  The first eval of an unfamiliar repo is an explicit trust decision
+  (`grip trust`, `GRIPSACK_TRUST_ALL` for CI). The Python frontend,
+  bun, and uv are retired; the parity corpus became a golden IR
+  snapshot corpus.
 
 ## Next
 
@@ -88,8 +95,12 @@ next, ecosystems last.
   generates the module, shows the plan, touches nothing until you
   confirm. Migration cost, not fetchers, is the enemy; the agent skill
   stays, but the CLI is the canonical path.
-- **`grip update --dry-run`** — the fetched-module half of plan
-  (lockfile vs registry; the terraform refresh/plan split).
+- **Resolver executables** (0013 D8) — custom registries become
+  `gripresolve-*` plugins on the same NDJSON envelope as fetchers:
+  spawned with a scrubbed, declared-env-only environment (credentials
+  never touch eval), network intent declared and shown in plan.
+  **`grip update --dry-run`** folds in here — "resolve, don't write"
+  is the natural read mode of an explicit resolve phase.
 - **Rollback adapters** — user-initiated `grip rollback` re-runs
   post-link/post-activate adapters (the unified engine covers
   destinations; adapters still don't re-run on rollback).
@@ -100,12 +111,11 @@ next, ecosystems last.
   lands.
 - **Module env inheritance for dependents** — a dependent sees the env
   its dependencies export (build-time today).
+- **More probe kinds** — `executable` and `file_exists` shipped;
+  `probe.command("wg", ["show"])` (a declared, core-run subprocess at
+  bind time) is the next rung.
 - **More reference fetchers** — `pip` (corporate PyPI mirrors) and the
   internal-registry patterns, out-of-tree like `gripfetch-apt`.
-- **Dual-frontend corpus, widened** — the golden parity fixture covers
-  the IR surface today; per-mode and error-path twins next (the corpus
-  already caught five absence-class TS bugs: `brew(version=)`, env
-  contributions, arch naming, `baseUrl`, musl libc).
 
 ## North star
 

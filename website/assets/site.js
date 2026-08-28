@@ -173,7 +173,7 @@ document.addEventListener("click", function (ev) {
   var btn = ev.target.closest ? ev.target.closest("[data-tab]") : null;
   if (!btn) return;
   var bar = btn.parentElement;
-  var win = bar.closest(".window") || bar.parentElement;
+  var win = bar.closest(".window, .tabscope") || bar.parentElement;
   var name = btn.getAttribute("data-tab");
   bar.querySelectorAll("[data-tab]").forEach(function (b) {
     b.classList.toggle("active", b === btn);
@@ -186,7 +186,7 @@ document.addEventListener("click", function (ev) {
   /* installbox: the single copy button tracks the active command */
   var box = bar.closest(".installbox");
   if (box) {
-    var pane = win.querySelector('[data-pane="' + name + '"]');
+    var pane = win.querySelector('.ib-cmd[data-pane="' + name + '"]');
     var copy = box.querySelector(".copy");
     if (pane && copy) copy.setAttribute("data-copy", pane.getAttribute("data-cmd"));
   }

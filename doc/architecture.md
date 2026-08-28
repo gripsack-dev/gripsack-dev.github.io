@@ -11,11 +11,15 @@ rollback. This page is the friendly tour; the design docs under
 
 gripsack is a compiler, and it keeps its two halves strictly separate:
 
-- **Eval** happens in *your* repo, in *your* language (Python or TypeScript, both shipped), with *your* credentials. Modules — plain code using a
-  typed library — describe what you want: where a tool comes from, how
-  to build it, which config files it owns. Evaluation emits **IR**, a
-  JSON graph where every node carries a *span* pointing back at the
-  exact line of your code that produced it.
+- **Eval** is sandboxed TypeScript under a pinned, hash-verified Deno:
+  no environment variables, no network, no subprocesses, read-only
+  within your repo. The machine's facts — os, arch, libc, hostname —
+  are detected by the core and injected; host effects are *probes*,
+  symbolic requests the core binds. Modules — plain typed code —
+  describe what you want: where a tool comes from, how to build it,
+  which config files it owns. Evaluation emits **IR**, a JSON graph
+  where every node carries a *span* pointing back at the exact line
+  of your code that produced it.
 - **Execute** is the `grip` binary — one static Rust executable. It
   never evaluates code, never sees your credentials, and only consumes
   IR. It parses, validates, resolves against the lockfile, builds a
@@ -25,11 +29,17 @@ The payoff of the split: `grip plan` can show you exactly what would
 change without changing anything, errors point at your source instead of
 at JSON, and the core stays a small, boring, auditable program.
 
-The Python frontend is also **embedded in the binary**: for a repo with
-no `[eval] deps` and no packaged linters, eval runs it as a directory
-app under any system `python3` — zero network, zero provisioning, first
-apply included. Repos that declare extras still provision a pinned venv
-on demand (uv, sha256-verified).
+The frontend *source* is embedded in the `grip` binary — the DSL
+version always matches the core — so only the runtime provisions: the
+first eval downloads the pinned Deno once (per-platform sha256 baked
+into grip, ~40MB, cached under `$GRIPSACK_HOME/tools/`;
+`GRIPSACK_DENO` overrides). And eval never runs unasked: the first
+eval of a repo grip doesn't trust prompts first — naming the path,
+the remote, and exactly what the sandbox allows — and `y` records it
+(`grip trust list/add/remove`; `GRIPSACK_TRUST_ALL=1` is the CI
+bypass). Same repo + same lockfile + same declared host now means the
+same graph, because nothing observable is left to the frontend's
+environment.
 
 ## Modules and sources
 
@@ -44,11 +54,14 @@ When a source is unusual — your company's internal registry — the
 sourcing ladder keeps the core small:
 
 1. **built-in fetcher arguments** (`base_url` covers GitHub Enterprise),
-2. **resolvers** — eval-time code in your repo that turns "latest
-   artifact X" into a pinned URL + hash (the skill travels with your
-   dotfiles),
-3. **fetchers** — `gripfetch-*` plugins for genuinely bespoke
+2. **fetchers** — `gripfetch-*` plugins for genuinely bespoke
    transports, with the core hash-verifying every byte they return.
+
+Bespoke *resolution* ("latest artifact X" → pinned URL + hash) is
+planned as a third plugin kind — `gripresolve-*` executables,
+specified in [plan/0013 D8](https://github.com/gripsack-dev/gripsack/blob/main/plan/0013-constrained-evaluation.md)
+and built next, not shipped; today the built-ins resolve at
+lock/update time.
 
 ## Dotfiles, first-class
 
@@ -99,7 +112,7 @@ core's compiler passes collect structured diagnostics with stable codes:
 
 ```diag
 error[E101]: module "helix" depends on unknown module "git"
-  --> modules/helix.py:4:1
+  --> modules/helix.ts:4:1
 ```
 
 Tomorrow's LSP is a thin shim over these same passes — the analysis is

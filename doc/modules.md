@@ -6,26 +6,10 @@ where its files and configs live. Two authoring styles, same IR.
 ## Data style (most modules)
 
 <div class="window">
-  <div class="titlebar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="wtitle">helix — python ships today</span>
-    <span class="tab-bar">
-      <button data-tab="py" class="active" aria-current="true">python</button><button data-tab="ts">typescript</button>
-    </span>
-  </div>
-  <div class="tab-pane" data-pane="py">
-<pre><code class="language-python">from gripsack import module, github_release, symlink, tracked_copy
-module(
-    "helix",
-    fetch=github_release(
-        repo="helix-editor/helix",
-        asset="helix-{version}-x86_64-linux.tar.xz",
-    ),
-    install={"bin/hx": symlink("~/.local/bin/hx")},
-    config={"config.toml": tracked_copy("~/.config/helix/config.toml")},
-)</code></pre>
-  </div>
-  <div class="tab-pane" data-pane="ts" hidden>
-<pre><code class="language-typescript">import { module, githubRelease, symlink, trackedCopy } from "@gripsack/core";
-module("helix", {
+  <div class="titlebar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="wtitle">modules/helix.ts</span></div>
+<pre><code class="language-typescript">import { githubRelease, module, symlink, trackedCopy } from "@gripsack/core";
+
+export default module("helix", {
   fetch: githubRelease({
     repo: "helix-editor/helix",
     asset: "helix-{version}-x86_64-linux.tar.xz",
@@ -33,7 +17,6 @@ module("helix", {
   install: { "bin/hx": symlink("~/.local/bin/hx") },
   config: { "config.toml": trackedCopy("~/.config/helix/config.toml") },
 });</code></pre>
-  </div>
 </div>
 
 The core expands the fields into the conventional pipeline:
@@ -42,23 +25,11 @@ The core expands the fields into the conventional pipeline:
 ## Class style (full control)
 
 <div class="window">
-  <div class="titlebar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="wtitle">class style — full control</span>
-    <span class="tab-bar">
-      <button data-tab="py" class="active" aria-current="true">python</button><button data-tab="ts">typescript</button>
-    </span>
-  </div>
-  <div class="tab-pane" data-pane="py">
-<pre><code class="language-python">from gripsack import Module, fetch_step, shell_step, install_step, file_fetch, symlink
-class Patched(Module):
-    def fetch(self):
-        return fetch_step(file_fetch("payloads/hello.tar.gz"))
-    def build(self):
-        return shell_step("patch -p1 &lt; fix.patch", id="patch")
-    def install(self):
-        return install_step({"bin/hx": symlink("~/.local/bin/hx")})</code></pre>
-  </div>
-  <div class="tab-pane" data-pane="ts" hidden>
-<pre><code class="language-typescript">import { Module, define, fetchStep, shellStep, installStep, fileFetch, symlink } from "@gripsack/core";
+  <div class="titlebar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="wtitle">class style — full control</span></div>
+<pre><code class="language-typescript">import {
+  Module, define, fetchStep, fileFetch, installStep, shellStep, symlink,
+} from "@gripsack/core";
+
 class Patched extends Module {
   fetch() {
     return fetchStep(fileFetch("payloads/hello.tar.gz"));
@@ -70,8 +41,8 @@ class Patched extends Module {
     return installStep({ "bin/hx": symlink("~/.local/bin/hx") });
   }
 }
-define(Patched);</code></pre>
-  </div>
+
+export default define(Patched);</code></pre>
 </div>
 
 Phase methods return a step or a list of steps; the pipeline chains
@@ -83,92 +54,91 @@ only**: they build data, they never run at build time.
 
 | mode | behavior | use for |
 |---|---|---|
-| `symlink(...)` | store-owned, read-only | disciplined tools |
-| `tracked_copy(...)` | copied; drift detected, never silently overwritten | apps that rewrite their configs |
-| `merge(...)` | managed block in a shared file | `.bashrc`, `settings.json` other tools also write |
-| `template(...)` | rendered per machine at deploy time | hostnames, work vs personal email |
+| `symlink(to)` | store-owned, read-only | disciplined tools |
+| `trackedCopy(to)` | copied; drift detected, never silently overwritten | apps that rewrite their configs |
+| `merge(to, marker?)` | managed block in a shared file | `.bashrc`, `settings.json` other tools also write |
+| `template(to, vars?)` | rendered per machine at deploy time | hostnames, work vs personal email |
 
-`merge(to, marker=None)` owns exactly one delimited block inside a
+`merge(to, marker?)` owns exactly one delimited block inside a
 file other tools also write — everything outside the markers is never
 touched. The block is regenerated wholesale on every apply (drift
 *inside* the markers self-heals), prune removes only the block, and
 two modules can each own a block in the same file. The comment style
 is inferred from the destination (`.jsonc` → `//`, `.vimrc` → `"`,
 `.html` → `<!-- -->`, rc files and everything unknown → `#`);
-`marker=` overrides the prefix.
+`marker` overrides the prefix.
 
-`template(to, vars={...})` substitutes `{{ name }}` placeholders in
+`template(to, vars?)` substitutes `{{ name }}` placeholders in
 the payload at deploy time; `{{{{` renders a literal `{{` (payloads
 that themselves carry template syntax — helm values, jinja configs —
 are expressible). An undefined variable fails the apply loudly, never
-renders empty. Compute per-host values at eval time with `facts()` —
-the core stays a dumb substituter.
+renders empty. Compute per-host values in the host entrypoint from
+`ctx.facts` — the core stays a dumb substituter.
 
 ## Steps, resources, retries
 
 Explicit steps carry `needs` (sibling ids or `module:step`), `resources`
 (named mutexes — declare them first with `resource("pixi.lock")`; a
 typo fails at eval), `verify` contracts, and `retries` overrides. The
-action ladder: typed primitives → `run_step` (argv as data) →
-`shell_step` (last rung) → `gripfetch-*` plugins for transports.
+action ladder: typed primitives → `runStep` (argv as data) →
+`shellStep` (last rung) → `gripfetch-*` plugins for transports.
 
 ## Conditionals (hosts, facts, tags)
 
-The runner evaluates the host entrypoint first, then modules — so
-modules can read the shared `facts` object (`facts.os`, `facts.arch`,
-`facts.libc`, `facts.has("gui")`) and gate whole modules with `when`:
+Gating lives in the host entrypoint, not in module specs:
+`hosts/<name>.ts` default-exports a `defineEnv` function that receives
+`ctx` — the machine's facts (os, arch, libc, hostname), your CLI
+tags, declared probes — and returns the environment. Falsy module
+entries drop out, so a gate is just `&&`:
 
 <div class="window">
-  <div class="titlebar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="wtitle">gating a module on the host</span>
-    <span class="tab-bar">
-      <button data-tab="py" class="active" aria-current="true">python</button><button data-tab="ts">typescript</button>
-    </span>
-  </div>
-  <div class="tab-pane" data-pane="py">
-<pre><code class="language-python">from gripsack import module, when
-module("steam", fetch=..., when=when(os="linux", tags=["gui"]))
-# class style: the decorator form
-@when(os="linux", not_tags=["headless"])
-class Steam(Module): ...</code></pre>
-  </div>
-  <div class="tab-pane" data-pane="ts" hidden>
-<pre><code class="language-typescript">import { moduleIf, defineIf } from "@gripsack/core";
-moduleIf("steam", { fetch: /* … */ }, { os: "linux", tags: ["gui"] });
-// class style
-defineIf(Steam, { os: "linux", notTags: ["headless"] });</code></pre>
-  </div>
+  <div class="titlebar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="wtitle">hosts/laptop.ts</span></div>
+<pre><code class="language-typescript">import { defineEnv } from "@gripsack/core";
+import steam from "../modules/steam.ts";
+import cuda from "../modules/cuda.ts";
+
+export default defineEnv((ctx) => ({
+  tags: ["gui"],
+  modules: [
+    ctx.facts.os === "linux" && steam,
+    ctx.probe.executable("nvidia-smi") && cuda,
+  ],
+}));</code></pre>
 </div>
 
-Per-file conditionals are plain code — different source, same
-destination, per host:
+`when({ os: "linux", tags: ["gui"] }, ctx)` and `hasTag("cli", ctx)`
+are the structured spellings over the same `ctx`. The facts arrive
+core-injected — eval is sandboxed and observes nothing about the
+machine on its own — and `ctx.probe.*` is a symbolic request the core
+binds (a PATH lookup, a file stat) in a second eval pass; probes
+re-evaluate every run and `grip plan` summarizes them under a
+host-inputs header.
+
+Per-file conditionals are plain code where `ctx` is in scope — the
+host entrypoint again, different source, same destination:
 
 <div class="window">
-  <div class="titlebar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="wtitle">per-file conditionals</span>
-    <span class="tab-bar">
-      <button data-tab="py" class="active" aria-current="true">python</button><button data-tab="ts">typescript</button>
-    </span>
-  </div>
-  <div class="tab-pane" data-pane="py">
-<pre><code class="language-python">module("zed", config={
-    ("settings.spaces.json" if facts.has("spaces") else "settings.laptop.json"):
-        tracked_copy("~/.config/zed/settings.json"),
-})</code></pre>
-  </div>
-  <div class="tab-pane" data-pane="ts" hidden>
-<pre><code class="language-typescript">import { module, trackedCopy, hasTag } from "@gripsack/core";
-module("zed", {
-  config: {
-    [hasTag("spaces") ? "settings.spaces.json" : "settings.laptop.json"]:
-      trackedCopy("~/.config/zed/settings.json"),
-  },
-});</code></pre>
-  </div>
+  <div class="titlebar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="wtitle">hosts/laptop.ts — per-file conditionals</span></div>
+<pre><code class="language-typescript">import { defineEnv, hasTag, module, trackedCopy } from "@gripsack/core";
+
+export default defineEnv((ctx) => ({
+  modules: [
+    module("zed", {
+      config: {
+        [hasTag("spaces", ctx) ? "settings.spaces.json" : "settings.laptop.json"]:
+          trackedCopy("~/.config/zed/settings.json"),
+      },
+    }),
+  ],
+}));</code></pre>
 </div>
 
-Facts stay curated on purpose: os/arch/libc/tags. Anything beyond that
-is eval-time code in your repo — the frontend *is* the extension point.
+Facts stay curated on purpose: os/arch/libc/hostname plus tags.
+Anything beyond that is a probe (`ctx.probe.executable`,
+`ctx.probe.file_exists`) or plain code in the host entrypoint — the
+entrypoint *is* the extension point.
 
 ## Dependencies
 
-`dep("git")` is a runtime edge; `dep("rust", edge=Edge.BUILD)` is an
+`dep("git")` is a runtime edge; `dep("rust", "build")` is an
 ephemeral build-only dependency — present while building, GC'd after.

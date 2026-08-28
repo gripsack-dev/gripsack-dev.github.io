@@ -22,46 +22,35 @@ a module computes — so there's no bootstrap paradox, ever.
 ```toml
 [env]
 name = "tarek"
-frontend = "python"      # or "typescript"
 ```
 
 That's enough for a working repo. Everything else is optional.
 
-## Choosing a frontend
+## The frontend
 
-Modules can be written in Python or TypeScript — same ideas, same IR,
-same tool. Pick per repo, declare it once:
+Modules are TypeScript — `modules/*.ts` and `hosts/*.ts` *are* the
+frontend, and there is nothing to declare. (A stale
+`frontend = "python"` from older releases fails with a migration
+hint; the key is gone.)
 
-```toml
-[env]
-frontend = "typescript"
-```
+Eval runs sandboxed under a pinned Deno — no env vars, no network, no
+subprocesses — and the runtime provisions itself: the first eval
+downloads it once (sha256-verified, ~40MB, cached; 2.9.6 today),
+`grip doctor` checks it, and `GRIPSACK_DENO` points at your own. Eval
+platforms: glibc Linux and macOS — Deno ships no musl build.
 
-- **Python** needs `python3` ≥ 3.10 with the `gripsack` package
-  (`pip install gripsack`). Great with pyright.
-- **TypeScript** needs `node` ≥ 18 (or bun) with `@gripsack/core`.
-  Great with tsc.
-
-One repo = one frontend. Mixed-language graphs are deliberately not a
-thing; different repos may use different frontends. `grip doctor` checks
-the runtime your choice needs.
-
-## Giving your repo extra skills (eval deps)
-
-If your modules need helper libraries at evaluation time — say, a
-resolver for your company's internal artifact registry — declare them
-and gripsack provisions the frontend environment for you:
+## Build-time environment
 
 ```toml
-[eval]
-deps = ["gripsack-fetcher-artifactory==1.2.0"]
+[eval.env]
+CARGO_NET_GIT_FETCH_WITH_CLI = "true"
 ```
 
-Pinned and cached: the same spec resolves the same inputs and the
-store is content-addressed, so every machine gets the same deployed
-environment. Builds are not hermetic (no sandbox — that guarantee is
-Nix's, honestly theirs). This is how an env repo "carries its own
-skills" — clone it elsewhere and the skills come with it.
+Injected into the apply process for the run's duration — build steps,
+fetchers, and plugins inherit it (`SSL_CERT_FILE` for a corporate CA
+is the canonical case). The sandboxed eval itself sees no environment
+at all; what your config learns about the machine arrives through the
+host entrypoint's `ctx`.
 
 ## Custom sources (fetchers)
 
@@ -89,7 +78,7 @@ Rollback depth vs disk. Default keeps everything until you gc manually.
 
 ## Machine-local config
 
-`~/.config/gripsack/config.toml` accepts `[settings]` and `[sources.*]`
+`~/.config/gripsack/config.toml` accepts `[settings]` and `[fetchers.*]`
 — the same keys as `env.toml` minus `[env]` and `[eval]`. Use it for
 things that shouldn't be committed: a plugin that only exists on this
 machine, a lower `keep_generations` on a small disk.

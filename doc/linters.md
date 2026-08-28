@@ -11,10 +11,11 @@ embedded in grip (`crates/griplint/packs`, key tables as TOML) checked
 by the in-crate engine **in-process** — no venv, no provisioning, no
 plugin lifecycle, and the golden corpus replays byte-exact against the
 reference implementation. `lint = "name"` travels in the IR; `grip
-check` and `grip apply` run the linter, so linting works under
-`GRIPSACK_PYTHON` and in CI without a frontend runtime. A new
-structured-format linter is a data PR, not a package. External
-`griplint-*` executables keep the protocol path for exotic formats.
+check` and `grip apply` run the linter, so linting works anywhere the
+binary runs — CI included — with no runtime to provision for the
+embedded packs. A new structured-format linter is a data PR, not a
+package. External `griplint-*` executables keep the protocol path
+for exotic formats.
 
 Status: the engine is shipped and every pack below runs in-process —
 the set is what exists today and what's queued, sorted by github stars.
@@ -98,20 +99,20 @@ module either way.
 
 ```toml
 [linters.yazi]
-package = "griplint-yazi==1.2.0"      # the published wheel, resolved next to the frontend python
+package = "owner/griplint-yazi@1.2.0"   # plugin-store ref — provisioned, sha256-verified
 
 [linters.internal]
-path = "/opt/bin/griplint-internal"   # explicit executable — the out-of-tree form
+path = "/opt/bin/griplint-internal"     # explicit executable — the out-of-tree form
 ```
 
-```python
-module("yazi", ..., lint="yazi")
+```typescript
+export default module("yazi", { /* … */ lint: "yazi" });
 ```
 
-- `package` requires an `==` pin (a wheel, resolved next to the
-  frontend python — the legacy published linters) or names a repo ref
-  `"owner/repo@tag"` (a provisioned executable — sha256-verified into
-  the plugin store). `path` is the explicit executable for development.
+- `package` is a plugin-store ref `"owner/repo@tag"`: grip downloads
+  the release binary, verifies it against the mandatory sha256
+  sidecar, and receipts it into `$GRIPSACK_HOME/plugins/` — the tag
+  is the pin. `path` is the explicit executable for development.
 - `lint = "<name>"` must resolve against the registry: an
   unregistered name is a hard eval error with the module-line span,
   never a silent skip. There is deliberately no PATH-discovery
@@ -139,7 +140,7 @@ work). A mode that shells out to the tool itself belongs to the verify
 side — the two stay apart.
 ## The lint flow
 
-![the lint flow: module lint= opt-in → frontend registry lookup and provisioning → NDJSON request to griplint-yazi → span diagnostics → the core renders](linters-flow.svg)
+![the lint flow: module lint= opt-in → core registry lookup and provisioning → NDJSON request to griplint-yazi → span diagnostics → the core renders](linters-flow.svg)
 
 a typo'd key fails `grip check` with a span — before anything is
 staged, before the tool ever runs:
@@ -190,8 +191,8 @@ prose.
 In the gripsack repo as data:
 [`crates/griplint/packs`](https://github.com/gripsack-dev/gripsack/tree/main/crates/griplint/packs)
 — one TOML pack per tool, keyed by tool version, with the golden
-fixture corpus beside it. The engine reading them lands in-crate
-(plan/0012 move 3); exotic formats (RON, KDL, custom) stay external
+fixture corpus beside it, read by the in-crate engine (plan/0012);
+exotic formats (RON, KDL, custom) stay external
 `griplint-*` executables over the protocol above, forever. The tables
 are community-maintained, and the north star is DefinitelyTyped: the
 tool's owners eventually own their linter, and gripsack just provides
