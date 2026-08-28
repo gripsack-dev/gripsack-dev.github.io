@@ -92,6 +92,9 @@ PAGES: dict[str, tuple[str, str]] = {
     "linters": ("doc/linters.md", "linters"),
     "skills": ("doc/skills.md", "skills"),
     "roadmap": ("doc/roadmap.md", "roadmap"),
+    # fetched from the app repo at build time — the changelog lives with
+    # the code (fetch failure falls back to the last committed copy)
+    "changelog": ("doc/changelog.md", "what's new"),
 }
 
 # Links inside the mirrored docs that point at files we do NOT mirror:
@@ -245,11 +248,32 @@ def rewrite(body: str, slugs: set[str], root: str = "../") -> str:
     return body
 
 
+def fetch_changelog(fallback: Path) -> str:
+    """The app repo's CHANGELOG.md, fetched fresh; the committed copy
+    is the offline fallback. The site deploy is dispatched by releases,
+    so this is current within seconds of a tag."""
+    try:
+        with urllib.request.urlopen(
+            "https://raw.githubusercontent.com/gripsack-dev/gripsack/main/CHANGELOG.md"
+        ) as r:
+            text = r.read().decode()
+        fallback.write_text(text)  # keep the fallback current
+        return text
+    except Exception:
+        if fallback.exists():
+            return fallback.read_text()
+        return "# Changelog\n\n(temporarily unavailable — see the repo)\n"
+
+
 def build_docs() -> None:
     slugs = set(PAGES)
     for slug, (src, _) in PAGES.items():
         root = "../" * (1 + slug.count("/"))
-        text = (ROOT / src).read_text()
+        path = ROOT / src
+        if slug == "changelog":
+            text = fetch_changelog(path)
+        else:
+            text = path.read_text()
         body = markdown.markdown(
             text, extensions=["fenced_code", "tables", "toc", "sane_lists"]
         )
