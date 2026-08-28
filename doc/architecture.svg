@@ -63,7 +63,7 @@
   <rect x="48" y="404" width="264" height="88" rx="10" fill="#181825" stroke="#585b70" stroke-width="1.5"/>
   <text x="180" y="430" text-anchor="middle" font-size="12" font-weight="bold" fill="#cdd6f4">store</text>
   <text x="180" y="452" text-anchor="middle" font-size="10" fill="#a6adc8">/store/&lt;hash&gt;-&lt;name&gt;</text>
-  <text x="180" y="470" text-anchor="middle" font-size="10" fill="#a6adc8">immutable · input-addressed</text>
+  <text x="180" y="470" text-anchor="middle" font-size="10" fill="#a6adc8">immutable · hash-addressed (0014)</text>
 
   <rect x="348" y="404" width="264" height="88" rx="10" fill="#181825" stroke="#585b70" stroke-width="1.5"/>
   <text x="480" y="430" text-anchor="middle" font-size="12" font-weight="bold" fill="#cdd6f4">generations</text>

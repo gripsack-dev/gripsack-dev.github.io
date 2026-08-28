@@ -3,6 +3,66 @@
 User-visible changes per release. Design archaeology lives in
 `plan/`; this file is for "what's new for me".
 
+## [0.17.0] — 2026-08-28
+
+Constrained evaluation ([plan 0013](plan/0013-constrained-evaluation.md)).
+Breaking: the Python frontend, bun, and uv are removed.
+
+### Added
+
+- **Sandboxed eval**: the TypeScript frontend runs under a pinned,
+  hash-verified Deno (2.9.6) with deny-by-default capabilities — no
+  environment variables, no network, no subprocesses, read-only within
+  the repo. First eval downloads the runtime once; `GRIPSACK_DENO`
+  overrides. Eval platforms: glibc Linux and macOS (Deno ships no musl
+  build; `grip doctor` says so plainly there).
+- **Injected facts**: os/arch/libc/hostname are detected in the Rust
+  core and passed to eval in a JSON inputs document — no more
+  frontend-side self-detection.
+- **Probes**: `ctx.probe.executable("nvidia-smi")` /
+  `ctx.probe.file_exists(...)` are symbolic requests the core binds in
+  a two-stage eval (fixpoint-capped, E112 on instability), recorded in
+  the run log and summarized in `grip plan`'s host-inputs header.
+- **Trust gate**: the first eval of an unfamiliar repo prompts before
+  running its code, naming the exact sandbox capabilities. `grip trust
+  list/add/remove` manages the store; `GRIPSACK_TRUST_ALL=1` is the CI
+  bypass.
+- **`defineEnv`**: host entrypoints are functions —
+  `export default defineEnv((ctx) => ({ tags, modules }) )`. `module()`
+  is a pure constructor; falsy module entries drop out. Side-effect
+  registration is gone.
+- The dual-frontend parity corpus is replaced by a golden IR snapshot
+  corpus (fixture envs → IR, byte-exact modulo spans).
+- **Content-addressed store identity** ([plan 0014](plan/0014-content-addressed-fetches.md)):
+  fetch-only and config-only modules name their store path by the
+  canonical hash of their content; builds stay input-addressed (their
+  output can't be named before it exists — plan-time naming is what
+  keeps `grip plan` complete). A mirror swap or URL edit with identical
+  bytes re-proves once, then dedups to the same path: no store churn,
+  no new generation. Editing an install mapping no longer refetches.
+  The lockfile records both hashes: `sha256` (transport integrity of
+  the download) and `tree256` (store identity).
+- **`grip store verify` is now correct and host-independent**: the
+  whole-tree check previously compared a tree hash against the
+  transport hash (could never match) under a hostname-keyed lock
+  lookup (usually skipped) — the generation manifest now carries
+  `tree256`, and a tampered fetched payload fails verify anywhere.
+- Symlink deploys report "unchanged" when the link already points at
+  the right store path — a re-proved fetch no longer looks like a
+  redeploy.
+
+  Migration note: content-addressed paths differ in shape, so the
+  first apply after upgrading re-stages fetch/config modules once
+  (identical bytes, new names); `grip gc` collects the old paths.
+
+### Removed
+
+- The Python frontend (`pip install gripsack`), the embedded
+  zero-provisioning path, `GRIPSACK_PYTHON`, `[eval] deps`, and uv
+  provisioning. `frontend = "python"` in env.toml is an E400 with a
+  migration hint.
+- bun provisioning and `GRIPSACK_BUN`.
+
 ## [0.16.4] — 2026-08-28
 
 ### Fixed

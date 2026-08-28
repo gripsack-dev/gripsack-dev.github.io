@@ -83,6 +83,12 @@ typo in a module.*
   (`grip trust`, `GRIPSACK_TRUST_ALL` for CI). The Python frontend,
   bun, and uv are retired; the parity corpus became a golden IR
   snapshot corpus.
+- **Content-addressed store identity** ([plan 0014](https://github.com/gripsack-dev/gripsack/tree/main/plan/0014-content-addressed-fetches.md)) —
+  the hybrid: fetch-only and config-only modules name their store path
+  by content hash (self-verifying; a mirror swap with identical bytes
+  re-proves once and dedups to the same path), builds stay
+  input-addressed so `grip plan` keeps plan-time naming. `store verify`
+  is host-independent — the manifest carries the expectation.
 
 ## Next
 
@@ -104,11 +110,9 @@ next, ecosystems last.
 - **Rollback adapters** — user-initiated `grip rollback` re-runs
   post-link/post-activate adapters (the unified engine covers
   destinations; adapters still don't re-run on rollback).
-- **Content-addressed store paths, deeper** — `grip store verify
-  --repair` shipped as the middle step; the full move from
-  input-addressed to content-addressed identity is the remaining
-  decision. A content-addressed fetch cache is nearly free once this
-  lands.
+- ~~Content-addressed store paths, deeper~~ — shipped as the 0014
+  hybrid (above). A content-addressed fetch cache fell out as
+  designed: presence of the content path IS the cache hit.
 - **Module env inheritance for dependents** — a dependent sees the env
   its dependencies export (build-time today).
 - **More probe kinds** — `executable` and `file_exists` shipped;

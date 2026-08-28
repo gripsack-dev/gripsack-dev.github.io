@@ -104,6 +104,15 @@ host at resolve time, so machine B deploys what machine A deployed.
 gripsack has no sandbox — a shell build step can observe ambient
 machine state; hermetic builds are Nix's guarantee, honestly theirs.
 
+**The store is content-addressed where content is knowable**
+([plan 0014](https://github.com/gripsack-dev/gripsack/tree/main/plan/0014-content-addressed-fetches.md)).
+A fetched or config-only payload's path names its canonical content
+hash — so the store verifies itself (`grip store verify` needs no
+lockfile and no hostname), and a mirror swap with identical bytes
+re-proves once, then dedups to the same path. Built modules stay
+input-addressed: their output can't be named before the build runs,
+and plan-time naming is what keeps `grip plan` a complete diff.
+
 ## Errors that point at your code
 
 Every IR node carries a span — file, line, column of the module code
