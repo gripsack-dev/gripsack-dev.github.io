@@ -91,19 +91,24 @@ typo in a module.*
   is host-independent — the manifest carries the expectation.
 - **`grip adopt`** ([plan 0015](https://github.com/gripsack-dev/gripsack/tree/main/plan/0015-grip-adopt.md)) —
   the adoption flow as a first-class command: point it at
-  `~/.config/helix`, it explains what it sees, recommends `owned` vs
-  `tracked_copy` with the reason, generates the module, shows the
-  plan, and touches nothing until you confirm. The apply absorbs
-  exactly the adopted destinations (scoped take-over) and records
-  prior state — rollback, or undeclaring the module, restores your
-  original files, bytes and permission bits. A fresh machine gets an
-  empty generation 0, so adoption is always reversible.
+  `~/.config/helix`, it explains what it sees, *asks* the ownership
+  question with the semantics laid out (never guesses — the safe
+  default is `tracked_copy`), generates the module, shows the plan,
+  and touches nothing until you confirm. The apply absorbs exactly
+  the adopted destinations (scoped take-over) and records prior
+  state — rollback, or undeclaring the module, restores your original
+  files, bytes and permission bits. A fresh machine gets an empty
+  generation 0, so adoption is always reversible.
 
 ## Next
 
 Order is priority: adoption UX first, reliability of the core loop
 next, ecosystems last.
 
+- **Read-only store payloads** — `chmod a-w` at publish: an app that
+  rewrites an `owned` config through its symlink gets EACCES instead
+  of silently corrupting the store. Nix's store is read-only for the
+  same reason.
 - **Crash recovery for mutable destinations** — the generation flip is
   atomic, but the tracked_copy/merge/template writes before it are
   not: kill -9 or power loss mid-apply leaves touched destinations

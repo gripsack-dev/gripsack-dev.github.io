@@ -107,13 +107,17 @@
 <pre><span class="p">$</span> grip init my-env <span class="gutter">&& cd my-env</span>
 <span class="p">$</span> grip adopt ~/.config/helix
 adopting ~/.config/helix — 2 files, 1.1 kB
-  ownership: <span class="s">owned</span> — helix doesn't rewrite its config
+
+how should gripsack own these files?
+  <span class="s">owned</span>        <span class="gutter">read-only link — the repo is the only editor</span>
+<span class="s">❯ tracked_copy</span> <span class="gutter">real file — the app may rewrite it; never clobbered</span>
+  <span class="s">merge</span>        <span class="gutter">one managed block inside a shared file</span>
+<span class="gutter"># it asks, because only you know — the answer lands in modules/helix.ts</span>
+✓ how should gripsack own these files? <span class="s">owned</span>
   wrote configs/helix/ · modules/helix.ts · hosts/laptop.ts
-  <span class="gutter">prior state will be recorded — rollback restores your original files</span>
+  ↻ ~/.config/helix/config.toml will be adopted (prior recorded)
 apply? [y/N] <span class="s">y</span>
-  helix ✓ linked configs/helix/config.toml → ~/.config/helix/config.toml
 applied — generation 1 active
-<span class="p">$</span> <span class="gutter"># edit the file in your repo, apply, break something…</span>
 <span class="p">$</span> grip rollback
 rolled back to generation 0
 <span class="gutter"># your original files have been restored — not deleted, restored</span></pre>

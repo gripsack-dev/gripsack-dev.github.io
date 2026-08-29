@@ -32,8 +32,11 @@ flip. That's the whole mechanism; everything else is detail.
 ## Move one real tool over
 
 `grip adopt` is the walkthrough as a command ([plan 0015](https://github.com/gripsack-dev/gripsack/tree/main/plan/0015-grip-adopt.md)).
-Point it at a live config path; it inspects what it sees, recommends
-an ownership mode *with the reason stated*, generates the payload +
+Point it at a live config path; it inspects what it sees, then *asks
+you* the ownership question with the semantics laid out — it never
+guesses, because only you know whether the app writes its own config.
+The safe default is `tracked_copy` (wrong guesses are free there;
+`owned` is the informed opt-in). Then it generates the payload +
 module + host entry, shows the plan, and touches nothing until you
 confirm:
 
