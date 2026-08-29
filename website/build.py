@@ -47,14 +47,21 @@ _ASSET_VERSION: str | None = None
 
 
 def latest_release() -> str:
-    """The current release tag, fetched at build time; stale-safe fallback."""
+    """The current CORE release tag, fetched at build time; stale-safe
+    fallback. /releases/latest returns whichever tag published most
+    recently — with two tag namespaces (core-v*, ts-v*) that is not
+    necessarily the binary."""
     try:
         with urllib.request.urlopen(
-            "https://api.github.com/repos/gripsack-dev/gripsack/releases/latest"
+            "https://api.github.com/repos/gripsack-dev/gripsack/releases?per_page=20"
         ) as r:
             import json
 
-            return json.load(r)["tag_name"].removeprefix("core-v")
+            for release in json.load(r):
+                tag = release["tag_name"]
+                if tag.startswith("core-v"):
+                    return tag.removeprefix("core-v")
+            return "0.8.0"
     except Exception:
         return "0.8.0"
 
