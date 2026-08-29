@@ -89,18 +89,27 @@ typo in a module.*
   re-proves once and dedups to the same path), builds stay
   input-addressed so `grip plan` keeps plan-time naming. `store verify`
   is host-independent — the manifest carries the expectation.
+- **`grip adopt`** ([plan 0015](https://github.com/gripsack-dev/gripsack/tree/main/plan/0015-grip-adopt.md)) —
+  the adoption flow as a first-class command: point it at
+  `~/.config/helix`, it explains what it sees, recommends `owned` vs
+  `tracked_copy` with the reason, generates the module, shows the
+  plan, and touches nothing until you confirm. The apply absorbs
+  exactly the adopted destinations (scoped take-over) and records
+  prior state — rollback, or undeclaring the module, restores your
+  original files, bytes and permission bits. A fresh machine gets an
+  empty generation 0, so adoption is always reversible.
 
 ## Next
 
 Order is priority: adoption UX first, reliability of the core loop
 next, ecosystems last.
 
-- **`grip adopt`** — the adoption flow as a first-class CLI experience:
-  point it at `~/.config/helix`, it explains what it sees, recommends
-  `owned` vs `tracked_copy` (does the app rewrite its own config?),
-  generates the module, shows the plan, touches nothing until you
-  confirm. Migration cost, not fetchers, is the enemy; the agent skill
-  stays, but the CLI is the canonical path.
+- **Crash recovery for mutable destinations** — the generation flip is
+  atomic, but the tracked_copy/merge/template writes before it are
+  not: kill -9 or power loss mid-apply leaves touched destinations
+  with no generation record. A durable apply journal (begin → backups
+  → intents → fsync → commit) with startup reconciliation would make
+  the mutable half crash-recoverable, not just failure-compensated.
 - **Resolver executables** (0013 D8) — custom registries become
   `gripresolve-*` plugins on the same NDJSON envelope as fetchers:
   spawned with a scrubbed, declared-env-only environment (credentials
@@ -115,6 +124,9 @@ next, ecosystems last.
   designed: presence of the content path IS the cache hit.
 - **Module env inheritance for dependents** — a dependent sees the env
   its dependencies export (build-time today).
+- **Secrets model** — references to external secret managers
+  (age/sops/1Password), decrypted at activation; values never in the
+  store, manifests, plans, or logs (0001 §7's seed, made public).
 - **More probe kinds** — `executable` and `file_exists` shipped;
   `probe.command("wg", ["show"])` (a declared, core-run subprocess at
   bind time) is the next rung.

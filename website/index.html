@@ -98,20 +98,25 @@
 
 <section>
   <h2 class="section">start with one dotfile</h2>
-  <p class="note" style="margin-bottom:14px">you don't have to rebuild your life. brew or apt keep
-  handling binaries; gripsack starts with <code>~/.config</code>, and package fetching is
-  adopted later, tool by tool. the ownership question is the whole game:</p>
+  <p class="note" style="margin-bottom:14px">you don't have to rebuild your life. gripsack manages
+  user-space tools and your configuration — it does not replace your OS package manager;
+  brew or apt keep handling binaries, and package fetching is adopted later, tool by tool.
+  the ownership question is the whole game:</p>
   <div class="window">
-    <div class="titlebar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="wtitle">adopting helix — every step is a design principle</span></div>
+    <div class="titlebar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="wtitle">adopting helix — nothing is touched until you say so</span></div>
 <pre><span class="p">$</span> grip init my-env <span class="gutter">&& cd my-env</span>
-<span class="p">$</span> cp -r ~/.config/helix configs/   <span class="gutter"># your config becomes the payload</span>
-<span class="p">$</span> <span class="gutter"># modules/helix.ts: config: tree("configs/helix", "~/.config/helix")</span>
-<span class="p">$</span> grip apply
-<span class="err">error[E109]</span>: ~/.config/helix/config.toml exists (not deployed by gripsack) — kept
-  <span class="gutter">|</span> pass <span class="s">--take-over</span> to adopt it
-<span class="p">$</span> grip apply --take-over   <span class="gutter"># explicit handover — never a silent clobber</span>
+<span class="p">$</span> grip adopt ~/.config/helix
+adopting ~/.config/helix — 2 files, 1.1 kB
+  ownership: <span class="s">owned</span> — helix doesn't rewrite its config
+  wrote configs/helix/ · modules/helix.ts · hosts/laptop.ts
+  <span class="gutter">prior state will be recorded — rollback restores your original files</span>
+apply? [y/N] <span class="s">y</span>
+  helix ✓ linked configs/helix/config.toml → ~/.config/helix/config.toml
+applied — generation 1 active
 <span class="p">$</span> <span class="gutter"># edit the file in your repo, apply, break something…</span>
-<span class="p">$</span> grip rollback              <span class="gutter"># the whole setup is back. one flip.</span></pre>
+<span class="p">$</span> grip rollback
+rolled back to generation 0
+<span class="gutter"># your original files have been restored — not deleted, restored</span></pre>
   </div>
   <p class="note">four ownership modes, because real dotfiles are messy:
   <b>owned</b> — a read-only symlink for disciplined tools;

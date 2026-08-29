@@ -31,31 +31,36 @@ flip. That's the whole mechanism; everything else is detail.
 
 ## Move one real tool over
 
-Pick the boring one — the tool whose config never fights back (helix,
-git, starship). Copy its config directory into the repo and declare it:
+`grip adopt` is the walkthrough as a command ([plan 0015](https://github.com/gripsack-dev/gripsack/tree/main/plan/0015-grip-adopt.md)).
+Point it at a live config path; it inspects what it sees, recommends
+an ownership mode *with the reason stated*, generates the payload +
+module + host entry, shows the plan, and touches nothing until you
+confirm:
 
 <div class="window">
-  <div class="titlebar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="wtitle">modules/helix.ts</span></div>
-<pre><code class="language-typescript">import { module, tree } from "@gripsack/core";
+  <div class="titlebar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="wtitle">adoption is one command — and fully reversible</span></div>
+<pre>$ grip adopt ~/.config/helix
+adopting ~/.config/helix — 2 files, 1.1 kB
+  ownership: owned — helix doesn't rewrite its config
+  wrote configs/helix/ · modules/helix.ts · hosts/laptop.ts
+  prior state will be recorded — rollback restores your original files
+apply? [y/N] y
+applied — generation 1 active
 
-export default module("helix", {
-  config: tree("configs/helix", "~/.config/helix", "owned"),
-});</code></pre>
+$ grip rollback
+rolled back to generation 0   # your original files are back</pre>
 </div>
 
-`tree()` expands the directory into one entry per file. `owned` means
-symlinks into the store: your repo is the only editor, and `git diff`
-is your changelog.
+The apply absorbs **exactly** the adopted destinations (scoped
+take-over — unrelated drift is never clobbered) and records what every
+destination was before gripsack wrote it. Rollback — and undeclaring
+the module later — restores the original files, bytes and permission
+bits, drift-guarded: edits you make after adopting are yours, and a
+rollback keeps them. On a fresh machine adopt first records an empty
+**generation 0**, so there's always something to roll back to.
 
-**The first apply will refuse.** The destination already exists and
-gripsack didn't put it there — it will not clobber a foreign path.
-That refusal is the feature; the handover is explicit:
-
-```bash
-grip apply --take-over   # once, per existing path
-```
-
-After that, applies are clean and the second one is a satisfied no-op.
+Writing the module by hand still works, of course — the generated file
+is exactly what you'd have written.
 
 ## The ownership question is the whole game
 
