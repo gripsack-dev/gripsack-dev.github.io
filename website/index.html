@@ -17,6 +17,7 @@
   </a>
   <nav>
     <a href="./docs/architecture.html">docs</a>
+    <a href="./docs/changelog.html">what's new</a>
     <a href="https://github.com/gripsack-dev/gripsack">github ↗</a>
   </nav>
 </header>
@@ -154,7 +155,7 @@ rolled back to generation 0
 <span class="k">export const</span> helix = module(<span class="s">"helix"</span>, {
   fetch: githubRelease({
     repo: <span class="s">"helix-editor/helix"</span>,
-    asset: <span class="s">"helix-{version}-x86_64-linux.tar.xz"</span>,
+    asset: <span class="s">"helix-&#123;version}-{system}.tar.xz"</span>,  <span class="gutter">// {version} + {system} — tag and host platform, expanded by the core</span>
   }),
   install: { <span class="s">"bin/hx"</span>: symlink(<span class="s">"~/.local/bin/hx"</span>) },
   config: {
@@ -187,17 +188,46 @@ rolled back to generation 0
 <section>
   <h2 class="section">errors that point at your code</h2>
   <div class="window">
-    <div class="titlebar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="wtitle">every IR node carries a span back to the line that emitted it</span></div>
-<pre><span class="p">$</span> grip plan
+    <span class="tab-bar">
+      <button data-tab="e-dep" class="active" aria-current="true">unknown dep</button><button data-tab="e-ph">typo'd placeholder</button><button data-tab="e-path">bad path</button><button data-tab="e-lint">config lint</button><button data-tab="e-exec">fetch fails</button>
+    </span>
+    <pre class="tab-pane" data-pane="e-dep"><span class="p">$</span> grip plan
 <span class="err">error[E101]</span>: module <span class="s">"helix"</span> depends on unknown module <span class="s">"nvim"</span>
   <span class="loc">--&gt;</span> <span class="loc">modules/helix.ts:4:7</span>
    <span class="gutter">|</span>
  <span class="loc">4</span> <span class="gutter">|</span> const helix = module(<span class="s">"helix"</span>, { fetch: ..., depends: [dep(<span class="s">"nvim"</span>)] })
    <span class="gutter">|</span>       <span class="err">^ dependency declared here</span></pre>
+    <pre class="tab-pane" data-pane="e-ph" hidden><span class="p">$</span> grip check
+<span class="err">error[E114]</span>: unknown placeholder <span class="s">'{sytem}'</span> in <span class="s">"…/pkg-{sytem}.tar.gz"</span>
+  <span class="loc">--&gt;</span> <span class="loc">modules/demo.ts:2:16</span>
+   <span class="gutter">|</span>
+ <span class="loc">2</span> <span class="gutter">|</span> <span class="k">export default</span> module(<span class="s">"demo"</span>, {
+   <span class="gutter">|</span>                <span class="err">^</span> module <span class="s">"demo"</span> here
+  <span class="hlp">help</span>: did you mean <span class="s">'{system}'</span>?</pre>
+    <pre class="tab-pane" data-pane="e-path" hidden><span class="p">$</span> grip check
+<span class="err">error[E115]</span>: module <span class="s">"demo"</span>: source <span class="s">"../escape.txt"</span> — `..` escapes are never allowed
+  <span class="loc">--&gt;</span> <span class="loc">modules/demo.ts:4:7</span>
+   <span class="gutter">|</span>
+ <span class="loc">4</span> <span class="gutter">|</span>   install: { <span class="s">"../escape.txt"</span>: symlink(<span class="s">"~/.local/bin/x"</span>) },
+   <span class="gutter">|</span>            <span class="err">^</span> entry declared here</pre>
+    <pre class="tab-pane" data-pane="e-lint" hidden><span class="p">$</span> grip check
+<span class="err">error[A01]</span>: unknown key <span class="s">'themez'</span>
+  <span class="loc">--&gt;</span> <span class="loc">configs/helix/config.toml:1:1</span>
+   <span class="gutter">|</span>
+ <span class="loc">1</span> <span class="gutter">|</span> themez = <span class="s">"catppuccin_mocha"</span>
+   <span class="gutter">|</span> <span class="err">^</span>
+  <span class="hlp">help</span>: did you mean <span class="s">'theme'</span>?</pre>
+    <pre class="tab-pane" data-pane="e-exec" hidden><span class="p">$</span> grip apply
+<span class="err">error[E301]</span>: step fetch failed in demo: http <span class="s">…status code 404</span>
+  <span class="loc">--&gt;</span> <span class="loc">modules/demo.ts:2:16</span>
+   <span class="gutter">|</span>
+ <span class="loc">2</span> <span class="gutter">|</span> <span class="k">export default</span> module(<span class="s">"demo"</span>, {
+   <span class="gutter">|</span>                <span class="err">^</span> raised here</pre>
   </div>
-  <p class="note">structured diagnostics with stable codes and source snippets — and
-  because the passes are library functions over span-labeled IR, an LSP is a
-  protocol shim, not new analysis.</p>
+  <p class="note">every layer speaks the same diagnostic: eval, placeholders, paths,
+  config linters, execution — stable codes, spans, suggestions, never a bare
+  <code>error:</code> line. and because the passes are library functions over
+  span-labeled IR, an LSP is a protocol shim, not new analysis.</p>
 </section>
 
 <section>

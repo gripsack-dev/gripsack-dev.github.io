@@ -3,6 +3,82 @@
 User-visible changes per release. Design archaeology lives in
 `plan/`; this file is for "what's new for me".
 
+## [0.17.6] — 2026-08-30
+
+### Added
+
+- **npm dependencies in env repos**: module code can import packages
+  from the repo's own `package.json` + `node_modules` (BYONM) —
+  installed by you, evaluated read-only under the same sandbox as
+  module code (no env, no network, no subprocesses, no filesystem
+  outside the repo). A dependency needing an effect fails loudly at
+  eval; that effect belongs in a probe or a fetcher.
+- **`grip init` scaffolds the IDE story**: `package.json` (with
+  `@gripsack/core` pinned to a compatible major.minor — types for your
+  editor and the deliberate pin), `tsconfig.json`, `node_modules/` in
+  `.gitignore`, and a fresh `git init`, cargo-init style.
+
+### Fixed
+
+- The eval spawn applies the pin map via `--import-map` instead of
+  relying on deno.json discovery — a discovered deno.json project
+  would have blocked BYONM forever (and the embedded frontend now
+  carries its `package.json`, which is what flips BYONM on).
+
+## [0.17.7] — 2026-08-30
+
+### Removed
+
+- **`cargo_install` and `make` build kinds** — declared but never
+  executable, which is a phantom contract (valid IR the core refuses
+  at apply). The IR now carries only what it executes: `custom_shell`
+  plus an ephemeral toolchain module covers the same ground;
+  `cargo install --locked` in a custom step with declared outputs is
+  the documented rust-build form. Reusable build logic belongs to
+  builder plugins when reality demands it (0001 §3.1 amended).
+
+## [0.17.4] — 2026-08-30
+
+The beautiful-errors sweep (0004 §3 pushed through the stack).
+
+### Added
+
+- **E114 — unknown placeholder**: a mistyped `{sytem}` in a fetch,
+  install, or verify string now fails `grip check` with a span at the
+  module and an edit-distance suggestion ("did you mean '{system}'?"),
+  instead of a 404 at fetch time.
+
+### Fixed
+
+- Apply-time failures are coded, span-labeled diagnostics: a fetch or
+  build step failing now renders `error[E301]`/`E302` pointing at the
+  module line ("raised here"), replacing bare `error:` lines.
+- Resolution errors name the gripsack module, not the registry string
+  ("step resolve failed in fish", not "in fish-shell/fish-shell").
+- Probe diagnostic codes (E112/E113) moved into the central codes
+  module — the placeholder code is E114, no collision.
+
+### Added (path validation — 0016 §D4)
+
+- **E115 — path shape**: source and destination paths validate at
+  check time with spans — payload-relative sources reject absolute
+  forms, `..`/`.`/empty segments, trailing slashes, backslashes;
+  destinations reject `..` escapes and bare `~`/`/`. Placeholders
+  validate as opaque single-segment atoms (their values are
+  single-segment by construction).
+- **Tar traversal is a loud error**: hostile entries (absolute paths,
+  `..` escapes) fail extraction naming the entry — the tar crate's
+  unpack_in skips them silently otherwise, stranding a partial payload
+  (zip extraction was already sanitizing).
+
+## [0.17.5] — 2026-08-30
+
+### Fixed
+
+- E115 path validation now covers explicit-steps modules
+  (`installStep`/`configStep` entries) and verify paths — the
+  declarative-only pass could be routed around by `steps = [...]`.
+
 ## [0.17.3] — 2026-08-30
 
 Platform facts, floating git, and a hardened store

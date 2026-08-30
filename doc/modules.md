@@ -142,3 +142,20 @@ entrypoint *is* the extension point.
 
 `dep("git")` is a runtime edge; `dep("rust", "build")` is an
 ephemeral build-only dependency — present while building, GC'd after.
+
+## npm dependencies in module code
+
+Module code is TypeScript — it can import npm packages from the env
+repo's own `package.json` + `node_modules` (BYONM). gripsack does not
+fetch or manage them: you install them, they're evaluated read-only,
+and they run under the exact same sandbox as your module code — no
+env, no network, no subprocesses, no filesystem outside the repo. A
+dependency that needs an effect fails loudly at eval; that effect
+belongs in a probe or a fetcher, not in a library.
+
+The repo's `package.json` is also the IDE story: `@gripsack/core` as a
+devDependency gives editors autocomplete and inline errors on module
+code, and doubles as the deliberate pin (0013 D3 — the repo's install
+shadows the embedded frontend). `grip init` scaffolds all of it:
+`package.json` pinned to a compatible version, `tsconfig.json`,
+`.gitignore`, and a fresh `git init`.
