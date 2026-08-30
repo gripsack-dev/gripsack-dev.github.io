@@ -3,6 +3,65 @@
 User-visible changes per release. Design archaeology lives in
 `plan/`; this file is for "what's new for me".
 
+## [0.17.3] — 2026-08-30
+
+Platform facts, floating git, and a hardened store
+([plan 0016](plan/0016-platform-facts-floating-git-readonly-store.md)).
+
+### Added
+
+- **Platform placeholders in fetch specs**: `{system}` (flake-style
+  `x86_64-linux`), `{target}` (rust triple, musl on linux), `{arch}`,
+  `{arch.go}` (goreleaser `amd64`), `{os}` — expanded by the core from
+  the machine's facts in asset patterns, tarball URLs, and install and
+  verify keys. One module now serves every platform; per-host locks
+  keep every machine honest.
+- **Floating git fetcher**: `git(url)` without a rev resolves the
+  remote's default-branch HEAD at lock time, pins the sha into the
+  lockfile, and `grip update` moves it — the same float-and-pin
+  semantics every other fetcher already had. Inline revs still pin.
+- **Read-only store payloads**: files publish with write bits dropped
+  — an app rewriting an `owned` config through its symlink gets
+  EACCES instead of silently corrupting the store. Directories stay
+  writable, so repair/gc/rollback are unaffected.
+- Linter packs: yazi theme sections ([app], [indicator], [cmp],
+  [spot], [icon], [flavor], …), helix `completion-timeout` +
+  `[editor.whitespace]` + `[editor.lsp]`, starship `$schema`, atuin
+  `[daemon]` keys — all sourced from current upstream docs.
+
+### Fixed
+
+- Linter diagnostics for unknown sub-tables named the section and
+  pointed at the right header line (they said "unknown key" at line 1).
+- Version-skew warnings (W10) no longer fire on current versions —
+  host lockfiles pin tag-style versions (`v18.20.1`) while packs
+  carried bare prefixes (`18.`); packs now carry both forms.
+- atuin `search.shells` accepts the documented string default (was a
+  live false-positive A04).
+
+## [0.17.2] — 2026-08-29
+
+Dogfood fixes — every one of them caught by running gripsack against a
+real, full-sized dotfiles env.
+
+### Fixed
+
+- `store verify` no longer false-positives on `merge` and `template`
+  modules: the manifest records the *deploy-output* hash (trimmed
+  block, rendered bytes), and verify now recomputes exactly that
+  instead of comparing the raw store file (which could never match).
+- Package harvest copies symlinks **as symlinks** instead of following
+  them — a symlink to a directory (conda's `lib/terminfo →
+  share/terminfo`) crashed pixi-module fetches with a pathless io
+  error. Note: pixi payload identity changes with this fix; a
+  `grip update <module>` re-pins deliberately.
+- API auth tokens now survive **same-host redirects** — a transferred
+  GitHub repo (`owner/x` → `new-owner/x`) previously re-requested
+  anonymously into the rate-limited pool and 403'd. Cross-host
+  redirects still strip credentials (the no-leak rule stands).
+- Fetch/copy io errors carry the offending path instead of a bare
+  "the source path is neither a regular file…".
+
 ## [0.17.1] — 2026-08-29
 
 The adopt audit ([plan 0015 §7](plan/0015-grip-adopt.md)): ask, don't

@@ -28,7 +28,7 @@ the set is what exists today and what's queued, sorted by github stars.
   <span><b>∞</b> the long tail</span>
 </div>
 
-<p class="lint-legend"><span class="lg lg-a"></span>available on main<span class="lg lg-p"></span>planned<span class="lg lg-m"></span>help wanted</p>
+<p class="lint-legend"><span class="lg lg-a"></span>available on main<span class="lg lg-p"></span>planned</p>
 
 <div class="lint-grid">
   <a class="lint-tool lt-reference" style="--lt:var(--green)" href="https://github.com/gripsack-dev/gripsack/tree/main/crates/griplint/packs"><span class="lt-name">helix</span><span class="lt-status">reference</span></a>
@@ -83,13 +83,13 @@ the set is what exists today and what's queued, sorted by github stars.
   <span class="lint-tool"><span class="lt-name">newsboat</span></span>
   <span class="lint-tool"><span class="lt-name">editorconfig</span></span>
   <span class="lint-tool"><span class="lt-name">zathura</span></span>
-<a class="lint-tool lt-more" href="https://github.com/gripsack-dev/gripsack/issues?q=label:linter"><span class="lt-name">+ more</span><span class="lt-status">help wanted ↗</span></a>
 </div>
 
 Available means a data pack on main in
 [crates/griplint/packs](https://github.com/gripsack-dev/gripsack/tree/main/crates/griplint/packs).
-Every planned tool has an open tracking issue — a pack is data, so
-picking one up is a research-and-tables PR, not a packaging exercise.
+Every planned tool has an open tracking issue; a pack is a versioned
+key table reviewed against upstream docs, with a weekly freshness
+watch.
 
 ## Using a linter
 
