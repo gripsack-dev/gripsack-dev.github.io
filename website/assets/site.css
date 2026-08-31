@@ -504,8 +504,16 @@ article.md blockquote {
 .tab-pane[hidden] { display: none; }
 pre .err { color: var(--red); font-weight: bold; }
 pre .bad { background: color-mix(in srgb, var(--red) 18%, transparent); }
-.err-scenario { color: var(--dim); font-size: 14px; margin: 0 0 10px; }
+.err-scenario {
+  color: var(--dim); font-size: 14px; margin: 0;
+  /* align with the window's pre padding (18px 22px) — the caption is
+     inside the window chrome, not beside it */
+  padding: 6px 22px 14px;
+  border-bottom: 1px dashed var(--border);
+}
 .err-scenario code { font-size: 13px; }
+.tab-pane .titlebar { border-top: 1px solid var(--border); }
+.tab-pane .titlebar:first-of-type { border-top: none; }
 pre .loc { color: var(--blue); }
 pre .gutter { color: var(--faint); }
 pre .hlp { color: var(--teal); }
