@@ -57,11 +57,20 @@ def latest_release() -> str:
         ) as r:
             import json
 
-            for release in json.load(r):
-                tag = release["tag_name"]
-                if tag.startswith("core-v"):
-                    return tag.removeprefix("core-v")
-            return "0.8.0"
+            def parse(tag: str) -> tuple[int, ...] | None:
+                version = tag.removeprefix("core-v")
+                parts = version.split(".")
+                if not parts or not all(p.isdigit() for p in parts):
+                    return None
+                return tuple(int(p) for p in parts)
+
+            # the list is creation-ordered, and a ts-v* tag created
+            # alongside reorders it — the newest CORE release is the
+            # semver max, never the first core-v row
+            versions = [
+                v for r in json.load(r) if (v := parse(r["tag_name"])) is not None
+            ]
+            return ".".join(map(str, max(versions))) if versions else "0.8.0"
     except Exception:
         return "0.8.0"
 
@@ -88,8 +97,8 @@ def asset_version() -> str:
 
 # Docs mirrored onto the site: url-slug -> (source file, nav label).
 PAGES: dict[str, tuple[str, str]] = {
-    "architecture": ("doc/architecture.md", "architecture"),
     "adopting": ("doc/adopting.md", "adopting your dotfiles"),
+    "architecture": ("doc/architecture.md", "architecture"),
     "modules": ("doc/modules.md", "modules"),
     "settings": ("doc/settings.md", "settings"),
     "settings/reference": ("doc/settings/reference.md", "settings reference"),

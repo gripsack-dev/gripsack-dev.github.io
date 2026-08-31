@@ -23,7 +23,7 @@ the set is what exists today and what's queued, sorted by github stars.
 ## Coverage
 
 <div class="lint-stats">
-  <span><b>22</b> available</span>
+  <span><b>23</b> available</span>
   <span><b>29</b> planned</span>
   <span><b>∞</b> the long tail</span>
 </div>

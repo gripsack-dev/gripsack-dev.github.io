@@ -42,7 +42,7 @@ confirm:
 
 <div class="window">
   <div class="titlebar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="wtitle">adoption is one command — and fully reversible</span></div>
-<pre>$ grip adopt ~/.config/helix
+<pre><code class="language-bash">$ grip adopt ~/.config/helix
 adopting ~/.config/helix — 2 files, 1.1 kB
   ownership: owned — helix doesn't rewrite its config
   wrote configs/helix/ · modules/helix.ts · hosts/laptop.ts
@@ -51,7 +51,7 @@ apply? [y/N] y
 applied — generation 1 active
 
 $ grip rollback
-rolled back to generation 0   # your original files are back</pre>
+rolled back to generation 0   # your original files are back</code></pre>
 </div>
 
 The apply absorbs **exactly** the adopted destinations (scoped

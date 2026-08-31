@@ -87,6 +87,7 @@ endpoints.
 
 ```bash
 grip init [DIR]                     # scaffold an env repo from the embedded template
+grip adopt <path>                   # interview-style adoption of an existing config — records priors, reversible
 grip apply [--host H] [MODULE...]   # fetch, build, deploy — one new generation
 grip plan [--host H] [MODULE...]    # show what apply would change
 grip check                         # eval + sema + linters; exit code = validity
@@ -98,6 +99,8 @@ grip gc --dry-run                  # show what gc would reclaim
 grip why-owns <path>                # which module owns a deployed path
 grip doctor                         # check config, deno, the embedded frontend
 grip trust list/add/remove          # the repo trust list — the gate before any eval
+grip store verify [--repair]        # re-hash store paths against expectations
+grip self-update                    # update grip itself from the latest core release
 ```
 
 All shipped; the config schema on this page is their stable contract.

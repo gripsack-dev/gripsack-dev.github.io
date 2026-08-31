@@ -3,6 +3,83 @@
 User-visible changes per release. Design archaeology lives in
 `plan/`; this file is for "what's new for me".
 
+## [0.17.10] — 2026-08-31
+
+Regression fixes for 0.17.9, from the same migration report.
+
+### Fixed
+
+- **`git()` fetches are deterministic.** The payload hash covered the
+  whole clone including `.git` — whose index caches working-tree
+  mtimes — so the same rev hashed differently on every fetch and
+  every cold-store apply failed its pin check. The checkout alone is
+  the payload now; `.git` never reaches the store.
+- **A failed apply no longer leaves placeholder-literal links.** The
+  generation manifest recorded the RAW install key, so the mid-graph
+  rollback restored destinations to paths like
+  `ripgrep-{version}-{target}/rg`. The manifest records the expanded
+  key, deploy refuses a key that still contains a placeholder after
+  expansion (invariant violation, not a path), and restore never
+  writes a dangling symlink.
+- **`grip self-update` works on shared egress.** The unauthenticated
+  GitHub API rate-limits by source IP; when it fails, self-update
+  falls back to the web tier (`releases.atom` → plain download URLs)
+  — the same path plain release downloads already take.
+
+## [0.17.9] — 2026-08-31
+
+Hardening from a real two-host migration report.
+
+### Fixed
+
+- **A fetched apply no longer drops pin metadata from the lockfile.**
+  Re-fetching against a locked pin rewrote the entry with only the
+  content hash, losing `version`, `url`, and `api_url` — the next
+  warm-store deploy then failed with an unexpanded `{version}` in
+  install keys, and a cold store had to re-resolve through the
+  registry API (breaking private GitHub Enterprise mirrors behind
+  shared egress).
+- **Store publish falls back to a copy across filesystems.** Staging
+  lives in `$TMPDIR`; on containers that's routinely a tmpfs while
+  the store sits on the overlay, and the hard rename died with a bare
+  `Cross-device link`. Publish now copies when rename returns EXDEV,
+  and store io errors name both paths.
+- **Deploy refuses destinations that resolve inside the env repo.** A
+  symlinked destination directory (e.g. a leftover from another
+  provisioner) used to land the write inside the checkout — the
+  module overwrote its own source.
+- **A config tree that gains a file re-pins instead of going stale.**
+  The lockfile records the repo overlay hash (`repo256`) alongside
+  the tree hash: presence checks compare it, `grip update` reports
+  the move as a bump, and deploy no longer falls back to linking the
+  repo checkout for sources the store never published (0014 §4).
+- **`grip update` resolve errors name the module**, not the registry
+  string; pinned git modules report `skipped (pinned by rev)` instead
+  of "resolution not supported yet".
+- **helix linter pack** knows `[editor.inline-diagnostics]` (24.07+).
+
+### Added
+
+- Probe docs say to gate on a stable system path, never the tool's
+  own installed presence (which oscillates).
+
+## [0.17.8] — 2026-08-30
+
+Dead-IR audit: nothing in the schema may exist without an executor.
+
+### Added
+
+- **`run` steps are executable** (0007 §3's middle rung): structured
+  argv/env/cwd as data, no shell interpretation, declared outputs
+  checked after the run. Previously declared-but-refused — the
+  phantom-class the cargo_install removal started.
+- **`{arch.x64}` placeholder** (node-style: x64 / arm64) for upstreams
+  whose assets use the node naming family.
+- Step-form intents execute through the activation adapters — the
+  adapters now read the expanded steps (the single source of truth),
+  so declarative `activate` fields and class-style intents take the
+  same path, exactly once.
+
 ## [0.17.6] — 2026-08-30
 
 ### Added

@@ -12,10 +12,10 @@ verifies).
 |---|---|---|
 | `fileFetch(path)` | live | content hash |
 | `tarball(url, sha256)` | live | pinned sha256, verified before the store |
-| `git(url, rev)` | live | the rev is immutable; shallow-fetched |
+| `git(url, rev?)` | live | a pinned rev is immutable and shallow-fetched; no rev floats the default branch's HEAD — pinned into the lockfile at resolve time, `grip update` moves it |
 | `githubRelease(repo, asset, version?, baseUrl?)` | live | resolved release + asset hash, locked; `version` pins the tag (resolved via `/releases/tags/`, never floats). `baseUrl` accepts the bare GHE host (`/api/v3` is appended for you). Private/GHE releases download through the API asset endpoint when a token is bound — tokens are host-scoped the gh-CLI way: `GH_TOKEN`/`GITHUB_TOKEN` only ever go to github.com; `GH_ENTERPRISE_TOKEN`/`GITHUB_ENTERPRISE_TOKEN` only to enterprise hosts. A download that comes back `text/html` fails as "looks like a login page", not as a hash mismatch |
 | `brew(...)` (bottles) | live | bottle hash, locked; **floats to the current formula** — the API only serves stable, so `version=` is a tripwire that fails at resolve (`grip update` to move), never a range. Payload is the raw bottle layout: install paths look like `jq/{version}/bin/jq` (`{version}` substitutes from the lock) |
-| `pixi(...)` (conda) | live | package hashes from the pixi resolution, locked. Two caveats: `grip update` can't re-resolve pixi modules yet (they stay pinned until then — pin deliberately), and behind a TLS-intercepting proxy pixi uses its bundled roots only — export `SSL_CERT_FILE` (it inherits it) so the corporate CA verifies |
+| `pixi(...)` (conda) | live | package hashes from the pixi resolution, locked; `grip update` re-resolves. Two per-host caveats: conda payloads embed the machine's `PIXI_HOME` path, so the same package can pin to different hashes on different hosts (lockfiles are per host by design — this is why), and behind a TLS-intercepting proxy pixi uses its bundled roots only — export `SSL_CERT_FILE` (it inherits it) so the corporate CA verifies |
 
 `mise` is deliberately not a fetcher: its backends are mostly GitHub
 releases, which `github_release` already covers.
@@ -23,6 +23,26 @@ releases, which `github_release` already covers.
 A gzipped *single file* (`.gz` that isn't a tar) stages decompressed as
 one executable, named for the asset minus the suffix — alongside
 `.tar.gz`/`.tar.xz`/`.zip` archives and bare uncompressed binaries.
+
+## Placeholders
+
+Asset patterns, tarball URLs, and install/verify keys expand a small,
+explicit placeholder set — no pretend-universal naming:
+
+| placeholder | expands to | example |
+|---|---|---|
+| `{version}` | the locked tag (both `v25.07` and `25.07` match assets) | `helix-{version}-x86_64-linux.tar.xz` |
+| `{system}` | flake-style platform | `x86_64-linux` |
+| `{target}` | the rust triple | `x86_64-unknown-linux-musl` |
+| `{arch}` | rust arch | `x86_64` |
+| `{arch.go}` | goreleaser arch | `amd64` |
+| `{arch.x64}` | node-style arch | `x64` |
+| `{os}` | `linux` / `darwin` | `linux` |
+
+`{version}` in an install or verify key substitutes the locked tag —
+that's how you reach into a versioned top-level directory inside an
+archive (`ripgrep-{version}-{target}/rg`). A typo'd placeholder is a
+check-time error with a did-you-mean (E114), never a 404 at fetch.
 
 ## Out-of-tree (plugins)
 

@@ -45,7 +45,7 @@ environment.
 
 Everything is a **module** — a tool, a font, a set of dotfiles. A module
 declares typed steps, not scripts: a **source** (GitHub release,
-tarball, git, cargo, …), an optional build, where its files go, and
+tarball, git, brew, conda, …), an optional build, where its files go, and
 which config files it manages. Modules depend on modules; build-only
 dependencies are *ephemeral* — a Rust toolchain used to compile
 something doesn't linger in your profile afterward.

@@ -16,7 +16,7 @@
     <img src="./assets/icon.svg" alt="gripsack icon"><span class="wordmark">gripsack</span>
   </a>
   <nav>
-    <a href="./docs/architecture.html">docs</a>
+    <a href="./docs/adopting.html">docs</a>
     <a href="./docs/changelog.html">what's new</a>
     <a href="https://github.com/gripsack-dev/gripsack">github ↗</a>
   </nav>
@@ -56,45 +56,13 @@
     · <a href="./docs/changelog.html">what's new</a></p>
   </div>
   <p class="alt"><a href="https://github.com/gripsack-dev/gripsack/releases">release binaries</a> ·
-      the frontend is embedded in the binary — nothing to install for a plain repo;
+      the frontend is embedded in the binary — grip provisions its pinned,
+      hash-verified Deno runtime automatically on first eval;
       <code>npm i @gripsack/core</code> only to pin your own copy</p>
   <div class="cta">
     <a class="primary" href="https://github.com/gripsack-dev/gripsack">GitHub ↗</a>
+    <a href="./docs/adopting.html">adopt one dotfile →</a>
   </div>
-</section>
-
-<section>
-  <h2 class="section">see it happen</h2>
-  <div class="demo-slider">
-    <span class="tab-bar">
-      <button data-tab="apply" class="active" aria-current="true">apply</button><button data-tab="init">first run</button><button data-tab="check">lint errors</button><button data-tab="rollback">rollback</button>
-    </span>
-    <div class="tab-pane" data-pane="apply">
-      <div class="window demo">
-        <div class="titlebar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="wtitle">grip apply — a fixture env, end to end</span></div>
-        <img src="./img/demo.gif" data-demo-img data-demo-base="./img/demo" data-demo-variants="" alt="grip apply on a fixture environment: modules resolve and fetch into the store, configs deploy per ownership mode, and the current symlink flips to the new generation — a second apply is a satisfied no-op">
-      </div>
-    </div>
-    <div class="tab-pane" data-pane="init" hidden>
-      <div class="window demo">
-        <div class="titlebar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="wtitle">grip init my-env — scaffold, then the first apply</span></div>
-        <img src="./img/demo-init.gif" data-demo-img data-demo-base="./img/demo-init" data-demo-variants="" alt="grip init my-env scaffolds an env repo — modules, env.toml, hosts — and the first grip apply fetches, builds, and deploys it into generation 1">
-      </div>
-    </div>
-    <div class="tab-pane" data-pane="check" hidden>
-      <div class="window demo">
-        <div class="titlebar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="wtitle">grip check — a typo'd key, caught at eval</span></div>
-        <img src="./img/demo-check.gif" data-demo-img data-demo-base="./img/demo-check" data-demo-variants="" alt="grip check catching a typo'd config key at eval: the linter diagnostic renders with a source span and a did-you-mean, and nothing ever stages">
-      </div>
-    </div>
-    <div class="tab-pane" data-pane="rollback" hidden>
-      <div class="window demo">
-        <div class="titlebar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="wtitle">grip rollback — one symlink flip back</span></div>
-        <img src="./img/demo-rollback.gif" data-demo-img data-demo-base="./img/demo-rollback" data-demo-variants="" alt="grip generations lists the history, then grip rollback flips the current symlink to a previous generation — the whole environment is back in one atomic step">
-      </div>
-    </div>
-  </div>
-  <p class="note">re-rendered by CI from real demo runs — always the current CLI, in your palette.</p>
 </section>
 
 <section>
@@ -133,12 +101,46 @@ rolled back to generation 0
 </section>
 
 <section>
+  <h2 class="section">see it happen</h2>
+  <div class="demo-slider">
+    <span class="tab-bar">
+      <button data-tab="apply" class="active" aria-current="true">apply</button><button data-tab="init">first run</button><button data-tab="check">lint errors</button><button data-tab="rollback">rollback</button>
+    </span>
+    <div class="tab-pane" data-pane="apply">
+      <div class="window demo">
+        <div class="titlebar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="wtitle">grip apply — a fixture env, end to end</span></div>
+        <img src="./img/demo.gif" data-demo-img data-demo-base="./img/demo" data-demo-variants="" alt="grip apply on a fixture environment: modules resolve and fetch into the store, configs deploy per ownership mode, and the current symlink flips to the new generation — a second apply is a satisfied no-op">
+      </div>
+    </div>
+    <div class="tab-pane" data-pane="init" hidden>
+      <div class="window demo">
+        <div class="titlebar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="wtitle">grip init my-env — scaffold, then the first apply</span></div>
+        <img src="./img/demo-init.gif" data-demo-img data-demo-base="./img/demo-init" data-demo-variants="" alt="grip init my-env scaffolds an env repo — modules, env.toml, hosts — and the first grip apply fetches, builds, and deploys it into generation 1">
+      </div>
+    </div>
+    <div class="tab-pane" data-pane="check" hidden>
+      <div class="window demo">
+        <div class="titlebar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="wtitle">grip check — a typo'd key, caught at eval</span></div>
+        <img src="./img/demo-check.gif" data-demo-img data-demo-base="./img/demo-check" data-demo-variants="" alt="grip check catching a typo'd config key at eval: the linter diagnostic renders with a source span and a did-you-mean, and nothing ever stages">
+      </div>
+    </div>
+    <div class="tab-pane" data-pane="rollback" hidden>
+      <div class="window demo">
+        <div class="titlebar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="wtitle">grip rollback — one symlink flip back</span></div>
+        <img src="./img/demo-rollback.gif" data-demo-img data-demo-base="./img/demo-rollback" data-demo-variants="" alt="grip generations lists the history, then grip rollback flips the current symlink to a previous generation — the whole environment is back in one atomic step">
+      </div>
+    </div>
+  </div>
+  <p class="note">re-rendered by CI from real demo runs — always the current CLI, in your palette.</p>
+</section>
+
+<section>
   <h2 class="section">treat your computer like code</h2>
   <div class="steps">
     <div class="step"><b>[01]</b><h3>describe</h3><p>modules are typed TypeScript in your repo: sources, config files, ownership.</p></div>
-    <div class="step"><b>[02]</b><h3>check</h3><p>eval + semantic passes + 22 config linters, with spans pointing at the exact line. nothing stages on a red check.</p></div>
+    <div class="step"><b>[02]</b><h3>check</h3><p>eval + semantic passes + 23 config linters, with spans pointing at the exact line. nothing stages on a red check.</p></div>
     <div class="step"><b>[03]</b><h3>plan</h3><p>review the diff against the live generation before anything moves.</p></div>
-    <div class="step"><b>[04]</b><h3>apply</h3><p>one atomic flip into a new generation. nothing is ever half-deployed.</p></div>
+    <div class="step"><b>[04]</b><h3>apply</h3><p>one atomic flip into a new generation — a failed apply restores the previous managed state.</p></div>
     <div class="step"><b>[05]</b><h3>roll back</h3><p>flip <code>current</code> back — every managed destination follows. that's the whole mechanism.</p></div>
   </div>
   <p class="note">changing your machine should feel like changing code: typecheck it,
@@ -260,8 +262,8 @@ rolled back to generation 0
       <div class="fbody">
         <h3>generations</h3>
         <p>every apply is a complete new generation; switching is one atomic
-        flip, so nothing is ever half-deployed. roll back by flipping to any
-        previous one. a no-op apply creates nothing.</p>
+        flip, and a failed apply rolls its partial deploys back. roll back by
+        flipping to any previous one. a no-op apply creates nothing.</p>
       </div>
       <div class="fchips"><span class="fchip">grip rollback</span></div>
     </div>
@@ -275,6 +277,48 @@ rolled back to generation 0
       <div class="fchips"><span class="fchip">grip update</span></div>
     </div>
   </div>
+</section>
+
+<section id="compare">
+  <h2 class="section">compare</h2>
+  <div class="table-wrap">
+  <table class="compare">
+    <tr><th></th><th>gripsack</th><th>nix + home-manager</th><th>chezmoi · stow</th><th>apt · brew · mise</th></tr>
+    <tr><td>manages your packages</td><td class="yes">✓ any source</td><td class="yes">✓</td><td class="no">·</td><td class="part">own repos</td></tr>
+    <tr><td>safely manages messy dotfiles</td><td class="yes">✓ never clobbers; drift detected</td><td class="part">whole files only</td><td class="part">templates</td><td class="no">·</td></tr>
+    <tr><td>rolls the managed environment back</td><td class="yes">✓ generations</td><td class="yes">✓</td><td class="part">git history</td><td class="no">·</td></tr>
+    <tr><td>config ownership modes</td><td class="yes">symlink · tracked copy · managed block · template</td><td class="part">no managed blocks, no drift detection</td><td class="part">templates</td><td class="no">·</td></tr>
+    <tr><td>no custom language</td><td class="yes">typescript</td><td class="no">nix lang</td><td class="yes">✓</td><td class="yes">✓</td></tr>
+    <tr><td>reproducible inputs</td><td class="yes">lockfile pins</td><td class="yes">flakes + sandboxed builds (stronger)</td><td class="yes">✓</td><td class="no">·</td></tr>
+    <tr><td>no daemon, no root</td><td class="yes">✓</td><td class="no">daemon · /nix</td><td class="yes">✓</td><td class="part">apt needs root</td></tr>
+    <tr><td>per-host conditionals</td><td class="yes">facts + tags</td><td class="part">modules</td><td class="part">templates</td><td class="no">·</td></tr>
+    <tr><td>config linters, at eval, with spans</td><td class="yes">✓</td><td class="no">·</td><td class="no">·</td><td class="no">·</td></tr>
+    <tr><td colspan="5" class="part">fair is the point: Nix is the stronger guarantee. gripsack borrows one of its best ideas — generations — and stays a tool you can adopt one dotfile at a time.</td></tr>
+  </table>
+  </div>
+</section>
+
+<section class="outro">
+  <h2 class="section">install</h2>
+  <p class="alt">
+    <a href="https://github.com/gripsack-dev/gripsack/releases">release binaries</a> ·
+    the frontend is embedded in the binary — the pinned Deno runtime provisions itself on first eval<br>
+    then: <code>grip init my-env</code> to start fresh, or
+    <code>grip apply --repo git@github.com:you/myenv</code> and you're home.
+  </p>
+</section>
+
+<section class="outro">
+  <h2 class="section">follow along</h2>
+  <p class="alt">shipped so far: fetchers for github releases, brew bottles, git, tarballs,
+  pixi — plus plugin fetchers over NDJSON, generations with rollback, and ownership
+  modes that never clobber. latest: constrained eval — the frontend runs sandboxed
+  under a pinned, hash-verified deno (no env vars, no network, no subprocesses),
+  facts and probes arrive injected via ctx, and the first eval of an unfamiliar
+  repo is an explicit trust decision. <code>grip self-update</code> — the
+  package manager updates itself.
+  <a href="./docs/changelog.html">what's new</a>, every release.
+  star the <a href="https://github.com/gripsack-dev/gripsack">repo</a> if this is the package manager you also wish existed.</p>
 </section>
 
 <section>
@@ -295,54 +339,12 @@ rolled back to generation 0
   <p class="note">pure CSS variables — the logo re-tints too. your pick persists per browser.</p>
 </section>
 
-<section id="compare">
-  <h2 class="section">compare</h2>
-  <div class="table-wrap">
-  <table class="compare">
-    <tr><th></th><th>gripsack</th><th>nix + home-manager</th><th>chezmoi · stow</th><th>apt · brew · mise</th></tr>
-    <tr><td>manages your packages</td><td class="yes">✓ any source</td><td class="yes">✓</td><td class="no">·</td><td class="part">own repos</td></tr>
-    <tr><td>safely manages messy dotfiles</td><td class="yes">✓ never clobbers; drift detected</td><td class="part">whole files only</td><td class="part">templates</td><td class="no">·</td></tr>
-    <tr><td>rolls the whole thing back</td><td class="yes">✓ generations</td><td class="yes">✓</td><td class="part">git history</td><td class="no">·</td></tr>
-    <tr><td>config ownership modes</td><td class="yes">symlink · tracked copy · managed block · template</td><td class="part">no managed blocks, no drift detection</td><td class="part">templates</td><td class="no">·</td></tr>
-    <tr><td>no custom language</td><td class="yes">typescript</td><td class="no">nix lang</td><td class="yes">✓</td><td class="yes">✓</td></tr>
-    <tr><td>reproducible inputs</td><td class="yes">lockfile pins</td><td class="yes">flakes + sandboxed builds (stronger)</td><td class="yes">✓</td><td class="no">·</td></tr>
-    <tr><td>no daemon, no root</td><td class="yes">✓</td><td class="no">daemon · /nix</td><td class="yes">✓</td><td class="part">apt needs root</td></tr>
-    <tr><td>per-host conditionals</td><td class="yes">facts + tags</td><td class="part">modules</td><td class="part">templates</td><td class="no">·</td></tr>
-    <tr><td>config linters, at eval, with spans</td><td class="yes">✓</td><td class="no">·</td><td class="no">·</td><td class="no">·</td></tr>
-    <tr><td colspan="5" class="part">fair is the point: Nix is the stronger guarantee. gripsack borrows one of its best ideas — generations — and stays a tool you can adopt one dotfile at a time.</td></tr>
-  </table>
-  </div>
-</section>
-
-<section class="outro">
-  <h2 class="section">install</h2>
-  <p class="alt">
-    <a href="https://github.com/gripsack-dev/gripsack/releases">release binaries</a> ·
-    the frontend is embedded in the binary — nothing extra to install<br>
-    then: <code>grip init my-env</code> to start fresh, or
-    <code>grip apply --repo git@github.com:you/myenv</code> and you're home.
-  </p>
-</section>
-
-<section class="outro">
-  <h2 class="section">follow along</h2>
-  <p class="alt">shipped so far: fetchers for github releases, brew bottles, git, tarballs,
-  pixi — plus plugin fetchers over NDJSON, generations with rollback, and ownership
-  modes that never clobber. latest: constrained eval — the frontend runs sandboxed
-  under a pinned, hash-verified deno (no env vars, no network, no subprocesses),
-  facts and probes arrive injected via ctx, and the first eval of an unfamiliar
-  repo is an explicit trust decision. <code>grip self-update</code> — the
-  package manager updates itself.
-  <a href="./docs/changelog.html">what's new</a>, every release.
-  star the <a href="https://github.com/gripsack-dev/gripsack">repo</a> if this is the package manager you also wish existed.</p>
-</section>
-
 <footer>
   <span><span class="blink"></span> © 2026 <a href="https://github.com/tknawara">Tarek Nawara</a></span>
   <span>MIT license</span>
   <a href="https://github.com/gripsack-dev">gripsack-dev</a>
   <a href="https://github.com/gripsack-dev/gripsack">source</a>
-  <a href="./docs/architecture.html">docs</a>
+  <a href="./docs/adopting.html">docs</a>
   <span style="margin-left:auto"><span class="fversion">v<!--VERSION--></span> · eleven palettes</span>
 </footer>
 

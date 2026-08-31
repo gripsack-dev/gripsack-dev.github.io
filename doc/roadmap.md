@@ -14,7 +14,6 @@ typo in a module.*
   (a service that failed to start must not bounce your configs back)
 - `grip check` — eval + sema + linters, exit code = validity, zero
   side effects; the CI gate for your dotfiles repo
-- Python frontend (typed, doctest-enforced)
 - Fetchers: `github_release` (with resolution + `{version}`
   substitution), `git`, `brew` (bottles, with the pour), `pixi`,
   bare binaries / `.tar.xz` / `.zip`
@@ -24,10 +23,12 @@ typo in a module.*
   provenance lands in the run log, stderr drains concurrently, and a
   600s deadline means no hangs
 - `grip update [MODULE]` — the flake cycle, per-module
-- `--repo` bootstrap (path or git URL), eval provisioning via uv —
-  with self-contained bundled pixi *and* uv, per-platform pinned and
-  sha256-verified
+- `--repo` bootstrap (path or git URL), self-provisioning runtimes —
+  bundled pixi and a pinned, sha256-verified Deno for eval, per platform
 - `tree(...)` — directory-shaped config deploys
+- Read-only store payloads — `chmod a-w` at publish: an app that
+  rewrites an `owned` config through its symlink gets EACCES instead
+  of silently corrupting the store
 - Foreign-path refusal: gripsack never touches a path it didn't deploy
   unless you say `--take-over`
 - Prune-on-undeclare: remove a module from your repo and its deployed
@@ -45,13 +46,12 @@ typo in a module.*
   build-time injection
 - Activation adapters (SystemdUser, fonts via `fc-cache`, and
   desktop-entry via `update-desktop-database`)
-- 22 config linters — `griplint-*` for the tools your dotfiles
+- 23 config linters — `griplint-*` for the tools your dotfiles
   actually configure (helix, yazi, starship, zed, claude-code, …),
   as data packs in `crates/griplint`, with a weekly upstream-watch
   that files freshness issues; see [linters](linters.md)
 - Corporate proxy support, trusting the system CA roots, `NO_PROXY`
   honored
-- `GRIPSACK_PYTHON` — the bring-your-own-interpreter escape hatch
 - Per-platform release matrix (linux + macOS, x86_64 + aarch64 — no
   Windows; WSL is the story), a homebrew cask, and a multi-platform
   install.sh, with a brew `version=` tripwire
@@ -59,10 +59,9 @@ typo in a module.*
 - `merge` + `template` ownership modes — a managed block inside
   foreign files (`.bashrc`), and payloads rendered from `{{ vars }}`
   at deploy time
-- `grip init` — scaffold an env repo from the embedded template
-- TypeScript frontend — bun-provisioned, version-locked, same IR; the
-  repo's own install wins when it shadows the provisioned copy
-- The griplint engine in-crate — all 22 linters as embedded data packs
+- `grip init` — scaffold an env repo from the embedded template,
+  package.json + tsconfig included (the IDE story)
+- The griplint engine in-crate — all 23 linters as embedded data packs
   running in-process (the golden corpus replays byte-exact); no venv,
   no provisioning, no lifecycle for first-party linters
 - Plugin lifecycle: `package = "owner/repo@tag"` provisions fetcher and
@@ -99,16 +98,22 @@ typo in a module.*
   state — rollback, or undeclaring the module, restores your original
   files, bytes and permission bits. A fresh machine gets an empty
   generation 0, so adoption is always reversible.
+- **Structured `run` steps** (0007's middle rung): argv/env/cwd as
+  data, no shell interpretation, declared outputs checked — and the
+  `{arch.x64}` placeholder for node-style asset names
+- **Pin integrity hardening** — a fetched apply can no longer drop
+  pin metadata from the lockfile; the repo overlay hash (`repo256`)
+  moves the pin when a config tree gains a file; store publishes
+  survive a tmpfs `/tmp` (EXDEV copy fallback); deploys refuse
+  destinations resolving into the env repo; git payloads hash the
+  checkout, never the clone; and rollback restores the expanded
+  install keys a generation actually deployed
 
 ## Next
 
 Order is priority: adoption UX first, reliability of the core loop
 next, ecosystems last.
 
-- **Read-only store payloads** — `chmod a-w` at publish: an app that
-  rewrites an `owned` config through its symlink gets EACCES instead
-  of silently corrupting the store. Nix's store is read-only for the
-  same reason.
 - **Crash recovery for mutable destinations** — the generation flip is
   atomic, but the tracked_copy/merge/template writes before it are
   not: kill -9 or power loss mid-apply leaves touched destinations
