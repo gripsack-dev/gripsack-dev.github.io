@@ -163,7 +163,7 @@ rolled back to generation 0
 <span class="k">export const</span> helix = module(<span class="s">"helix"</span>, {
   fetch: githubRelease({
     repo: <span class="s">"helix-editor/helix"</span>,
-    asset: <span class="s">"helix-&#123;version}-{system}.tar.xz"</span>,  <span class="gutter">// {version} + {system} — tag and host platform, expanded by the core</span>
+    asset: <span class="s">"helix-&#123;version}-&#123;system}.tar.xz"</span>,  <span class="gutter">// &#123;version} + &#123;system} — tag and host platform, expanded by the core</span>
   }),
   install: { <span class="s">"bin/hx"</span>: symlink(<span class="s">"~/.local/bin/hx"</span>) },
   config: {
@@ -199,38 +199,96 @@ rolled back to generation 0
     <span class="tab-bar">
       <button data-tab="e-dep" class="active" aria-current="true">unknown dep</button><button data-tab="e-ph">typo'd placeholder</button><button data-tab="e-path">bad path</button><button data-tab="e-lint">config lint</button><button data-tab="e-exec">fetch fails</button>
     </span>
-    <pre class="tab-pane" data-pane="e-dep"><span class="p">$</span> grip plan
-<span class="err">error[E101]</span>: module <span class="s">"helix"</span> depends on unknown module <span class="s">"nvim"</span>
-  <span class="loc">--&gt;</span> <span class="loc">modules/helix.ts:4:7</span>
+    <div class="tab-pane" data-pane="e-dep">
+      <p class="err-scenario">your dotfiles repo: helix needs its language servers, so it
+      declares <code>dep("lsp")</code> — but you renamed that module
+      <code>pyright</code> last week.</p>
+      <div class="titlebar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="wtitle">modules/helix.ts</span></div>
+<pre><span class="k">import</span> { dep, githubRelease, module, symlink } <span class="k">from</span> <span class="s">"@gripsack/core"</span>;
+
+<span class="k">export default</span> module(<span class="s">"helix"</span>, {
+  fetch: githubRelease({ repo: <span class="s">"helix-editor/helix"</span>,
+    asset: <span class="s">"helix-&#123;version}-&#123;system}.tar.xz"</span> }),
+  install: { <span class="s">"bin/hx"</span>: symlink(<span class="s">"~/.local/bin/hx"</span>) },
+<span class="bad">  depends: [dep(<span class="s">"lsp"</span>)],</span>
+});</pre>
+      <div class="titlebar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="wtitle">grip plan</span></div>
+<pre><span class="p">$</span> grip plan
+<span class="err">error[E101]</span>: module <span class="s">"helix"</span> depends on unknown module <span class="s">"lsp"</span>
+  <span class="loc">--&gt;</span> <span class="loc">modules/helix.ts:7:14</span>
    <span class="gutter">|</span>
- <span class="loc">4</span> <span class="gutter">|</span> const helix = module(<span class="s">"helix"</span>, { fetch: ..., depends: [dep(<span class="s">"nvim"</span>)] })
-   <span class="gutter">|</span>       <span class="err">^ dependency declared here</span></pre>
-    <pre class="tab-pane" data-pane="e-ph" hidden><span class="p">$</span> grip check
-<span class="err">error[E114]</span>: unknown placeholder <span class="s">'{sytem}'</span> in <span class="s">"…/pkg-{sytem}.tar.gz"</span>
-  <span class="loc">--&gt;</span> <span class="loc">modules/demo.ts:2:16</span>
+ <span class="loc">7</span> <span class="gutter">|</span>   depends: [dep(<span class="s">"lsp"</span>)],
+   <span class="gutter">|</span>              <span class="err">^ dependency declared here</span></pre>
+    </div>
+    <div class="tab-pane" data-pane="e-ph" hidden>
+      <p class="err-scenario">you copy ripgrep's asset naming from its GitHub
+      releases page and typo the platform placeholder.</p>
+      <div class="titlebar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="wtitle">modules/ripgrep.ts</span></div>
+<pre><span class="k">export default</span> module(<span class="s">"ripgrep"</span>, {
+  fetch: githubRelease({ repo: <span class="s">"BurntSushi/ripgrep"</span>,
+<span class="bad">    asset: <span class="s">"ripgrep-&#123;version}-&#123;sytem}.tar.gz"</span> }),</span>
+  install: { <span class="s">"ripgrep-&#123;version}-&#123;target}/rg"</span>: symlink(<span class="s">"~/.local/bin/rg"</span>) },
+});</pre>
+      <div class="titlebar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="wtitle">grip check</span></div>
+<pre><span class="p">$</span> grip check
+<span class="err">error[E114]</span>: unknown placeholder <span class="s">'&#123;sytem}'</span> in <span class="s">"ripgrep-&#123;version}-&#123;sytem}.tar.gz"</span>
+  <span class="loc">--&gt;</span> <span class="loc">modules/ripgrep.ts:3:14</span>
    <span class="gutter">|</span>
- <span class="loc">2</span> <span class="gutter">|</span> <span class="k">export default</span> module(<span class="s">"demo"</span>, {
-   <span class="gutter">|</span>                <span class="err">^</span> module <span class="s">"demo"</span> here
-  <span class="hlp">help</span>: did you mean <span class="s">'{system}'</span>?</pre>
-    <pre class="tab-pane" data-pane="e-path" hidden><span class="p">$</span> grip check
-<span class="err">error[E115]</span>: module <span class="s">"demo"</span>: source <span class="s">"../escape.txt"</span> — `..` escapes are never allowed
-  <span class="loc">--&gt;</span> <span class="loc">modules/demo.ts:4:7</span>
+ <span class="loc">3</span> <span class="gutter">|</span>     asset: <span class="s">"ripgrep-&#123;version}-&#123;sytem}.tar.gz"</span> }),
+   <span class="gutter">|</span>              <span class="err">^</span>
+  <span class="hlp">help</span>: did you mean <span class="s">'&#123;system}'</span>?</pre>
+    </div>
+    <div class="tab-pane" data-pane="e-path" hidden>
+      <p class="err-scenario">the config lives one directory up from the repo —
+      tempting to point at. payloads must live inside the repo, so a deploy
+      can never read (or write) outside it.</p>
+      <div class="titlebar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="wtitle">modules/git.ts</span></div>
+<pre><span class="k">export default</span> module(<span class="s">"git"</span>, {
+  config: {
+<span class="bad">    <span class="s">"../shared/gitconfig"</span>: trackedCopy(<span class="s">"~/.gitconfig"</span>),</span>
+  },
+});</pre>
+      <div class="titlebar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="wtitle">grip check</span></div>
+<pre><span class="p">$</span> grip check
+<span class="err">error[E115]</span>: module <span class="s">"git"</span>: source <span class="s">"../shared/gitconfig"</span> — `..` escapes are never allowed
+  <span class="loc">--&gt;</span> <span class="loc">modules/git.ts:3:5</span>
    <span class="gutter">|</span>
- <span class="loc">4</span> <span class="gutter">|</span>   install: { <span class="s">"../escape.txt"</span>: symlink(<span class="s">"~/.local/bin/x"</span>) },
-   <span class="gutter">|</span>            <span class="err">^</span> entry declared here</pre>
-    <pre class="tab-pane" data-pane="e-lint" hidden><span class="p">$</span> grip check
-<span class="err">error[A01]</span>: unknown key <span class="s">'themez'</span>
-  <span class="loc">--&gt;</span> <span class="loc">configs/helix/config.toml:1:1</span>
+ <span class="loc">3</span> <span class="gutter">|</span>     <span class="s">"../shared/gitconfig"</span>: trackedCopy(<span class="s">"~/.gitconfig"</span>),
+   <span class="gutter">|</span>     <span class="err">^ entry declared here</span></pre>
+    </div>
+    <div class="tab-pane" data-pane="e-lint" hidden>
+      <p class="err-scenario">a stray key that's been sitting in your helix
+      config doing nothing — it deploys fine and fails in the editor, an hour
+      later, in a different terminal. the linter closes that gap at check
+      time.</p>
+      <div class="titlebar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="wtitle">configs/helix/config.toml</span></div>
+<pre>theme = <span class="s">"catppuccin_mocha"</span>
+<span class="bad">themez = <span class="s">"nord"</span></span></pre>
+      <div class="titlebar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="wtitle">grip check</span></div>
+<pre><span class="p">$</span> grip check
+<span class="err">error[griplint-helix/A01]</span>: unknown key <span class="s">'themez'</span>
+  <span class="loc">--&gt;</span> <span class="loc">configs/helix/config.toml:2:1</span>
    <span class="gutter">|</span>
- <span class="loc">1</span> <span class="gutter">|</span> themez = <span class="s">"catppuccin_mocha"</span>
+ <span class="loc">2</span> <span class="gutter">|</span> themez = <span class="s">"nord"</span>
    <span class="gutter">|</span> <span class="err">^</span>
   <span class="hlp">help</span>: did you mean <span class="s">'theme'</span>?</pre>
-    <pre class="tab-pane" data-pane="e-exec" hidden><span class="p">$</span> grip apply
-<span class="err">error[E301]</span>: step fetch failed in demo: http <span class="s">…status code 404</span>
-  <span class="loc">--&gt;</span> <span class="loc">modules/demo.ts:2:16</span>
-   <span class="gutter">|</span>
- <span class="loc">2</span> <span class="gutter">|</span> <span class="k">export default</span> module(<span class="s">"demo"</span>, {
-   <span class="gutter">|</span>                <span class="err">^</span> raised here</pre>
+    </div>
+    <div class="tab-pane" data-pane="e-exec" hidden>
+      <p class="err-scenario">upstream renamed the asset in the latest release —
+      the error tells you what <i>is</i> there, not just what you asked
+      for.</p>
+      <div class="titlebar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="wtitle">modules/fd.ts</span></div>
+<pre><span class="k">export default</span> module(<span class="s">"fd"</span>, {
+  fetch: githubRelease({ repo: <span class="s">"sharkdp/fd"</span>,
+<span class="bad">    asset: <span class="s">"fd-&#123;version}-x86_64-unknown-linux.tar.gz"</span> }),</span>
+  install: { <span class="s">"fd-&#123;version}-&#123;target}/fd"</span>: symlink(<span class="s">"~/.local/bin/fd"</span>) },
+});</pre>
+      <div class="titlebar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="wtitle">grip apply</span></div>
+<pre><span class="p">$</span> grip apply
+<span class="err">error[E301]</span>: step resolve failed in fd: no release asset matching
+  <span class="s">"fd-&#123;version}-x86_64-unknown-linux.tar.gz"</span> in sharkdp/fd
+  (have: <span class="s">fd-v10.4.2-x86_64-unknown-linux-musl.tar.gz</span>, …)</pre>
+    </div>
   </div>
   <p class="note">every layer speaks the same diagnostic: eval, placeholders, paths,
   config linters, execution — stable codes, spans, suggestions, never a bare

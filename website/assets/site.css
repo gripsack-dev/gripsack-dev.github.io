@@ -503,6 +503,9 @@ article.md blockquote {
 .tab-bar button.active { color: var(--blue); border-color: var(--blue); }
 .tab-pane[hidden] { display: none; }
 pre .err { color: var(--red); font-weight: bold; }
+pre .bad { background: color-mix(in srgb, var(--red) 18%, transparent); }
+.err-scenario { color: var(--dim); font-size: 14px; margin: 0 0 10px; }
+.err-scenario code { font-size: 13px; }
 pre .loc { color: var(--blue); }
 pre .gutter { color: var(--faint); }
 pre .hlp { color: var(--teal); }
