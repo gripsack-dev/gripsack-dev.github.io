@@ -104,9 +104,15 @@ rolled back to generation 0
   <h2 class="section">see it happen</h2>
   <div class="demo-slider">
     <span class="tab-bar">
-      <button data-tab="apply" class="active" aria-current="true">apply</button><button data-tab="init">first run</button><button data-tab="check">lint errors</button><button data-tab="rollback">rollback</button>
+      <button data-tab="adopt" class="active" aria-current="true">adopt</button><button data-tab="apply">apply</button><button data-tab="init">first run</button><button data-tab="check">lint errors</button><button data-tab="rollback">rollback</button>
     </span>
-    <div class="tab-pane" data-pane="apply">
+    <div class="tab-pane" data-pane="adopt">
+      <div class="window demo">
+        <div class="titlebar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="wtitle">grip adopt — the ownership question, then a rollback that restores your files</span></div>
+        <img src="./img/demo-adopt.gif" data-demo-img data-demo-base="./img/demo-adopt" data-demo-variants="" alt="grip adopt on an existing ~/.config/helix: it asks how to own the files, records prior state, applies, and grip rollback restores the original files byte-for-byte">
+      </div>
+    </div>
+    <div class="tab-pane" data-pane="apply" hidden>
       <div class="window demo">
         <div class="titlebar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="wtitle">grip apply — a fixture env, end to end</span></div>
         <img src="./img/demo.gif" data-demo-img data-demo-base="./img/demo" data-demo-variants="" alt="grip apply on a fixture environment: modules resolve and fetch into the store, configs deploy per ownership mode, and the current symlink flips to the new generation — a second apply is a satisfied no-op">
