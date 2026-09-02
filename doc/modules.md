@@ -22,33 +22,48 @@ export default module("helix", {
 The core expands the fields into the conventional pipeline:
 `fetch → build → install → config → verify → activate`.
 
-## Class style (full control)
+## Explicit steps (full control)
+
+When declarative fields cannot say it, a module spec carries `steps`
+directly — one fetch per module (the lockfile pins one payload;
+E118 refuses more with a hint to split):
 
 <div class="window">
-  <div class="titlebar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="wtitle">class style — full control</span></div>
-<pre><code class="language-typescript">import {
-  Module, define, fetchStep, fileFetch, installStep, shellStep, symlink,
-} from "@gripsack/core";
+  <div class="titlebar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="wtitle">modules/patched.ts</span></div>
+<pre><code class="language-typescript">import { fileFetch, installStep, module, shellStep, symlink } from "@gripsack/core";
 
-class Patched extends Module {
-  fetch() {
-    return fetchStep(fileFetch("payloads/hello.tar.gz"));
-  }
-  build() {
-    return shellStep("patch -p1 &lt; fix.patch", "patch");
-  }
-  install() {
-    return installStep({ "bin/hx": symlink("~/.local/bin/hx") });
-  }
-}
-
-export default define(Patched);</code></pre>
+export default module("patched", {
+  fetch: fileFetch("payloads/hello.tar.gz"),
+  steps: [
+    shellStep("patch -p1 &lt; fix.patch", "patch"),
+    { ...installStep({ "bin/hx": symlink("~/.local/bin/hx") }),
+      needs: ["patch"] },
+  ],
+});</code></pre>
 </div>
 
-Phase methods return a step or a list of steps; the pipeline chains
-them in order — within a phase and across boundaries — so you write
-`needs` only for cross-cutting edges. **Phase methods run at eval time
-only**: they build data, they never run at build time.
+Steps carry `needs` (sibling ids or `module:step`), so you write the
+edges yourself — auto-chaining only fills *empty* `needs` with the
+previous step, which is right for the simple case and worth replacing
+with explicit edges the moment a phase has more than one step.
+
+There was a class style (`class X extends Module`); it was removed in
+0.18.0 — **prefer a factory function** for reuse, which keeps
+modules values:
+
+<div class="window">
+  <div class="titlebar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="wtitle">modules/lang-servers.ts</span></div>
+<pre><code class="language-typescript">import { githubRelease, module, symlink } from "@gripsack/core";
+
+export function langServer(name: string, repo: string) {
+    fetch: githubRelease({ repo, asset: `${name}-{version}.tar.gz` }),
+    install: { [`bin/${name}`]: symlink(`~/.local/bin/${name}`) },
+  });
+}
+
+export const lua = langServer("lua-ls", "LuaLS/lua-language-server");
+export const zed = langServer("zed", "zed-industries/zed");</code></pre>
+</div>
 
 ## Ownership modes
 
