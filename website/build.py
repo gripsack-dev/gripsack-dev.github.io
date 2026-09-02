@@ -154,21 +154,24 @@ def themed_svg(path: Path) -> str:
 
 def themed_logo() -> str:
     svg = themed_svg(ROOT / "doc" / "logo.svg")
-    # the site logo dissolves into the hero spotlight: the tile's
-    # solid var(--bg) rect used to punch a hard-edged hole in the
-    # radial glow behind it. Fade the tile's rim to transparent
-    # instead — the center still grounds the art in every palette.
+    # dissolve the logo tile into the hero spotlight. The tile is the
+    # page color, so its hard rim punched a hole in the radial glow;
+    # a radial-fill fade was tried and read as bubbly arcs (uneven
+    # falloff across a wide bbox). A blurred-rect MASK is the honest
+    # feather: the rim loses opacity isotropically, no shape hints.
     # (doc/logo.svg itself stays the static bake for README/og use.)
-    gradient = (
-        '<defs><radialGradient id="gs-tile" r="78%" cx="50%" cy="46%">'
-        '<stop offset="70%" stop-color="var(--bg)"/>'
-        '<stop offset="100%" stop-color="var(--bg)" stop-opacity="0"/>'
-        '</radialGradient></defs>'
+    blend = (
+        '<defs><filter id="gs-feather" x="-25%" y="-25%" width="150%" height="150%">'
+        '<feGaussianBlur stdDeviation="22"/></filter>'
+        '<mask id="gs-tile-mask">'
+        '<rect x="16" y="16" width="448" height="278" rx="30" fill="white" '
+        'filter="url(#gs-feather)"/>'
+        '</mask></defs>'
+        '<rect width="480" height="310" rx="18" fill="var(--bg)" mask="url(#gs-tile-mask)"/>'
     )
     tile = '<rect width="480" height="310" rx="18" fill="var(--bg)"/>'
-    blended = gradient + '<rect width="480" height="310" rx="18" fill="url(#gs-tile)"/>'
     if tile in svg:
-        svg = svg.replace(tile, blended, 1)
+        svg = svg.replace(tile, blend, 1)
     else:
         print("warning: logo tile rect not found — hero blend skipped")
     return svg
