@@ -345,17 +345,15 @@ rolled back to generation 0
   <h2 class="section">compare</h2>
   <div class="table-wrap">
   <table class="compare">
-    <tr><th></th><th>gripsack</th><th>nix + home-manager</th><th>chezmoi · stow</th><th>apt · brew · mise</th></tr>
-    <tr><td>manages your packages</td><td class="yes">✓ any source</td><td class="yes">✓</td><td class="no">·</td><td class="part">own repos</td></tr>
-    <tr><td>safely manages messy dotfiles</td><td class="yes">✓ never clobbers; drift detected</td><td class="part">whole files only</td><td class="part">templates</td><td class="no">·</td></tr>
-    <tr><td>rolls the managed environment back</td><td class="yes">✓ generations</td><td class="yes">✓</td><td class="part">git history</td><td class="no">·</td></tr>
-    <tr><td>config ownership modes</td><td class="yes">symlink · tracked copy · managed block · template</td><td class="part">no managed blocks, no drift detection</td><td class="part">templates</td><td class="no">·</td></tr>
-    <tr><td>no custom language</td><td class="yes">typescript</td><td class="no">nix lang</td><td class="yes">✓</td><td class="yes">✓</td></tr>
-    <tr><td>reproducible inputs</td><td class="yes">lockfile pins</td><td class="yes">flakes + sandboxed builds (stronger)</td><td class="yes">✓</td><td class="no">·</td></tr>
-    <tr><td>no daemon, no root</td><td class="yes">✓</td><td class="no">daemon · /nix</td><td class="yes">✓</td><td class="part">apt needs root</td></tr>
-    <tr><td>per-host conditionals</td><td class="yes">facts + tags</td><td class="part">modules</td><td class="part">templates</td><td class="no">·</td></tr>
-    <tr><td>config linters, at eval, with spans</td><td class="yes">✓</td><td class="no">·</td><td class="no">·</td><td class="no">·</td></tr>
-    <tr><td colspan="5" class="part">fair is the point: Nix is the stronger guarantee. gripsack borrows one of its best ideas — generations — and stays a tool you can adopt one dotfile at a time.</td></tr>
+    <tr><th></th><th>gripsack</th><th>nix + home-manager</th><th>chezmoi</th><th>stow</th><th>apt · brew · mise</th></tr>
+    <tr><td>adopts the machine you already have</td><td class="yes">✓ one file at a time</td><td class="no">rebuild from config</td><td class="part">whole files</td><td class="part">symlinks only</td><td class="no">·</td></tr>
+    <tr><td>manages mutable, shared configs</td><td class="yes">✓ merge blocks + drift detection</td><td class="part">whole files only</td><td class="part">templates</td><td class="no">·</td><td class="no">·</td></tr>
+    <tr><td>rolls the managed environment back</td><td class="yes">✓ generations</td><td class="yes">✓</td><td class="part">git history</td><td class="no">·</td><td class="no">·</td></tr>
+    <tr><td>packages and dotfiles in one repo</td><td class="yes">✓</td><td class="yes">✓</td><td class="no">·</td><td class="no">·</td><td class="part">packages only</td></tr>
+    <tr><td>reproducible inputs</td><td class="part">lockfile pins (sha-verified)</td><td class="yes">✓ stronger: sandboxed builds</td><td class="yes">✓</td><td class="no">·</td><td class="no">·</td></tr>
+    <tr><td>no daemon, no root, no takeover</td><td class="yes">✓</td><td class="no">daemon · /nix</td><td class="yes">✓</td><td class="yes">✓</td><td class="part">apt needs root</td></tr>
+    <tr><td>config language</td><td>typed TypeScript API</td><td>nix lang</td><td>templates</td><td>·</td><td>·</td></tr>
+    <tr><td colspan="6" class="part">fair is the point: Nix is the stronger guarantee. gripsack borrows one of its best ideas — generations — and stays a tool you can adopt one dotfile at a time.</td></tr>
   </table>
   </div>
 </section>
