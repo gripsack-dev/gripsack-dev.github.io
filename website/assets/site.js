@@ -191,3 +191,31 @@ document.addEventListener("click", function (ev) {
     if (pane && copy) copy.setAttribute("data-copy", pane.getAttribute("data-cmd"));
   }
 });
+
+/* landing only: sections below the hero breathe in once, on entry.
+   The hiding class is added here — never in the CSS alone — so
+   no-JS, reduced-motion, and old browsers all see a fully painted
+   page. site.css carries the matching body.home section.reveal rules
+   and the prefers-reduced-motion escape hatch. */
+(function () {
+  if (!document.body.classList.contains("home")) return;
+  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  if (!("IntersectionObserver" in window)) return;
+  var sections = document.querySelectorAll("body.home main > section:not(.hero)");
+  if (!sections.length) return;
+  var io = new IntersectionObserver(
+    function (entries) {
+      entries.forEach(function (e) {
+        if (e.isIntersecting) {
+          e.target.classList.add("revealed");
+          io.unobserve(e.target);
+        }
+      });
+    },
+    { rootMargin: "0px 0px -8% 0px", threshold: 0.05 }
+  );
+  sections.forEach(function (s) {
+    s.classList.add("reveal");
+    io.observe(s);
+  });
+})();

@@ -27,7 +27,7 @@
 <section class="hero">
   <div class="logo" role="img" aria-label="gripsack — a traveler's bag with a config file and a terminal chip peeking out"><!--LOGO--></div>
   <p class="kicker">gripsack — personal environment manager</p>
-  <p class="tagline">your whole environment, in one bag.</p>
+  <p class="tagline">your whole environment, in <span class="accent">one bag</span>.<span class="caret" aria-hidden="true"></span></p>
   <p class="sub">set up a new machine from one repo — packages, dotfiles and
   machine-specific config, with generations and rollback.</p>
   <div class="chips">
@@ -55,24 +55,61 @@
     <span data-pane="curl"><code>grip self-update</code></span><span data-pane="brew" hidden><code>brew upgrade --cask gripsack</code></span><span data-pane="cargo" hidden><code>cargo install gripsack</code></span><span data-pane="mise" hidden><code>mise up gripsack</code></span>
     · <a href="./docs/changelog.html">what's new</a></p>
   </div>
-  <p class="alt"><a href="https://github.com/gripsack-dev/gripsack/releases">release binaries</a> ·
-      the frontend is embedded in the binary — grip provisions its pinned,
-      hash-verified Deno runtime automatically on first eval;
-      <code>npm i @gripsack/core</code> only to pin your own copy</p>
   <div class="cta">
     <a class="primary" href="https://github.com/gripsack-dev/gripsack">GitHub ↗</a>
     <a href="./docs/adopting.html">adopt one dotfile →</a>
   </div>
 </section>
 
-<section>
+<section id="start">
   <h2 class="section">start with one dotfile</h2>
-  <p class="note" style="margin-bottom:14px">you don't have to rebuild your life. gripsack manages
+  <p class="lede">you don't have to rebuild your life. gripsack manages
   user-space tools and your configuration — it does not replace your OS package manager;
   brew or apt keep handling binaries, and package fetching is adopted later, tool by tool.
   the ownership question is the whole game:</p>
-  <div class="window">
-    <div class="titlebar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="wtitle">adopting helix — nothing is touched until you say so</span></div>
+
+  <h3 class="sub">see it happen</h3>
+  <div class="demo-slider">
+    <span class="tab-bar">
+      <button data-tab="adopt" class="active" aria-current="true">adopt</button><button data-tab="apply">apply</button><button data-tab="init">first run</button><button data-tab="check">lint errors</button><button data-tab="rollback">rollback</button>
+    </span>
+    <div class="tab-pane" data-pane="adopt">
+      <div class="window demo">
+        <div class="titlebar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="wtitle">grip adopt — the ownership question, then a rollback that restores your files</span></div>
+        <img src="./img/demo-adopt.gif" data-demo-img data-demo-base="./img/demo-adopt" data-demo-variants="" width="1800" height="1120" decoding="async" alt="grip adopt on an existing ~/.config/helix: it asks how to own the files, records prior state, applies, and grip rollback restores the original files byte-for-byte">
+      </div>
+    </div>
+    <div class="tab-pane" data-pane="apply" hidden>
+      <div class="window demo">
+        <div class="titlebar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="wtitle">grip apply — a fixture env, end to end</span></div>
+        <img src="./img/demo.gif" data-demo-img data-demo-base="./img/demo" data-demo-variants="" width="1800" height="1120" decoding="async" loading="lazy" alt="grip apply on a fixture environment: modules resolve and fetch into the store, configs deploy per ownership mode, and the current symlink flips to the new generation — a second apply is a satisfied no-op">
+      </div>
+    </div>
+    <div class="tab-pane" data-pane="init" hidden>
+      <div class="window demo">
+        <div class="titlebar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="wtitle">grip init my-env — scaffold, then the first apply</span></div>
+        <img src="./img/demo-init.gif" data-demo-img data-demo-base="./img/demo-init" data-demo-variants="" width="1800" height="1120" decoding="async" loading="lazy" alt="grip init my-env scaffolds an env repo — modules, env.toml, hosts — and the first grip apply fetches, builds, and deploys it into generation 1">
+      </div>
+    </div>
+    <div class="tab-pane" data-pane="check" hidden>
+      <div class="window demo">
+        <div class="titlebar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="wtitle">grip check — a typo'd key, caught at eval</span></div>
+        <img src="./img/demo-check.gif" data-demo-img data-demo-base="./img/demo-check" data-demo-variants="" width="1800" height="1120" decoding="async" loading="lazy" alt="grip check catching a typo'd config key at eval: the linter diagnostic renders with a source span and a did-you-mean, and nothing ever stages">
+      </div>
+    </div>
+    <div class="tab-pane" data-pane="rollback" hidden>
+      <div class="window demo">
+        <div class="titlebar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="wtitle">grip rollback — one symlink flip back</span></div>
+        <img src="./img/demo-rollback.gif" data-demo-img data-demo-base="./img/demo-rollback" data-demo-variants="" width="1800" height="1120" decoding="async" loading="lazy" alt="grip generations lists the history, then grip rollback flips the current symlink to a previous generation — the whole environment is back in one atomic step">
+      </div>
+    </div>
+  </div>
+  <p class="note">re-rendered by CI from real demo runs — always the current CLI, in your palette.</p>
+
+  <details class="transcript">
+    <summary>prefer text? the same adopt run, as a transcript</summary>
+    <div class="window">
+      <div class="titlebar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="wtitle">adopting helix — nothing is touched until you say so</span></div>
 <pre><span class="p">$</span> grip init my-env <span class="gutter">&& cd my-env</span>
 <span class="p">$</span> grip adopt ~/.config/helix
 adopting ~/.config/helix — 2 files, 1.1 kB
@@ -90,54 +127,15 @@ applied — generation 1 active
 <span class="p">$</span> grip rollback
 rolled back to generation 0
 <span class="gutter"># your original files have been restored — not deleted, restored</span></pre>
-  </div>
-  <p class="note">four ownership modes, because real dotfiles are messy:
-  <b>owned</b> — a read-only symlink for disciplined tools;
-  <b>tracked_copy</b> — a real copy for apps that rewrite their own config (Zed), with
-  your edits detected, never overwritten;
-  <b>merge</b> — a managed block inside a shared file like <code>.bashrc</code>;
-  <b>template</b> — rendered from per-host vars.
-  <a href="./docs/adopting.html">the full adopting guide</a>.</p>
-</section>
-
-<section>
-  <h2 class="section">see it happen</h2>
-  <div class="demo-slider">
-    <span class="tab-bar">
-      <button data-tab="adopt" class="active" aria-current="true">adopt</button><button data-tab="apply">apply</button><button data-tab="init">first run</button><button data-tab="check">lint errors</button><button data-tab="rollback">rollback</button>
-    </span>
-    <div class="tab-pane" data-pane="adopt">
-      <div class="window demo">
-        <div class="titlebar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="wtitle">grip adopt — the ownership question, then a rollback that restores your files</span></div>
-        <img src="./img/demo-adopt.gif" data-demo-img data-demo-base="./img/demo-adopt" data-demo-variants="" alt="grip adopt on an existing ~/.config/helix: it asks how to own the files, records prior state, applies, and grip rollback restores the original files byte-for-byte">
-      </div>
     </div>
-    <div class="tab-pane" data-pane="apply" hidden>
-      <div class="window demo">
-        <div class="titlebar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="wtitle">grip apply — a fixture env, end to end</span></div>
-        <img src="./img/demo.gif" data-demo-img data-demo-base="./img/demo" data-demo-variants="" alt="grip apply on a fixture environment: modules resolve and fetch into the store, configs deploy per ownership mode, and the current symlink flips to the new generation — a second apply is a satisfied no-op">
-      </div>
-    </div>
-    <div class="tab-pane" data-pane="init" hidden>
-      <div class="window demo">
-        <div class="titlebar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="wtitle">grip init my-env — scaffold, then the first apply</span></div>
-        <img src="./img/demo-init.gif" data-demo-img data-demo-base="./img/demo-init" data-demo-variants="" alt="grip init my-env scaffolds an env repo — modules, env.toml, hosts — and the first grip apply fetches, builds, and deploys it into generation 1">
-      </div>
-    </div>
-    <div class="tab-pane" data-pane="check" hidden>
-      <div class="window demo">
-        <div class="titlebar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="wtitle">grip check — a typo'd key, caught at eval</span></div>
-        <img src="./img/demo-check.gif" data-demo-img data-demo-base="./img/demo-check" data-demo-variants="" alt="grip check catching a typo'd config key at eval: the linter diagnostic renders with a source span and a did-you-mean, and nothing ever stages">
-      </div>
-    </div>
-    <div class="tab-pane" data-pane="rollback" hidden>
-      <div class="window demo">
-        <div class="titlebar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="wtitle">grip rollback — one symlink flip back</span></div>
-        <img src="./img/demo-rollback.gif" data-demo-img data-demo-base="./img/demo-rollback" data-demo-variants="" alt="grip generations lists the history, then grip rollback flips the current symlink to a previous generation — the whole environment is back in one atomic step">
-      </div>
-    </div>
-  </div>
-  <p class="note">re-rendered by CI from real demo runs — always the current CLI, in your palette.</p>
+    <p class="note">four ownership modes, because real dotfiles are messy:
+    <b>owned</b> — a read-only symlink for disciplined tools;
+    <b>tracked_copy</b> — a real copy for apps that rewrite their own config (Zed), with
+    your edits detected, never overwritten;
+    <b>merge</b> — a managed block inside a shared file like <code>.bashrc</code>;
+    <b>template</b> — rendered from per-host vars.
+    <a href="./docs/adopting.html">the full adopting guide</a>.</p>
+  </details>
 </section>
 
 <section>
@@ -181,7 +179,7 @@ rolled back to generation 0
   tags: [<span class="s">"desktop"</span>],
   modules: [
     helix,
-    ctx.probe.executable(<span class="s">"nvidia-smi"</span>) &amp;&amp; cuda, <span class="c">// the core binds the probe; eval never runs it</span>
+    ctx.probe.executable(<span class="s">"nvidia-smi"</span>) &amp;&amp; cuda,  <span class="c">// the core binds the probe; eval never runs it</span>
   ],
 }));</pre>
   </div>
@@ -270,7 +268,7 @@ rolled back to generation 0
   <span class="loc">--&gt;</span> <span class="loc">configs/helix/config.toml:2:1</span>
    <span class="gutter">|</span>
  <span class="loc">2</span> <span class="gutter">|</span> themez = <span class="s">"nord"</span>
-   <span class="gutter">|</span> <span class="err">^</span>
+   <span class="gutter">|</span>   <span class="err">^</span>
   <span class="hlp">help</span>: did you mean <span class="s">'theme'</span>?</pre>
     </div>
     <div class="tab-pane" data-pane="e-exec" hidden>
@@ -287,7 +285,7 @@ rolled back to generation 0
 <pre><span class="p">$</span> grip apply
 <span class="err">error[E301]</span>: step resolve failed in fd: no release asset matching
   <span class="s">"fd-&#123;version}-x86_64-unknown-linux.tar.gz"</span> in sharkdp/fd
-  (have: <span class="s">fd-v10.4.2-x86_64-unknown-linux-musl.tar.gz</span>, …)</pre>
+  (have: <span class="s">"fd-v10.4.2-x86_64-unknown-linux-musl.tar.gz"</span>, …)</pre>
     </div>
   </div>
   <p class="note">every layer speaks the same diagnostic: eval, placeholders, paths,
@@ -363,29 +361,34 @@ rolled back to generation 0
 </section>
 
 <section class="outro">
-  <h2 class="section">install</h2>
-  <p class="alt">
-    <a href="https://github.com/gripsack-dev/gripsack/releases">release binaries</a> ·
-    the frontend is embedded in the binary — the pinned Deno runtime provisions itself on first eval<br>
-    then: <code>grip init my-env</code> to start fresh, or
-    <code>grip apply --repo git@github.com:you/myenv</code> and you're home.
-  </p>
+  <div class="outro-grid">
+    <div>
+      <h3 class="osub">install</h3>
+      <p class="alt">
+        <a href="https://github.com/gripsack-dev/gripsack/releases">release binaries</a> ·
+        the frontend is embedded in the binary — grip provisions its pinned,
+        hash-verified Deno runtime automatically on first eval;
+        <code>npm i @gripsack/core</code> only to pin your own copy.<br>
+        then: <code>grip init my-env</code> to start fresh, or
+        <code>grip apply --repo git@github.com:you/myenv</code> and you're home.
+      </p>
+    </div>
+    <div>
+      <h3 class="osub">follow along</h3>
+      <p class="alt">shipped so far: fetchers for github releases, brew bottles, git, tarballs,
+      pixi — plus plugin fetchers over NDJSON, generations with rollback, and ownership
+      modes that never clobber. latest: constrained eval — the frontend runs sandboxed
+      under a pinned, hash-verified deno (no env vars, no network, no subprocesses),
+      facts and probes arrive injected via ctx, and the first eval of an unfamiliar
+      repo is an explicit trust decision. <code>grip self-update</code> — the
+      package manager updates itself.
+      <a href="./docs/changelog.html">what's new</a>, every release.
+      star the <a href="https://github.com/gripsack-dev/gripsack">repo</a> if this is the package manager you also wish existed.</p>
+    </div>
+  </div>
 </section>
 
-<section class="outro">
-  <h2 class="section">follow along</h2>
-  <p class="alt">shipped so far: fetchers for github releases, brew bottles, git, tarballs,
-  pixi — plus plugin fetchers over NDJSON, generations with rollback, and ownership
-  modes that never clobber. latest: constrained eval — the frontend runs sandboxed
-  under a pinned, hash-verified deno (no env vars, no network, no subprocesses),
-  facts and probes arrive injected via ctx, and the first eval of an unfamiliar
-  repo is an explicit trust decision. <code>grip self-update</code> — the
-  package manager updates itself.
-  <a href="./docs/changelog.html">what's new</a>, every release.
-  star the <a href="https://github.com/gripsack-dev/gripsack">repo</a> if this is the package manager you also wish existed.</p>
-</section>
-
-<section>
+<section class="palettes">
   <h2 class="section">pick a palette</h2>
   <div class="palette-bar">
     <button data-set-palette="catppuccin-mocha" class="active"><span class="sw" style="--sw:#89b4fa"></span>catppuccin-mocha</button>

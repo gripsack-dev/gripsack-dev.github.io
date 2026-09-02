@@ -580,3 +580,167 @@ pre::-webkit-scrollbar-track, .table-wrap::-webkit-scrollbar-track { background:
 .plugin-card:hover { border-color: var(--blue); text-decoration: none; }
 .pc-name { font-family: var(--mono); font-weight: 600; color: var(--blue); }
 .pc-blurb { display: block; margin-top: 4px; font-size: 13px; color: var(--faint); }
+
+/* ---- keyboard focus: visible on every interactive element ---- */
+:focus-visible {
+  outline: 2px solid var(--blue);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+.window img { height: auto; }
+
+/* ============================================================
+   landing (index.html) — breathing room, hierarchy, delight.
+   everything below is scoped to body.home: this stylesheet is
+   shared with the docs shell. */
+
+/* rhythm: sections open up; the hero gets air before the fold */
+body.home .content > section { padding: 0 0 clamp(56px, 9vw, 96px); }
+body.home .content > section.hero { padding: clamp(24px, 4.5vw, 56px) 0 clamp(32px, 5vw, 56px); }
+body.home .content > section.palettes { padding-top: 24px; padding-bottom: 0; }
+body.home .content > section[id] { scroll-margin-top: 24px; }
+body.home footer { margin-top: 48px; }
+
+/* section headings: the ❯ marker, then a hairline running out to the edge */
+body.home h2.section {
+  display: flex; align-items: center; gap: 16px;
+  font-size: 16px; margin: 0 0 28px;
+}
+body.home h2.section::before { content: "\276F"; font-size: 0.9em; }
+body.home h2.section::after {
+  content: ""; flex: 1; height: 1px; min-width: 24px;
+  background: linear-gradient(90deg, var(--border), transparent);
+}
+body.home h3.sub {
+  font-family: var(--mono); font-size: 13px; font-weight: 700;
+  color: var(--faint); letter-spacing: 1px;
+  margin: 40px 0 14px;
+}
+body.home h3.sub::before { content: "\203A  "; color: var(--blue); }
+body.home p.lede {
+  font-size: 16.5px; color: var(--dim); line-height: 1.65;
+  max-width: 74ch; margin: 0 0 8px;
+}
+
+/* hero: one big statement, a quiet metadata strip, soft spotlight */
+body.home .hero { position: relative; }
+body.home .hero::before {
+  content: ""; position: absolute; left: 50%; top: -60px; z-index: -1;
+  width: min(920px, 120vw); height: 560px; transform: translateX(-50%);
+  pointer-events: none;
+  background:
+    radial-gradient(closest-side, color-mix(in srgb, var(--blue) 13%, transparent), transparent 72%),
+    radial-gradient(60% 55% at 50% 38%, color-mix(in srgb, var(--mauve) 7%, transparent), transparent 75%);
+}
+body.home .hero .logo { width: min(300px, 68vw); }
+body.home .hero p.kicker { margin: 18px 0 8px; }
+body.home .hero p.tagline {
+  font-size: clamp(27px, 4.4vw, 40px); font-weight: 700;
+  line-height: 1.12; letter-spacing: -0.012em;
+  margin: 0 0 10px;
+}
+body.home .hero p.tagline .accent { color: var(--blue); }
+body.home .hero p.tagline .caret {
+  display: inline-block; width: 0.45em; height: 0.88em;
+  background: var(--green); margin-left: 12px;
+  vertical-align: baseline; transform: translateY(0.1em);
+  animation: blink 1.5s steps(2) infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  body.home .hero p.tagline .caret { animation: none; }
+}
+body.home .hero p.sub {
+  font-size: 16px; max-width: 58ch; margin: 0 auto 30px;
+}
+body.home .chips { gap: 7px; margin: 0 0 22px; }
+body.home .chips .chip {
+  background: transparent; font-size: 11.5px; color: var(--faint);
+  border-color: color-mix(in srgb, var(--border) 72%, transparent);
+  padding: 2px 11px;
+}
+body.home .chips .chip.status { color: var(--yellow); border-color: color-mix(in srgb, var(--yellow) 40%, var(--border)); }
+body.home .chips .chip.version { color: var(--green); border-color: color-mix(in srgb, var(--green) 45%, var(--border)); }
+body.home .hero p.alt { margin: 10px 0 26px; }
+
+/* terminal windows: lift off the page a touch */
+body.home .window {
+  box-shadow: 0 18px 48px -24px rgba(0, 0, 0, 0.4);
+}
+body.home .demo-slider .window {
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+body.home .demo-slider .window:hover {
+  border-color: color-mix(in srgb, var(--blue) 45%, var(--border));
+  box-shadow: 0 22px 56px -24px rgba(0, 0, 0, 0.5);
+}
+body.home .demo-slider .tab-bar { margin: 0 0 14px; }
+
+/* the adopt transcript: progressive disclosure, closed by default */
+body.home details.transcript { margin-top: 30px; }
+body.home details.transcript > summary {
+  cursor: pointer; list-style: none; user-select: none;
+  display: inline-flex; align-items: center; gap: 10px;
+  font-family: var(--mono); font-size: 13px; color: var(--dim);
+  border: 1px dashed var(--border); border-radius: 999px;
+  padding: 6px 16px;
+  transition: border-color 0.15s ease, color 0.15s ease;
+}
+body.home details.transcript > summary::-webkit-details-marker { display: none; }
+body.home details.transcript > summary::before {
+  content: "\25B8"; color: var(--blue);
+  transition: transform 0.2s ease;
+}
+body.home details.transcript[open] > summary::before { transform: rotate(90deg); }
+body.home details.transcript > summary:hover { border-color: var(--blue); color: var(--text); }
+body.home details.transcript[open] > summary { border-style: solid; }
+body.home details.transcript[open] { margin-bottom: 6px; }
+body.home details.transcript .window { margin-top: 18px; }
+
+/* steps: tiles get a hover of their own */
+body.home .step { transition: background 0.15s ease; }
+body.home .step:hover { background: color-mix(in srgb, var(--deep) 55%, transparent); }
+body.home .step:hover b { color: var(--blue); }
+body.home .step b { transition: color 0.15s ease; }
+
+/* compare: the gripsack column carries a quiet tint */
+body.home table.compare th, body.home table.compare td { padding: 10px 12px; }
+body.home table.compare th:nth-child(2), body.home table.compare td:nth-child(2) {
+  background: color-mix(in srgb, var(--blue) 6%, transparent);
+}
+body.home table.compare td:nth-child(2) { color: var(--text); }
+
+/* outro: install + follow along, side by side under one hairline */
+body.home .outro-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 44px;
+  border-top: 1px solid var(--border); padding-top: 30px;
+}
+body.home .osub {
+  font-family: var(--mono); font-size: 13px; font-weight: 700;
+  color: var(--faint); letter-spacing: 1px; margin: 0 0 10px;
+}
+body.home .osub::before { content: "\276F  "; color: var(--blue); }
+body.home .outro p.alt { text-align: left; margin: 0; max-width: none; }
+
+/* scroll-in: sections breathe once, on entry — never under
+   prefers-reduced-motion, and never without JS (the class is
+   added by site.js, so the page is fully painted either way) */
+body.home .content > section.reveal {
+  opacity: 0; transform: translateY(22px);
+  transition: opacity 0.6s ease-out, transform 0.6s cubic-bezier(0.25, 1, 0.5, 1);
+}
+body.home .content > section.reveal.revealed { opacity: 1; transform: none; }
+@media (prefers-reduced-motion: reduce) {
+  body.home .content > section.reveal {
+    opacity: 1; transform: none; transition: none;
+  }
+}
+
+@media (max-width: 880px) {
+  body.home h2.section { margin-bottom: 20px; }
+  body.home h3.sub { margin: 26px 0 10px; }
+  body.home p.lede { font-size: 15px; }
+  body.home .content > section { padding-bottom: 56px; }
+  body.home .outro-grid { grid-template-columns: 1fr; gap: 26px; }
+  body.home .hero::before { top: -30px; height: 430px; width: min(94vw, 460px); }
+  body.home .demo-slider .tab-bar button { padding: 5px 11px; font-size: 11.5px; }
+}
