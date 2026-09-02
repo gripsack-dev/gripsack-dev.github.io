@@ -108,18 +108,23 @@ typo in a module.*
   destinations resolving into the env repo; git payloads hash the
   checkout, never the clone; and rollback restores the expanded
   install keys a generation actually deployed
+- **Crash recovery for mutable destinations**
+  ([plan 0019](https://github.com/gripsack-dev/gripsack/tree/main/plan/0019-deploy-journal.md)) —
+  the deploy journal: every destination mutation (owned links,
+  tracked copies, templates, merge blocks) records its prior state —
+  file bytes into the content-addressed prior store, fsync'd —
+  before the write; the generation flip is the run's commit point;
+  and the next `apply` restores uncommitted entries under the
+  lifecycle lock before deploying anything. A kill -9 mid-apply no
+  longer leaves the filesystem between generations — and the drift
+  guard applies on recovery: a file edited after the crash keeps the
+  user's bytes.
 
 ## Next
 
-Order is priority: adoption UX first, reliability of the core loop
-next, ecosystems last.
+Order is priority: reliability of the core loop first, ecosystems
+last.
 
-- **Crash recovery for mutable destinations** — the generation flip is
-  atomic, but the tracked_copy/merge/template writes before it are
-  not: kill -9 or power loss mid-apply leaves touched destinations
-  with no generation record. A durable apply journal (begin → backups
-  → intents → fsync → commit) with startup reconciliation would make
-  the mutable half crash-recoverable, not just failure-compensated.
 - **Resolver executables** (0013 D8) — custom registries become
   `gripresolve-*` plugins on the same NDJSON envelope as fetchers:
   spawned with a scrubbed, declared-env-only environment (credentials
@@ -129,9 +134,6 @@ next, ecosystems last.
 - **Rollback adapters** — user-initiated `grip rollback` re-runs
   post-link/post-activate adapters (the unified engine covers
   destinations; adapters still don't re-run on rollback).
-- ~~Content-addressed store paths, deeper~~ — shipped as the 0014
-  hybrid (above). A content-addressed fetch cache fell out as
-  designed: presence of the content path IS the cache hit.
 - **Module env inheritance for dependents** — a dependent sees the env
   its dependencies export (build-time today).
 - **Secrets model** — references to external secret managers
