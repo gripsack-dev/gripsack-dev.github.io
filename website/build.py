@@ -154,26 +154,17 @@ def themed_svg(path: Path) -> str:
 
 def themed_logo() -> str:
     svg = themed_svg(ROOT / "doc" / "logo.svg")
-    # dissolve the logo tile into the hero spotlight. The tile is the
-    # page color, so its hard rim punched a hole in the radial glow;
-    # a radial-fill fade was tried and read as bubbly arcs (uneven
-    # falloff across a wide bbox). A blurred-rect MASK is the honest
-    # feather: the rim loses opacity isotropically, no shape hints.
-    # (doc/logo.svg itself stays the static bake for README/og use.)
-    blend = (
-        '<defs><filter id="gs-feather" x="-25%" y="-25%" width="150%" height="150%">'
-        '<feGaussianBlur stdDeviation="22"/></filter>'
-        '<mask id="gs-tile-mask">'
-        '<rect x="16" y="16" width="448" height="278" rx="30" fill="white" '
-        'filter="url(#gs-feather)"/>'
-        '</mask></defs>'
-        '<rect width="480" height="310" rx="18" fill="var(--bg)" mask="url(#gs-tile-mask)"/>'
-    )
+    # no tile on the site: the bag art themes with the palette and
+    # grounds itself with a CSS drop-shadow that follows its
+    # silhouette (.hero .logo svg). A backdrop rect — solid, radial,
+    # or feathered — always left an edge to fight the spotlight.
+    # (doc/logo.svg keeps the static bake for README/og: an <img>
+    # there has no page to blend with.)
     tile = '<rect width="480" height="310" rx="18" fill="var(--bg)"/>'
     if tile in svg:
-        svg = svg.replace(tile, blend, 1)
+        svg = svg.replace(tile, "", 1)
     else:
-        print("warning: logo tile rect not found — hero blend skipped")
+        print("warning: logo tile rect not found — tile removal skipped")
     return svg
 
 

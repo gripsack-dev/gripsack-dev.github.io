@@ -85,7 +85,12 @@ footer .fversion {
 /* ---- hero ---- */
 .hero { text-align: center; padding: 40px 0 0; }
 .hero .logo { width: min(360px, 100%); margin-inline: auto; }
-.hero .logo svg { width: 100%; height: auto; display: block; }
+.hero .logo svg {
+  width: 100%; height: auto; display: block;
+  /* the logo art carries no backdrop on the site — the shadow follows
+     its silhouette and grounds it on the spotlight like any object */
+  filter: drop-shadow(0 14px 34px color-mix(in srgb, var(--deep) 55%, transparent));
+}
 .hero .logo svg * { transition: fill 0.25s ease, stroke 0.25s ease; }
 .hero p.tagline { font-size: 24px; color: var(--text); margin: 8px 0 4px; }
 .hero p.kicker { font-size: 12px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--accent); margin: 0 0 6px; }
