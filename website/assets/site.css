@@ -519,18 +519,25 @@ pre .gutter { color: var(--faint); }
 pre .hlp { color: var(--teal); }
 
 /* ---- subtle scrollbars: long paths shouldn't fight the design ---- */
-pre, .table-wrap {
+/* the rail and the page itself get the same treatment — a default
+   chunky scrollbar next to the nav is the first thing the eye lands
+   on, and not in a good way */
+pre, .table-wrap, .rail, html {
   scrollbar-width: thin;
   scrollbar-color: var(--border) transparent;
 }
-pre::-webkit-scrollbar, .table-wrap::-webkit-scrollbar { height: 6px; width: 6px; }
-pre::-webkit-scrollbar-thumb, .table-wrap::-webkit-scrollbar-thumb {
+pre::-webkit-scrollbar, .table-wrap::-webkit-scrollbar,
+.rail::-webkit-scrollbar, html::-webkit-scrollbar { height: 6px; width: 6px; }
+pre::-webkit-scrollbar-thumb, .table-wrap::-webkit-scrollbar-thumb,
+.rail::-webkit-scrollbar-thumb, html::-webkit-scrollbar-thumb {
   background: var(--border); border-radius: 3px;
 }
-pre::-webkit-scrollbar-thumb:hover, .table-wrap::-webkit-scrollbar-thumb:hover {
+pre::-webkit-scrollbar-thumb:hover, .table-wrap::-webkit-scrollbar-thumb:hover,
+.rail::-webkit-scrollbar-thumb:hover, html::-webkit-scrollbar-thumb:hover {
   background: var(--border-strong);
 }
-pre::-webkit-scrollbar-track, .table-wrap::-webkit-scrollbar-track { background: transparent; }
+pre::-webkit-scrollbar-track, .table-wrap::-webkit-scrollbar-track,
+.rail::-webkit-scrollbar-track, html::-webkit-scrollbar-track { background: transparent; }
 
 /* version chip stands out a touch */
 .chips .chip.version { color: var(--green); border-color: var(--green); }
