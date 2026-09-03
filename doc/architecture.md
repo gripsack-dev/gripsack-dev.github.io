@@ -21,9 +21,13 @@ gripsack is a compiler, and it keeps its two halves strictly separate:
   where every node carries a *span* pointing back at the exact line
   of your code that produced it.
 - **Execute** is the `grip` binary — one static Rust executable. It
-  never evaluates code, never sees your credentials, and only consumes
-  IR. It parses, validates, resolves against the lockfile, builds a
-  plan, and executes it as a DAG into a hash-addressed **store**.
+  never evaluates code and only consumes IR: it parses, validates,
+  resolves against the lockfile, builds a plan, and executes it as a
+  DAG into a hash-addressed **store**. Credentials: **evaluation**
+  sees none (the sandbox denies env, network, and subprocesses); the
+  fetch/execution layer necessarily can — fetching a private release
+  requires a token. The boundary is eval-vs-everything-else, and
+  that is the boundary the trust prompt describes.
 
 The payoff of the split: `grip plan` can show you exactly what would
 change without changing anything, errors point at your source instead of

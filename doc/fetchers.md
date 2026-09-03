@@ -67,8 +67,12 @@ speaking NDJSON over stdio:
   is tolerated (no declared budgets) but must not pretend success.
 
 The core hash-verifies every returned byte against the lockfile before
-it enters the store — a plugin can be wrong or malicious and the worst
-outcome is a failed apply, never a poisoned store.
+it enters the store — a plugin cannot poison the store. Be precise
+about what that means: **a `gripfetch-*` executable is
+trusted code running with your user privileges.** Hash verification
+protects store contents, not the host — the plugin process can read
+files, inherit environment variables, and open network connections.
+Treat a fetcher plugin exactly as you would any binary you install.
 Writing one? The contract made executable:
 [gripfetch-conformance](https://github.com/gripsack-dev/gripfetch-conformance)
 — the suite every plugin runs against.
