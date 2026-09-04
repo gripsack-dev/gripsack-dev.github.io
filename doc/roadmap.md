@@ -127,6 +127,16 @@ typo in a module.*
   quarantine, only `NotFound` means "absent", cross-filesystem store
   publication is atomic, journal cleanup is durable, and `grip plan`
   labels every mutation's reversibility.
+- **macOS behavioral CI + signed attestations** (plan/0020's two
+  queued items, 0.20.0): the full flow suite runs natively on a
+  macOS runner every push — its first runs found and fixed a real
+  product bug (hostnames with dots broke `init` → `check`: the file
+  name was sanitized, the lookup was not) plus two platform
+  assumptions in tests; every release tarball now carries GitHub
+  build provenance (`gh attestation verify`). The e2e harness was
+  rebuilt for cross-platform CI: timing tests are self-relative (no
+  wall-clock flakes), and failures print the grip run log — the
+  macOS findings were debugged entirely from that output.
 
 ## Next
 
