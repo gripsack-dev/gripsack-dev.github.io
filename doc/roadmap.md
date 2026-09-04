@@ -141,7 +141,51 @@ typo in a module.*
 ## Next
 
 Order is priority: reliability of the core loop first, ecosystems
-last.
+last. The first block is the review-round backlog — items three
+external audits proposed and the project accepted but deliberately
+deferred, each with its plan reference and trigger. (0025's breadth
+freeze stands: nothing new in the ecosystem block until the
+transaction items land.)
+
+- **A machine-checkable transaction model** ([plan 0020](https://github.com/gripsack-dev/gripsack/tree/main/plan/0020-review-response.md), [0026](https://github.com/gripsack-dev/gripsack/tree/main/plan/0026-path-centric-transactions.md)) —
+  a TLA+/Stateright (or property-tested Rust) model of the
+  transaction state machine, now that it covers apply, prune, and
+  rollback. Deferred twice with a recorded trigger: the protocol
+  goes quiet for a full release cycle first — it grew in 0.22 and
+  again in 0.23, so the clock starts now.
+- **The full kill-point matrix** ([plan 0025](https://github.com/gripsack-dev/gripsack/tree/main/plan/0025-transaction-coverage.md)) —
+  `GRIPSACK_CRASH_AFTER`-style aborts at every durable boundary
+  (journal write, file and dir fsyncs, rename, flip, cleanup), each
+  with the same oracle: previous generation, or committed target, or
+  explicitly preserved user drift. Today the deploy, prune, and
+  rollback windows are covered; the matrix is the remainder.
+- **Signed update-channel manifest + install-time verification** —
+  install.sh and `grip self-update` already verify the sha256
+  sidecar; the next step is provenance verified *automatically* at
+  install time (attestation-aware installer, signed channel
+  manifest) rather than taught as a manual step ([plan 0020](https://github.com/gripsack-dev/gripsack/tree/main/plan/0020-review-response.md)
+  queue; the 0025 review's install-order point folds in here).
+- **Mode-aware identity** ([plan 0026](https://github.com/gripsack-dev/gripsack/tree/main/plan/0026-path-centric-transactions.md)
+  §7 remainder) — Unix mode bits in the manifest/journal identity:
+  chmod-only drift detection and exact mode restoration on rollback.
+  Today the canonical hash covers the exec bit and content updates
+  preserve the destination's mode; the full schema change is its own
+  round.
+- **Non-UTF-8 symlink targets end-to-end** ([plan 0021](https://github.com/gripsack-dev/gripsack/tree/main/plan/0021-cap-std-fs-hardening.md)
+  pitfalls) — `OsStr` bytes through the journal and prior store;
+  today's loud refusal becomes byte-preserving capture and restore.
+- **`--force` for drift overwrite** ([plan 0026](https://github.com/gripsack-dev/gripsack/tree/main/plan/0026-path-centric-transactions.md)) —
+  an explicit override for the preserve-and-warn default in apply
+  and rollback. A product decision, not a safety gap — queued for an
+  owner decision.
+- **One-commit release modules** ([plan 0024](https://github.com/gripsack-dev/gripsack/tree/main/plan/0024-review-response-0.21.0.md),
+  carried) — `update` writes `sha256` and the first `apply` adds
+  `tree256` today, costing a second commit per module; fold
+  finalization into `update`. The pixi hash split is the same item.
+- **CycloneDX sidecar on releases** ([plan 0022](https://github.com/gripsack-dev/gripsack/tree/main/plan/0022-sbom-cargo-auditable.md)
+  optional follow-up) — the in-binary SBOM is the primary form; a
+  CycloneDX file attached to the GitHub release serves file-based
+  scanners. Lands when a user asks.
 
 - **Resolver executables** (0013 D8) — custom registries become
   `gripresolve-*` plugins on the same NDJSON envelope as fetchers:
