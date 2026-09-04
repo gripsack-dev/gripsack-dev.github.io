@@ -12,7 +12,7 @@ If you only remember one rule: **configuration is data, and it is read
 before any of your module code runs.** Settings can never depend on what
 a module computes — so there's no bootstrap paradox, ever.
 
-> Heads up: gripsack is pre-alpha. The schema below is stable, but some
+> Heads up: gripsack is alpha. The schema below is stable, but some
 > keys are wired up only as `grip apply` lands. This page documents the
 > config surface; [settings reference](settings/reference.md) has every
 > key in table form.
