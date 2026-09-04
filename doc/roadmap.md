@@ -118,7 +118,15 @@ typo in a module.*
   lifecycle lock before deploying anything. A kill -9 mid-apply no
   longer leaves the filesystem between generations — and the drift
   guard applies on recovery: a file edited after the crash keeps the
-  user's bytes.
+  user's bytes. The transaction semantics were hardened by an
+  external review
+  ([plan 0020](https://github.com/gripsack-dev/gripsack/tree/main/plan/0020-review-response.md)):
+  runs declare their target generation before mutating (a crash
+  after the flip reads as committed, never restores a live
+  generation's priors), corrupt recovery metadata fails closed into
+  quarantine, only `NotFound` means "absent", cross-filesystem store
+  publication is atomic, journal cleanup is durable, and `grip plan`
+  labels every mutation's reversibility.
 
 ## Next
 
