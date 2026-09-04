@@ -182,6 +182,17 @@ transaction items land.)
   carried) — `update` writes `sha256` and the first `apply` adds
   `tree256` today, costing a second commit per module; fold
   finalization into `update`. The pixi hash split is the same item.
+- **Persistent fuzz + fault harnesses in-repo** ([plan 0027](https://github.com/gripsack-dev/gripsack/tree/main/plan/0027-provable-transactions.md),
+  fourth audit P2) — the playbook's harnesses live outside the repo
+  today; land them under it (manifest parsing, merge-block parsing,
+  archive extraction, journal recovery, GC reachability) with
+  deterministic smoke budgets in CI and longer runs on a schedule.
+- **A dedicated safety page** on the site (fourth audit) — one page
+  separating atomic selection, journaled transitions, drift
+  preservation, what metadata is restored exactly, the GC safety
+  model, plugin execution trust, and backup recommendations. The
+  guarantee table in architecture.md is the seed.
+
 - **CycloneDX sidecar on releases** ([plan 0022](https://github.com/gripsack-dev/gripsack/tree/main/plan/0022-sbom-cargo-auditable.md)
   optional follow-up) — the in-binary SBOM is the primary form; a
   CycloneDX file attached to the GitHub release serves file-based
