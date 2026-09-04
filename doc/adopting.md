@@ -62,6 +62,29 @@ bits, drift-guarded: edits you make after adopting are yours, and a
 rollback keeps them. On a fresh machine adopt first records an empty
 **generation 0**, so there's always something to roll back to.
 
+## The safety net under all of it
+
+Adoption is honest because every layer under it has an inverse:
+
+1. **Foreign-path refusal** — gripsack never touches a path it didn't
+   deploy unless you say `--take-over`.
+2. **Prior capture** — the moment it takes anything over, your
+   original bytes (and permission bits) go to a content-addressed
+   blob store.
+3. **Drift detection** — if you edit a deployed file, gripsack keeps
+   your edit and says so; it never silently reverts you.
+4. **Run rollback** — an apply that fails mid-graph restores every
+   destination it touched before reporting the error.
+5. **Generation rollback** — `grip rollback` flips `current` back;
+   adopted paths get their originals restored.
+6. **Crash recovery** — kill -9 or power loss mid-apply leaves a
+   journal; the next apply restores your files before doing anything
+   else — and if you edited them after the crash, *your* edit wins.
+
+`grip plan` labels every planned mutation with its reversibility
+class, so "what does undoing this mean" is answered before you
+confirm, not after.
+
 Writing the module by hand still works, of course — the generated file
 is exactly what you'd have written.
 
