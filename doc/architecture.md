@@ -88,10 +88,26 @@ dotfiles with rollback. See
 
 Every apply — one module or the whole graph — builds a complete new
 **generation**: an immutable tree of symlinks into the store. Activation
-is a single atomic rename (`current → generations/N`), so nothing is
-ever half-applied, and rollback is flipping one symlink back. Because
+is a single atomic rename (`current → generations/N`), and the exported
+env profile lives inside the generation, so it flips with it. Because
 the profile's bin directory is a fixed PATH entry, a flip takes effect
 instantly — no shell reload.
+
+Destination mutations (deploys, prunes, rollback restores) are
+journaled before they land: a crash anywhere is reconciled by the next
+run — you get the previous generation or the committed one, never an
+unexplained mixture. Rollback runs the same journal in reverse. The
+guarantees, precisely:
+
+| surface | guarantee |
+|---|---|
+| store object publication | atomic final-name rename |
+| generation selection + env profile | one atomic `current` flip |
+| destination deploy / prune / rollback | journaled, crash-recovered |
+| failed apply or rollback | restores captured prior state |
+| external package-manager effects | adapter-dependent, best effort |
+| arbitrary run steps | not automatically reversible |
+
 
 **What rollback covers, exactly.** Transactional per generation: store
 payloads, symlinks, tracked copies, managed blocks inside foreign

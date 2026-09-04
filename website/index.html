@@ -100,8 +100,8 @@
     </div>
     <div class="tab-pane" data-pane="rollback" hidden>
       <div class="window demo">
-        <div class="titlebar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="wtitle">grip rollback — one symlink flip back</span></div>
-        <img src="./img/demo-rollback.gif" data-demo-img data-demo-base="./img/demo-rollback" data-demo-variants="" width="1800" height="1120" decoding="async" loading="lazy" alt="grip generations lists the history, then grip rollback flips the current symlink to a previous generation — the whole environment is back in one atomic step">
+        <div class="titlebar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="wtitle">grip rollback — the same journaled transaction, back</span></div>
+        <img src="./img/demo-rollback.gif" data-demo-img data-demo-base="./img/demo-rollback" data-demo-variants="" width="1800" height="1120" decoding="async" loading="lazy" alt="grip generations lists the history, then grip rollback flips the current symlink to a previous generation — destinations restore through the same crash-safe journal, then current flips back">
       </div>
     </div>
   </div>
@@ -145,8 +145,8 @@ rolled back to generation 0
     <div class="step"><b>[01]</b><h3>describe</h3><p>modules are typed TypeScript in your repo: sources, config files, ownership.</p></div>
     <div class="step"><b>[02]</b><h3>check</h3><p>eval + semantic passes + 23 config linters, with spans pointing at the exact line. nothing stages on a red check.</p></div>
     <div class="step"><b>[03]</b><h3>plan</h3><p>review the diff against the live generation before anything moves.</p></div>
-    <div class="step"><b>[04]</b><h3>apply</h3><p>one atomic flip into a new generation — a failed apply restores the previous managed state.</p></div>
-    <div class="step"><b>[05]</b><h3>roll back</h3><p>flip <code>current</code> back — every managed destination follows. that's the whole mechanism.</p></div>
+    <div class="step"><b>[04]</b><h3>apply</h3><p>journaled destination updates, committed by one atomic flip — a failed apply restores the previous managed state.</p></div>
+    <div class="step"><b>[05]</b><h3>roll back</h3><p>the same journaled transaction in reverse — crash-safe in both directions, committed by one flip.</p></div>
   </div>
   <p class="note">changing your machine should feel like changing code: typecheck it,
   inspect the plan, apply it atomically, roll it back.</p>
