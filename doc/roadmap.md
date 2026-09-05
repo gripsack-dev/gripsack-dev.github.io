@@ -139,6 +139,11 @@ typo in a module.*
   macOS findings were debugged entirely from that output.
 - **The machine-checked transaction model**
   ([plan 0028](https://github.com/gripsack-dev/gripsack/tree/main/plan/0028-machine-checked-model.md)) —
+  and the guarantees now have their own page: [safety](safety.md) —
+  atomic selection, journaled transitions, drift preservation, exact
+  restoration, the GC model, plugin trust, and honest backup advice,
+  each enforced by test or the model gate.
+
   the journal/flip/recovery protocol as an exhaustive state-machine
   model, driving the SHIPPED decision functions (classify/decide):
   every crash point, both crash kinds, every power-loss durability
@@ -192,12 +197,6 @@ transaction items land.)
   today; land them under it (manifest parsing, merge-block parsing,
   archive extraction, journal recovery, GC reachability) with
   deterministic smoke budgets in CI and longer runs on a schedule.
-- **A dedicated safety page** on the site (fourth audit) — one page
-  separating atomic selection, journaled transitions, drift
-  preservation, what metadata is restored exactly, the GC safety
-  model, plugin execution trust, and backup recommendations. The
-  guarantee table in architecture.md is the seed.
-
 - **CycloneDX sidecar on releases** ([plan 0022](https://github.com/gripsack-dev/gripsack/tree/main/plan/0022-sbom-cargo-auditable.md)
   optional follow-up) — the in-binary SBOM is the primary form; a
   CycloneDX file attached to the GitHub release serves file-based
