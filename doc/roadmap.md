@@ -161,7 +161,9 @@ last. The first block is the review-round backlog — items three
 external audits proposed and the project accepted but deliberately
 deferred, each with its plan reference and trigger. (0025's breadth
 freeze stands: nothing new in the ecosystem block until the
-transaction items land.)
+transaction items land. And after 0.26.0 the transaction schema
+freezes for a soak cycle — no manifest/journal shape changes while
+the sixth-audit round beds in.)
 
 - **The full kill-point matrix** ([plan 0025](https://github.com/gripsack-dev/gripsack/tree/main/plan/0025-transaction-coverage.md)) —
   `GRIPSACK_CRASH_AFTER`-style aborts at every durable boundary
@@ -176,11 +178,32 @@ transaction items land.)
   manifest) rather than taught as a manual step ([plan 0020](https://github.com/gripsack-dev/gripsack/tree/main/plan/0020-review-response.md)
   queue; the 0025 review's install-order point folds in here).
 - **Mode-aware identity** ([plan 0026](https://github.com/gripsack-dev/gripsack/tree/main/plan/0026-path-centric-transactions.md)
-  §7 remainder) — Unix mode bits in the manifest/journal identity:
+  §7 remainder) — the full `FsObjectIdentity` enum (0030 #17 folds
+  in here): Unix mode bits in the manifest/journal identity,
   chmod-only drift detection and exact mode restoration on rollback.
   Today the canonical hash covers the exec bit and content updates
   preserve the destination's mode; the full schema change is its own
-  round.
+  round — queued after the soak.
+- **Durable activation hooks** ([plan 0030](https://github.com/gripsack-dev/gripsack/tree/main/plan/0030-canonical-destinations.md)
+  #14) — post-activation adapters run outside the journal today; a
+  crash after the flip can skip them. Durable activation-pending
+  state plus an idempotent resume on the next run. High priority,
+  after the soak.
+- **Explicit drift resolution: `grip resolve`** ([plan 0030](https://github.com/gripsack-dev/gripsack/tree/main/plan/0030-canonical-destinations.md),
+  reviewer's framing) — `--keep-live` / `--apply-repo` /
+  `--adopt-live` per destination, and an explicit origin-rebase
+  command, instead of today's preserve-and-warn + global
+  `--take-over`. The deliberate product UX for the drift the safety
+  core already protects.
+- **Compare-and-swap displacement** ([plan 0030](https://github.com/gripsack-dev/gripsack/tree/main/plan/0030-canonical-destinations.md))
+  — `renameat2(RENAME_EXCHANGE)` / `renameatx_np` give the mutation
+  step atomic compare-and-swap where the platform allows it;
+  precondition-at-mutation holds meanwhile.
+- **Cross-module merge aggregation** ([plan 0030](https://github.com/gripsack-dev/gripsack/tree/main/plan/0030-canonical-destinations.md)
+  H6) — several modules' blocks in ONE file as a single whole-file
+  transition. Today E111/E119 reject sharing (concurrent
+  read-modify-write of one file is unsound); aggregation is what
+  lifts that.
 - **Non-UTF-8 symlink targets end-to-end** ([plan 0021](https://github.com/gripsack-dev/gripsack/tree/main/plan/0021-cap-std-fs-hardening.md)
   pitfalls) — `OsStr` bytes through the journal and prior store;
   today's loud refusal becomes byte-preserving capture and restore.
