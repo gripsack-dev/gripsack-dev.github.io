@@ -197,6 +197,17 @@ transaction items land.)
   today; land them under it (manifest parsing, merge-block parsing,
   archive extraction, journal recovery, GC reachability) with
   deterministic smoke budgets in CI and longer runs on a schedule.
+- **Reproducible-build verification + an external audit** (fifth
+  audit, supply-chain list) — prove one release target rebuilds
+  byte-identically, and put a stable release candidate in front of an
+  independent reviewer. Prerequisite per the same audit: a quiet soak
+  cycle first — no transaction-schema churn next release.
+- **`allow_outside_home` setting** (fifth audit, finding 12
+  half-adopted) — outside-home absolute destinations are allowed today
+  (same-privilege by design; real usage exists). An explicit setting
+  with louder plans is the hardened shape. The safety page documents
+  the actual boundary now.
+
 - **CycloneDX sidecar on releases** ([plan 0022](https://github.com/gripsack-dev/gripsack/tree/main/plan/0022-sbom-cargo-auditable.md)
   optional follow-up) — the in-binary SBOM is the primary form; a
   CycloneDX file attached to the GitHub release serves file-based
