@@ -137,6 +137,17 @@ typo in a module.*
   rebuilt for cross-platform CI: timing tests are self-relative (no
   wall-clock flakes), and failures print the grip run log — the
   macOS findings were debugged entirely from that output.
+- **The machine-checked transaction model**
+  ([plan 0028](https://github.com/gripsack-dev/gripsack/tree/main/plan/0028-machine-checked-model.md)) —
+  the journal/flip/recovery protocol as an exhaustive state-machine
+  model, driving the SHIPPED decision functions (classify/decide):
+  every crash point, both crash kinds, every power-loss durability
+  subset, with and without post-crash user edits — zero violations.
+  Plus the protocol specced in TLA+ and TLC-checked in CI
+  (`docker compose run model`), with the 0.22 roll-forward rule kept
+  as a proven counterexample in both layers. The trigger fired early
+  by owner override — the model is mutation-calibrated (a one-line
+  classify mutant yields 136 violations).
 
 ## Next
 
@@ -147,12 +158,6 @@ deferred, each with its plan reference and trigger. (0025's breadth
 freeze stands: nothing new in the ecosystem block until the
 transaction items land.)
 
-- **A machine-checkable transaction model** ([plan 0020](https://github.com/gripsack-dev/gripsack/tree/main/plan/0020-review-response.md), [0026](https://github.com/gripsack-dev/gripsack/tree/main/plan/0026-path-centric-transactions.md)) —
-  a TLA+/Stateright (or property-tested Rust) model of the
-  transaction state machine, now that it covers apply, prune, and
-  rollback. Deferred twice with a recorded trigger: the protocol
-  goes quiet for a full release cycle first — it grew in 0.22 and
-  again in 0.23, so the clock starts now.
 - **The full kill-point matrix** ([plan 0025](https://github.com/gripsack-dev/gripsack/tree/main/plan/0025-transaction-coverage.md)) —
   `GRIPSACK_CRASH_AFTER`-style aborts at every durable boundary
   (journal write, file and dir fsyncs, rename, flip, cleanup), each
