@@ -179,6 +179,15 @@ typo in a module.*
   pre-0.28 shape (record written after the flip) is a kept mutant
   that violates the NoSilentSkip invariant. Intents may run twice
   across a crash — idempotent by contract, documented.
+- **One shared operation list**
+  ([plan 0034](https://github.com/gripsack-dev/gripsack/tree/main/plan/0034-shared-operation-list.md),
+  0.30.0) — `ts → IR → ops → execute`: one planner computes the
+  destination operations; `grip plan` renders them, apply executes
+  them under the journal, rollback plans with the target generation's
+  manifest as the desired state. Plan/apply agreement is by
+  construction — the separate preview engine is gone, and drifted
+  destinations now preview honestly ("drifted — kept", not
+  "(update)"). The 0.27.0 review's central architectural point.
 
 ## Next
 
@@ -211,13 +220,6 @@ with an upgrade-compatible preimage. The freeze holds from here.)
   command, instead of today's preserve-and-warn + global
   `--take-over`. The deliberate product UX for the drift the safety
   core already protects.
-- **One shared operation list for plan/apply/rollback** (0033, the
-  0.27.0 review's central point) — plan renders the SAME operation
-  list apply executes and rollback constructs, each operation
-  carrying destination, provenance, observed precondition, intended
-  end state, and ownership authority. The contract stays honest: plan
-  is a preview from observed state; apply's preconditions remain the
-  authority. Lands after the soak cycle.
 - **Compare-and-swap displacement** ([plan 0030](https://github.com/gripsack-dev/gripsack/tree/main/plan/0030-canonical-destinations.md))
   — `renameat2(RENAME_EXCHANGE)` / `renameatx_np` give the mutation
   step atomic compare-and-swap where the platform allows it;
