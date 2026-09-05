@@ -170,6 +170,15 @@ typo in a module.*
   writes land deterministic (umask-independent) modes. The lineage
   explorer now models destination aliases and chmod drift, driving
   the shipped decision functions.
+- **Durable activation hooks**
+  ([plan 0032](https://github.com/gripsack-dev/gripsack/tree/main/plan/0032-durable-activation.md),
+  0.28.0) — the last unrecorded crash window closes: the pending
+  intent record is written BEFORE the flip, so a kill can't skip your
+  service restarts or cache refreshes; the next run resumes them.
+  Model-first: `specs/Activation.tla` is TLC-checked in CI, and the
+  pre-0.28 shape (record written after the flip) is a kept mutant
+  that violates the NoSilentSkip invariant. Intents may run twice
+  across a crash — idempotent by contract, documented.
 
 ## Next
 
@@ -195,11 +204,6 @@ with an upgrade-compatible preimage. The freeze holds from here.)
   install time (attestation-aware installer, signed channel
   manifest) rather than taught as a manual step ([plan 0020](https://github.com/gripsack-dev/gripsack/tree/main/plan/0020-review-response.md)
   queue; the 0025 review's install-order point folds in here).
-- **Durable activation hooks** ([plan 0030](https://github.com/gripsack-dev/gripsack/tree/main/plan/0030-canonical-destinations.md)
-  #14) — post-activation adapters run outside the journal today; a
-  crash after the flip can skip them. Durable activation-pending
-  state plus an idempotent resume on the next run. High priority,
-  after the soak.
 - **Explicit drift resolution: `grip resolve`** ([plan 0030](https://github.com/gripsack-dev/gripsack/tree/main/plan/0030-canonical-destinations.md),
   reviewer's framing) — `--keep-live` / `--apply-repo` /
   `--adopt-live` per destination, and an explicit origin-rebase

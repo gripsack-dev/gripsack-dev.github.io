@@ -21,6 +21,7 @@ that is a release-blocking bug — please file it.
 | Failed apply or rollback | compensation is attempted immediately; if the filesystem prevents it, the durable journal blocks further mutation until recovery completes |
 | Tracked-copy drift | detected and **preserved by default**, in apply AND rollback |
 | External package-manager effects (brew/pixi/apt) | adapter-dependent, best effort — never auto-rolled-back |
+| Activation intents (caches, services, custom hooks) | durable pending record written **before** the flip — a kill can't skip them (model-checked, `specs/Activation.tla`); they may run **twice** across a crash, so hooks must be idempotent; a failed hook warns, never rolls back |
 | Arbitrary `run` steps | not automatically reversible (plan output says so) |
 
 ## Journaled transitions
