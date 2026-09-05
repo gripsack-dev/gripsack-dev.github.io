@@ -14,10 +14,11 @@ that is a release-blocking bug — please file it.
 | Surface | Guarantee |
 |---|---|
 | Store object publication | atomic final-name rename; payloads land read-only |
-| Generation selection | one atomic `current` flip |
+| Generation selection | one atomic `current` flip (the link is validated to resolve under `$GRIPSACK_HOME/generations/`) |
 | Generation contents | immutable once published (manifest + profile stage and rename in together); IDs are never reused, even across gc |
-| Destination deploy / prune / rollback | journaled, postcondition-verified, crash-recovered |
-| Failed apply or rollback | restores the captured prior state before returning |
+| Destination deploy / prune / rollback | journaled, postcondition-verified, crash-recovered; ownership lineage (origin survival, no drift
+  promotion) holds the same machine-checked standard since 0.25 |
+| Failed apply or rollback | compensation is attempted immediately; if the filesystem prevents it, the durable journal blocks further mutation until recovery completes |
 | Tracked-copy drift | detected and **preserved by default**, in apply AND rollback |
 | External package-manager effects (brew/pixi/apt) | adapter-dependent, best effort — never auto-rolled-back |
 | Arbitrary `run` steps | not automatically reversible (plan output says so) |
@@ -81,6 +82,18 @@ The credential boundary is eval: TypeScript module evaluation runs
 sandboxed (no env, no network, no subprocesses) and sees no
 credentials; fetching necessarily can. The lockfile is the sole
 source of pinning; a tampered pin fails the hash check at apply.
+
+## The destination boundary
+
+gripsack enforces one hard boundary: nothing may deploy INTO the env
+repo checkout. Destinations are otherwise your paths at your
+privileges — absolute paths outside `$HOME` (e.g. `/usr/local/bin`)
+are allowed and in real use. The residual race we know about: there is
+no portable atomic content-compare-and-swap (`renameat2
+RENAME_EXCHANGE` is Linux-only), so between a drift decision and the
+write there is a microsecond window — every journaled mutation
+re-validates the live object at that boundary and aborts retryably on
+mismatch rather than clobbering it.
 
 ## What gripsack is not
 
