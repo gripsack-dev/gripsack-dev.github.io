@@ -99,6 +99,7 @@ def asset_version() -> str:
 PAGES: dict[str, tuple[str, str]] = {
     "adopting": ("doc/adopting.md", "adopting your dotfiles"),
     "architecture": ("doc/architecture.md", "architecture"),
+    "safety": ("doc/safety.md", "safety"),
     "modules": ("doc/modules.md", "modules"),
     "settings": ("doc/settings.md", "settings"),
     "settings/reference": ("doc/settings/reference.md", "settings reference"),
