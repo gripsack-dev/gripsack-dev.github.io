@@ -74,16 +74,26 @@
           copy.classList.remove("ok");
         }, 1200);
       };
-      if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(text).then(done, done);
-      } else {
+      var failed = function () {
+        copy.textContent = "copy failed";
+        setTimeout(function () { copy.textContent = "copy"; }, 1200);
+      };
+      var legacyCopy = function () {
         var ta = document.createElement("textarea");
         ta.value = text;
         document.body.appendChild(ta);
         ta.select();
-        try { document.execCommand("copy"); } catch (e) {}
+        var ok = false;
+        try { ok = document.execCommand("copy"); } catch (e) {}
         ta.remove();
-        done();
+        if (ok) { done(); } else { failed(); }
+      };
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        // a rejected write (permissions, focus) falls back — never
+        // report success for a copy that did not happen
+        navigator.clipboard.writeText(text).then(done, legacyCopy);
+      } else {
+        legacyCopy();
       }
     }
   });

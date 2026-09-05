@@ -5,6 +5,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>gripsack — personal environment manager</title>
 <meta name="description" content="gripsack — personal environment manager. Keep your packages and dotfiles in one repo, reproduce them on another machine, and roll the entire setup back when something goes wrong.">
+<meta property="og:title" content="gripsack — personal environment manager">
+<meta property="og:description" content="Keep your packages and dotfiles in one repo, reproduce them on another machine, and roll the entire setup back when something goes wrong.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://gripsack.dev/">
+<meta name="twitter:card" content="summary">
 <link rel="icon" href="./assets/favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="./assets/site.css">
 <script src="./assets/site.js" defer></script>
@@ -27,7 +32,7 @@
 <section class="hero">
   <div class="logo" role="img" aria-label="gripsack — a traveler's bag with a config file and a terminal chip peeking out"><!--LOGO--></div>
   <p class="kicker">gripsack — personal environment manager</p>
-  <p class="tagline">your whole environment, in <span class="accent">one bag</span>.<span class="caret" aria-hidden="true"></span></p>
+  <h1 class="tagline">your whole environment, in <span class="accent">one bag</span>.<span class="caret" aria-hidden="true"></span></h1>
   <p class="sub">set up a new machine from one repo — packages, dotfiles and
   machine-specific config, with generations and rollback.</p>
   <div class="chips">
@@ -348,9 +353,9 @@ rolled back to generation 0
   <table class="compare">
     <tr><th></th><th>gripsack</th><th>nix + home-manager</th><th>chezmoi</th><th>stow</th><th>apt · brew · mise</th></tr>
     <tr><td>adopts the machine you already have</td><td class="yes">✓ one file at a time</td><td class="no">rebuild from config</td><td class="part">whole files</td><td class="part">symlinks only</td><td class="no">·</td></tr>
-    <tr><td>manages mutable, shared configs</td><td class="yes">✓ merge blocks + drift detection</td><td class="part">whole files only</td><td class="part">templates</td><td class="no">·</td><td class="no">·</td></tr>
+    <tr><td>manages mutable, shared configs</td><td class="yes">✓ merge blocks + drift detection</td><td class="part">whole files only</td><td class="part">templates + modify_ scripts</td><td class="no">·</td><td class="no">·</td></tr>
     <tr><td>rolls the managed environment back</td><td class="yes">✓ generations</td><td class="yes">✓</td><td class="part">git history</td><td class="no">·</td><td class="no">·</td></tr>
-    <tr><td>packages and dotfiles in one repo</td><td class="yes">✓</td><td class="yes">✓</td><td class="no">·</td><td class="no">·</td><td class="part">packages only</td></tr>
+    <tr><td>packages and dotfiles in one repo</td><td class="yes">✓</td><td class="yes">✓</td><td class="part">packages via run_ scripts</td><td class="no">·</td><td class="part">packages only</td></tr>
     <tr><td>reproducible inputs</td><td class="part">lockfile pins (sha-verified)</td><td class="yes">✓ stronger: sandboxed builds</td><td class="yes">✓</td><td class="no">·</td><td class="no">·</td></tr>
     <tr><td>no daemon, no root, no takeover</td><td class="yes">✓</td><td class="no">daemon · /nix</td><td class="yes">✓</td><td class="yes">✓</td><td class="part">apt needs root</td></tr>
     <tr><td>config language</td><td>typed TypeScript API</td><td>nix lang</td><td>templates</td><td>·</td><td>·</td></tr>

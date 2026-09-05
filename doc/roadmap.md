@@ -205,11 +205,19 @@ with an upgrade-compatible preimage. The freeze holds from here.)
   manifest) rather than taught as a manual step ([plan 0020](https://github.com/gripsack-dev/gripsack/tree/main/plan/0020-review-response.md)
   queue; the 0025 review's install-order point folds in here).
 - **Explicit drift resolution: `grip resolve`** ([plan 0030](https://github.com/gripsack-dev/gripsack/tree/main/plan/0030-canonical-destinations.md),
-  reviewer's framing) — `--keep-live` / `--apply-repo` /
+  reviewer's framing; named the next product capability by BOTH
+  external reviews) — `--keep-live` / `--apply-repo` /
   `--adopt-live` per destination, and an explicit origin-rebase
   command, instead of today's preserve-and-warn + global
   `--take-over`. The deliberate product UX for the drift the safety
   core already protects.
+- **One shared operation list for plan/apply/rollback** (0033, the
+  0.27.0 review's central point) — plan renders the SAME operation
+  list apply executes and rollback constructs, each operation
+  carrying destination, provenance, observed precondition, intended
+  end state, and ownership authority. The contract stays honest: plan
+  is a preview from observed state; apply's preconditions remain the
+  authority. Lands after the soak cycle.
 - **Compare-and-swap displacement** ([plan 0030](https://github.com/gripsack-dev/gripsack/tree/main/plan/0030-canonical-destinations.md))
   — `renameat2(RENAME_EXCHANGE)` / `renameatx_np` give the mutation
   step atomic compare-and-swap where the platform allows it;
@@ -259,6 +267,10 @@ with an upgrade-compatible preimage. The freeze holds from here.)
   CycloneDX file attached to the GitHub release serves file-based
   scanners. Lands when a user asks.
 
+- **Fetch memory budget** (0033, review perf note) — streaming
+  archive extraction (no whole-payload buffering) and an acquisition
+  concurrency cap separate from module parallelism; per-op caps are
+  not a total memory budget.
 - **Resolver executables** (0013 D8) — custom registries become
   `gripresolve-*` plugins on the same NDJSON envelope as fetchers:
   spawned with a scrubbed, declared-env-only environment (credentials
