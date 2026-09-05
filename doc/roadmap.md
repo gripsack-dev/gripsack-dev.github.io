@@ -153,6 +153,23 @@ typo in a module.*
   as a proven counterexample in both layers. The trigger fired early
   by owner override — the model is mutation-calibrated (a one-line
   classify mutant yields 136 violations).
+- **Canonical destinations + hardened transaction identity**
+  ([plan 0030](https://github.com/gripsack-dev/gripsack/tree/main/plan/0030-canonical-destinations.md),
+  0.26.0) — one physical file has one identity everywhere:
+  `~`/`$HOME`/absolute/symlinked-ancestor spellings of one directory
+  entry are a check-time error (E119, span-labeled); a mid-apply
+  external write aborts instead of clobbering; a second
+  `--take-over` keeps the epoch's first origin; pre-0.23 journal
+  markers refuse with guidance instead of a model-proven-unsound
+  guess.
+- **Mode-aware identity**
+  ([plan 0031](https://github.com/gripsack-dev/gripsack/tree/main/plan/0031-mode-aware-identity.md),
+  0.27.0) — the full permission mode joins the manifest/journal
+  identity: chmod-only drift is detected and preserved like any
+  drift, rollback restores the recorded mode exactly, and fresh
+  writes land deterministic (umask-independent) modes. The lineage
+  explorer now models destination aliases and chmod drift, driving
+  the shipped decision functions.
 
 ## Next
 
@@ -161,9 +178,10 @@ last. The first block is the review-round backlog — items three
 external audits proposed and the project accepted but deliberately
 deferred, each with its plan reference and trigger. (0025's breadth
 freeze stands: nothing new in the ecosystem block until the
-transaction items land. And after 0.26.0 the transaction schema
-freezes for a soak cycle — no manifest/journal shape changes while
-the sixth-audit round beds in.)
+transaction items land. The post-0.26.0 transaction-schema soak was
+waived exactly once, by owner decision: 0.27.0 landed mode-aware
+identity ([plan 0031](https://github.com/gripsack-dev/gripsack/tree/main/plan/0031-mode-aware-identity.md))
+with an upgrade-compatible preimage. The freeze holds from here.)
 
 - **The full kill-point matrix** ([plan 0025](https://github.com/gripsack-dev/gripsack/tree/main/plan/0025-transaction-coverage.md)) —
   `GRIPSACK_CRASH_AFTER`-style aborts at every durable boundary
@@ -177,13 +195,6 @@ the sixth-audit round beds in.)
   install time (attestation-aware installer, signed channel
   manifest) rather than taught as a manual step ([plan 0020](https://github.com/gripsack-dev/gripsack/tree/main/plan/0020-review-response.md)
   queue; the 0025 review's install-order point folds in here).
-- **Mode-aware identity** ([plan 0026](https://github.com/gripsack-dev/gripsack/tree/main/plan/0026-path-centric-transactions.md)
-  §7 remainder) — the full `FsObjectIdentity` enum (0030 #17 folds
-  in here): Unix mode bits in the manifest/journal identity,
-  chmod-only drift detection and exact mode restoration on rollback.
-  Today the canonical hash covers the exec bit and content updates
-  preserve the destination's mode; the full schema change is its own
-  round — queued after the soak.
 - **Durable activation hooks** ([plan 0030](https://github.com/gripsack-dev/gripsack/tree/main/plan/0030-canonical-destinations.md)
   #14) — post-activation adapters run outside the journal today; a
   crash after the flip can skip them. Durable activation-pending
@@ -220,6 +231,14 @@ the sixth-audit round beds in.)
   today; land them under it (manifest parsing, merge-block parsing,
   archive extraction, journal recovery, GC reachability) with
   deterministic smoke budgets in CI and longer runs on a schedule.
+- **Model-first protocol work** (owner directive, after 0031) — new
+  transaction-adjacent state machines get an exhaustive model BEFORE
+  or WITH the implementation: the Rust harness driving shipped
+  decision functions when the domain is string/path mechanics, TLA+
+  (TLC in CI) when the domain is a protocol. The durable activation
+  hooks item below is the next candidate; the lineage explorer
+  (0.27.0: destination aliases and chmod drift are checked
+  properties) is the pattern.
 - **Reproducible-build verification + an external audit** (fifth
   audit, supply-chain list) — prove one release target rebuilds
   byte-identically, and put a stable release candidate in front of an
