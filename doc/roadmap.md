@@ -153,6 +153,47 @@ typo in a module.*
   as a proven counterexample in both layers. The trigger fired early
   by owner override — the model is mutation-calibrated (a one-line
   classify mutant yields 136 violations).
+- **Canonical destinations + hardened transaction identity**
+  ([plan 0030](https://github.com/gripsack-dev/gripsack/tree/main/plan/0030-canonical-destinations.md),
+  0.26.0) — one physical file has one identity everywhere:
+  `~`/`$HOME`/absolute/symlinked-ancestor spellings of one directory
+  entry are a check-time error (E119, span-labeled); a mid-apply
+  external write aborts instead of clobbering; a second
+  `--take-over` keeps the epoch's first origin; pre-0.23 journal
+  markers refuse with guidance.
+- **Mode-aware identity**
+  ([plan 0031](https://github.com/gripsack-dev/gripsack/tree/main/plan/0031-mode-aware-identity.md),
+  0.27.0) — the full permission mode joins the manifest/journal
+  identity: chmod-only drift is detected and preserved like any
+  drift, rollback restores the recorded mode exactly, and fresh
+  writes land deterministic (umask-independent) modes. The lineage
+  explorer models destination aliases and chmod drift, driving the
+  shipped decision functions.
+- **Durable activation hooks**
+  ([plan 0032](https://github.com/gripsack-dev/gripsack/tree/main/plan/0032-durable-activation.md),
+  0.28.0) — the last unrecorded crash window closes: the pending
+  intent record is written BEFORE the flip, so a kill can't skip your
+  service restarts or cache refreshes; the next run resumes them.
+  Model-first: `specs/Activation.tla` is TLC-checked in CI; the
+  pre-0.28 shape is a kept mutant that violates the NoSilentSkip
+  invariant. Intents may run twice across a crash — idempotent by
+  contract, documented.
+- **The 0.27.0 review round**
+  ([plan 0033](https://github.com/gripsack-dev/gripsack/tree/main/plan/0033-review-response-0.27.0.md),
+  0.29.0) — take-over preserves a private file's mode (prior blobs
+  land 0600 under a 0700 store dir); the deliberate-pin read grant
+  validates the resolved package; step `needs` orders execution;
+  plan runs the same gates as check/apply and marks opaque run steps;
+  preserved drift blocks a mode switch. The lineage explorer drives
+  the shipped `plan_link` across mode changes.
+- **One shared operation list**
+  ([plan 0034](https://github.com/gripsack-dev/gripsack/tree/main/plan/0034-shared-operation-list.md),
+  0.30.0) — `ts → IR → ops → execute`: one planner computes the
+  destination operations; `grip plan` renders them, apply executes
+  them under the journal, rollback plans with the target generation's
+  manifest as the desired state. Plan/apply agreement is by
+  construction, with a VM-level harness proving the lifting (560
+  materialized cases, 0.31.0).
 
 ## Next
 
@@ -161,7 +202,10 @@ last. The first block is the review-round backlog — items three
 external audits proposed and the project accepted but deliberately
 deferred, each with its plan reference and trigger. (0025's breadth
 freeze stands: nothing new in the ecosystem block until the
-transaction items land.)
+transaction items land. Model-first since 0032: new
+transaction-adjacent protocols get an exhaustive model before or
+with the implementation — the Rust harness driving shipped decision
+functions for string/path mechanics, TLA+ (TLC in CI) for protocols.)
 
 - **The full kill-point matrix** ([plan 0025](https://github.com/gripsack-dev/gripsack/tree/main/plan/0025-transaction-coverage.md)) —
   `GRIPSACK_CRASH_AFTER`-style aborts at every durable boundary
@@ -175,12 +219,6 @@ transaction items land.)
   install time (attestation-aware installer, signed channel
   manifest) rather than taught as a manual step ([plan 0020](https://github.com/gripsack-dev/gripsack/tree/main/plan/0020-review-response.md)
   queue; the 0025 review's install-order point folds in here).
-- **Mode-aware identity** ([plan 0026](https://github.com/gripsack-dev/gripsack/tree/main/plan/0026-path-centric-transactions.md)
-  §7 remainder) — Unix mode bits in the manifest/journal identity:
-  chmod-only drift detection and exact mode restoration on rollback.
-  Today the canonical hash covers the exec bit and content updates
-  preserve the destination's mode; the full schema change is its own
-  round.
 - **Non-UTF-8 symlink targets end-to-end** ([plan 0021](https://github.com/gripsack-dev/gripsack/tree/main/plan/0021-cap-std-fs-hardening.md)
   pitfalls) — `OsStr` bytes through the journal and prior store;
   today's loud refusal becomes byte-preserving capture and restore.
@@ -197,6 +235,26 @@ transaction items land.)
   today; land them under it (manifest parsing, merge-block parsing,
   archive extraction, journal recovery, GC reachability) with
   deterministic smoke budgets in CI and longer runs on a schedule.
+- **Explicit drift resolution: `grip resolve`** ([plan 0030](https://github.com/gripsack-dev/gripsack/tree/main/plan/0030-canonical-destinations.md);
+  named the next product capability by two external reviews) —
+  `--keep-live` / `--apply-repo` / `--adopt-live` per destination,
+  and an explicit origin-rebase, instead of preserve-and-warn plus
+  global `--take-over`.
+- **Build closures in isolated environments** (0035) — build
+  dependencies shouldn't deploy into HOME to serve a compile; a
+  roots-vs-closure design (the resolved graph already carries the
+  identity) with a per-build PATH.
+- **Fetch memory budget** (0033/0035, source-derived) — streaming
+  archive extraction, an acquisition concurrency cap separate from
+  module parallelism, HTTP-client reuse, memoized resolved graph
+  identities.
+- **Compare-and-swap displacement** (0030) — `renameat2`/
+  `renameatx_np` give the mutation step atomic compare-and-swap where
+  the platform allows it; the precondition-at-mutation holds
+  meanwhile.
+- **Cross-module merge aggregation** (0030 H6) — several modules'
+  blocks in ONE file as a single whole-file transition; E111/E119
+  reject sharing until then.
 - **Reproducible-build verification + an external audit** (fifth
   audit, supply-chain list) — prove one release target rebuilds
   byte-identically, and put a stable release candidate in front of an

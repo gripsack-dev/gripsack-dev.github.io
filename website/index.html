@@ -5,6 +5,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>gripsack — personal environment manager</title>
 <meta name="description" content="gripsack — personal environment manager. Keep your packages and dotfiles in one repo, reproduce them on another machine, and roll the entire setup back when something goes wrong.">
+<meta property="og:title" content="gripsack — personal environment manager">
+<meta property="og:description" content="Keep your packages and dotfiles in one repo, reproduce them on another machine, and roll the entire setup back when something goes wrong.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://gripsack.dev/">
+<meta name="twitter:card" content="summary">
 <link rel="icon" href="./assets/favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="./assets/site.css">
 <script src="./assets/site.js" defer></script>
@@ -27,7 +32,7 @@
 <section class="hero">
   <div class="logo" role="img" aria-label="gripsack — a traveler's bag with a config file and a terminal chip peeking out"><!--LOGO--></div>
   <p class="kicker">gripsack — personal environment manager</p>
-  <p class="tagline">your whole environment, in <span class="accent">one bag</span>.<span class="caret" aria-hidden="true"></span></p>
+  <h1 class="tagline">your whole environment, in <span class="accent">one bag</span>.<span class="caret" aria-hidden="true"></span></h1>
   <p class="sub">set up a new machine from one repo — packages, dotfiles and
   machine-specific config, with generations and rollback.</p>
   <div class="chips">
@@ -145,7 +150,7 @@ rolled back to generation 0
     <div class="step"><b>[01]</b><h3>describe</h3><p>modules are typed TypeScript in your repo: sources, config files, ownership.</p></div>
     <div class="step"><b>[02]</b><h3>check</h3><p>eval + semantic passes + 23 config linters, with spans pointing at the exact line. nothing stages on a red check.</p></div>
     <div class="step"><b>[03]</b><h3>plan</h3><p>review the diff against the live generation before anything moves.</p></div>
-    <div class="step"><b>[04]</b><h3>apply</h3><p>journaled destination updates, committed by one atomic flip — a failed apply restores the previous managed state.</p></div>
+    <div class="step"><b>[04]</b><h3>apply</h3><p>journaled destination updates (verified per file), committed by one atomic generation flip — a failed apply restores the previous managed state.</p></div>
     <div class="step"><b>[05]</b><h3>roll back</h3><p>the same journaled transaction in reverse — crash-safe in both directions, committed by one flip.</p></div>
   </div>
   <p class="note">changing your machine should feel like changing code: typecheck it,
@@ -348,11 +353,11 @@ rolled back to generation 0
   <table class="compare">
     <tr><th></th><th>gripsack</th><th>nix + home-manager</th><th>chezmoi</th><th>stow</th><th>apt · brew · mise</th></tr>
     <tr><td>adopts the machine you already have</td><td class="yes">✓ one file at a time</td><td class="no">rebuild from config</td><td class="part">whole files</td><td class="part">symlinks only</td><td class="no">·</td></tr>
-    <tr><td>manages mutable, shared configs</td><td class="yes">✓ merge blocks + drift detection</td><td class="part">whole files only</td><td class="part">templates</td><td class="no">·</td><td class="no">·</td></tr>
+    <tr><td>manages mutable, shared configs</td><td class="yes">✓ merge blocks + drift detection</td><td class="part">whole files only</td><td class="part">templates + modify_ scripts</td><td class="no">·</td><td class="no">·</td></tr>
     <tr><td>rolls the managed environment back</td><td class="yes">✓ generations</td><td class="yes">✓</td><td class="part">git history</td><td class="no">·</td><td class="no">·</td></tr>
-    <tr><td>packages and dotfiles in one repo</td><td class="yes">✓</td><td class="yes">✓</td><td class="no">·</td><td class="no">·</td><td class="part">packages only</td></tr>
+    <tr><td>packages and dotfiles in one repo</td><td class="yes">✓</td><td class="yes">✓</td><td class="part">packages via run_ scripts</td><td class="no">·</td><td class="part">tools/env/tasks; dotfiles via bootstrap</td></tr>
     <tr><td>reproducible inputs</td><td class="part">lockfile pins (sha-verified)</td><td class="yes">✓ stronger: sandboxed builds</td><td class="yes">✓</td><td class="no">·</td><td class="no">·</td></tr>
-    <tr><td>no daemon, no root, no takeover</td><td class="yes">✓</td><td class="no">daemon · /nix</td><td class="yes">✓</td><td class="yes">✓</td><td class="part">apt needs root</td></tr>
+    <tr><td>no daemon, no root, no takeover</td><td class="yes">✓</td><td class="part">/nix store (single-user no-daemon install exists)</td><td class="yes">✓</td><td class="yes">✓</td><td class="part">apt needs root</td></tr>
     <tr><td>config language</td><td>typed TypeScript API</td><td>nix lang</td><td>templates</td><td>·</td><td>·</td></tr>
     <tr><td colspan="6" class="part">fair is the point: Nix is the stronger guarantee. gripsack borrows one of its best ideas — generations — and stays a tool you can adopt one dotfile at a time.</td></tr>
   </table>
