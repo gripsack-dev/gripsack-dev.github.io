@@ -3,6 +3,474 @@
 User-visible changes per release. Design archaeology lives in
 `plan/`; this file is for "what's new for me".
 
+## [0.31.0] — 2026-09-06
+
+The VM-level model harness (plan/0034's explorer extension, landed).
+
+### Internal
+
+- `ops/model.rs`: enumerated abstract states (absent / file at three
+  modes / foreign symlink × desired content × manifest lineage ×
+  take-over) are materialized onto a real filesystem, planned with
+  the shipped `plan_entry_op`, and executed with the shipped
+  `execute_op` — 560 cases, checked: the planner's decision IS the
+  algebra's answer (plan_copy/plan_link), and the executed op lands
+  exactly its recorded intent. Plan/apply agreement now has a
+  machine-checked floor, not just a by-construction argument.
+
+## [0.30.0] — 2026-09-05
+
+One shared operation list (plan/0034) — the architecture the 0.27.0
+review called for: `ts → IR → ops → execute`. One planner computes the
+destination operations; `grip plan` renders it, apply executes it,
+rollback plans with the target generation's manifest as the desired
+state. Plan/apply agreement is by construction.
+
+### Changed
+
+- **`grip plan` renders the operation list apply executes** — the
+  separate preview engine is gone. Drifted destinations preview as
+  "drifted — kept (apply preserves)" instead of the old "(update)"
+  lie, and run/shell-step modules always show their opaque effects.
+- **Rollback plans through the same planner** — the Transition
+  machinery and the separate restore path are deleted; `plan_copy`'s
+  three-way is the rollback drift rule.
+
+### Internal
+
+- New `ops` module: the ISA (`Op`, kinds, authority, provenance),
+  the codegen (planners over the one observation), and the executor
+  (journal precondition → write → postcondition). The lineage
+  explorer continues to drive the shipped decision functions, now
+  through the op authority branches.
+- apply's deploy and prune phases and rollback's planner are thin
+  drivers over it; `diff_section`'s parallel compare logic is
+  deleted.
+
+## [0.29.0] — 2026-09-05
+
+The 0.27.0 external-review round (plan/0033) — confidentiality of
+adopted secrets, evaluation-grant scoping, and plan/apply agreement.
+
+### Changed
+
+- **Take-over preserves a private file's mode** — adopting a 0600
+  secret keeps it 0600, live AND in the prior blob store (blobs land
+  0600; `$GRIPSACK_HOME/prior` is 0700). Adoption is not a fresh
+  deploy; repo-driven exec changes still apply afterward.
+- **The deliberate-pin read grant is validated** — a
+  `node_modules/@gripsack/core` symlink earns its eval read grant
+  only when the resolved target proves it IS a `@gripsack/core`
+  package (`package.json` name). A planted symlink to arbitrary
+  outside content no longer enlarges the sandbox.
+- **Step `needs` order execution** — a consumer declared before its
+  producer runs after it; cross-module step refs (`other:done`,
+  `other:step`) fold into the module DAG; cycles are E120 at check.
+- **`grip plan` runs the full validation pipeline** — linters, source
+  checks, and physical-destination uniqueness (E119) gate plan the
+  same as check/apply; modules with opaque run/shell steps are marked
+  "may change the system", never rendered as silent no-ops.
+- **Preserved drift blocks a mode switch** — redeclaring a preserved
+  tracked copy as an owned symlink refuses instead of overwriting
+  the user's edit. The lineage explorer now models the owned-link
+  branch (driving the shipped `plan_link`) and mode changes.
+
+### Fixed
+
+- **Executable rollback restores** — rolling back across versions of
+  a 0755 tracked copy restores the right bytes (0.27 compared
+  identities across domains and kept the newer content).
+- **Private merge files roll back** — updating a managed block in a
+  0600 file then rolling back no longer reports a phantom change.
+- **Adoption codegen** — digit-leading names and quote/backslash
+  filenames produce valid TypeScript (idents prefixed, every
+  interpolated string JSON-quoted).
+
+## [0.28.0] — 2026-09-05
+
+Durable activation hooks (plan/0032) and a legacy-purged, fully typed
+identity layer.
+
+### Changed
+
+- **Activation hooks are durable** — the pending intent record
+  (`$GRIPSACK_HOME/activation.json`) is written BEFORE the generation
+  flip, so a kill between the flip and the adapters (or mid-adapters)
+  no longer silently skips your service restarts and cache refreshes:
+  the next run resumes them. The protocol is model-checked in TLA+
+  (`specs/Activation.tla`, TLC in CI; the pre-0.28 shape fails the
+  NoSilentSkip invariant as a kept mutant).
+- **Intents may run twice across a crash** — they are idempotent
+  refreshes by contract; write `customHook` scripts idempotent.
+  A record naming a generation that never became current is
+  discarded, never run.
+- **Recovery notes are typed** — `grip rollback` output and the
+  interrupted-run report distinguish severities (a kept post-crash
+  edit warns) instead of flattening to strings.
+
+### Removed (alpha hygiene — no legacy homes exist)
+
+- The pre-0.23 journal marker compatibility path and its `format`
+  field: a marker missing `previous_generation` now fails closed at
+  parse (torn/corrupt), never mistaken for a fresh-machine run.
+- The 0.26-compatible exec-bit identity preimage: identities are
+  uniformly mode-aware. Homes written by ≤0.27 read drifted once;
+  `grip apply --take-over` re-pins.
+- Journal priors always carry a mode; manifests' `Prior` is now the
+  enum shape (`file`/`symlink` variants, no `content: Option`).
+
+### Internal
+
+- The identity domains are typed end to end: `PayloadHash` /
+  `BytesHash` / `FileIdentity` newtypes, `ObjectIdentity` and
+  `Intended` at the journal boundary. The pass caught three latent
+  domain mixups (prune authority, store-verify, rollback compares) —
+  each is an e2e-covered fix now.
+- The legacy counterexample plumbing left the transaction model
+  (Rust harness AND the TLA+ `MODE="legacy"` branch); mutation
+  calibration keeps the harness honest, plan/0028 keeps the record.
+
+## [0.27.0] — 2026-09-05
+
+Mode-aware identity (plan/0031 — completes 0026 §7 and 0030 #17) —
+the full permission mode joins the manifest and journal identity:
+chmod-only drift is detected, and rollback restores modes exactly.
+
+### Changed
+
+- **Chmod-only drift is drift** — a tracked copy whose mode changed
+  without a content change is preserved-and-warned on the next apply,
+  never silently reverted and never treated as satisfied.
+- **Rollback restores the exact mode** — the manifest records each
+  deployed file's landed mode and rollback re-applies it (the crash
+  journal has done this since 0.24; the generation path now matches).
+- **Deterministic landing modes** — fresh templates and merge-created
+  files land 0644 absolutely instead of `0666 & ~umask`; the
+  journaled precondition no longer depends on the process umask.
+  (Behavior change only for fresh creates under a non-022 umask.)
+- **A take-over lands the managed mode** — the absorbed file is ours
+  after a take-over; it gets the 0644/0755 rule like any deploy
+  instead of keeping the foreign file's mode.
+- **E119 diagnostics** — the physical-destination-alias gate
+  (0.26.0) reports with a stable code, both spellings, spans on both
+  module declarations, and a help line, in `check` and `apply`.
+
+### Upgrade notes
+
+Seamless: the identity preimage for 0644/0755 is byte-identical to
+0.26's exec-bit form, so existing homes read satisfied — no spurious
+drift, no mass re-deploy.
+
+### Internal
+
+- The lineage explorer models destination ALIASES (two spellings of
+  one physical cell — the E119 gate contract is now a checked model
+  property: an aliased run cannot mutate anything) and chmod drift
+  (`ExternalChmod`), still driving the shipped decision functions.
+- `journal.rs` and `deploy.rs` split into module directories
+  (marker/recover/model; restore/remove) — no more >1000-line files.
+- The recovery classifier takes a named `RecoveryFacts` struct.
+
+## [0.26.0] — 2026-09-05
+
+Canonical destinations and hardened transaction identity
+(plan/0030, sixth fresh-eyes audit) — one physical file now has one
+identity everywhere gripsack looks, and the crash/ownership
+protocols gained their last proven-unsound edge cases.
+
+### Changed
+
+- **Destination aliases are rejected before any mutation** —
+  `~/.x`, `$HOME/.x`, `/home/me/.x`, and a path through a symlinked
+  ancestor are one directory entry; declaring two spellings (even
+  across modules) is now a hard `grip check`/`apply` error instead
+  of a silent double-transition of one object. E111 also fires for
+  duplicates inside a single module, which previously slipped
+  through and double-journaled the destination.
+- **A second `--take-over` no longer rebases the restore point** —
+  the drifted bytes are still captured for crash recovery, but the
+  manifest keeps the epoch's FIRST pre-adoption origin: undeclare
+  restores what was there before gripsack ever touched the file.
+- **Renaming a module keeps full lineage authority** — rename plus
+  content change applies as an authorized update (no more
+  preserved-as-foreign), and undeclare after a rename still
+  restores the origin.
+- **Tracked copies own the executable bit** — a fresh 0755 deploy
+  lands executable, the next apply is satisfied instead of
+  flip-flopping, and an exec-bit change from the repo applies.
+- **Pre-0.23 journal run markers refuse closed** — the old
+  direction rule is model-proven unsound for the markers 0.22
+  wrote; recovery now stops with guidance instead of guessing.
+- **Store hardening** — `current` resolving outside
+  `$GRIPSACK_HOME/generations` is corruption (error, not a
+  generation); manifests reject `from` paths that escape the store
+  (`../x`, absolutes) and duplicate destinations across ALL
+  ownership modes; the intra-apply race (an external write between
+  drift check and mutation) is aborted, never clobbered.
+
+## [0.25.0] — 2026-09-05
+
+Ownership lineage and authorized transitions (plan/0029, fifth
+fresh-eyes audit) — the state-representation round: observed user
+bytes can no longer become overwrite authority, and the pre-adoption
+origin rides the whole ownership epoch. The ownership algebra joins
+the crash protocol in the model harness (Rust explorer driving the
+real `plan_copy`, plus `Ownership.tla` alongside `Transaction.tla`).
+
+### Fixed
+
+- **The pre-adoption origin is no longer dropped by the next ordinary
+  apply.** `prior` is carried forward per destination across every
+  generation — module renames included — and stays pinned against gc
+  until the epoch ends by restore. (0.24 attached it to one deployment
+  result; an origin could vanish and be gc'd.)
+- **Preserved drift never promotes to authority.** A kept drifted or
+  foreign file is recorded with `preserved_drift`; repeated applies
+  keep it until you converge by hand (write the desired content) or
+  take over explicitly. Previously the observed hash became the
+  recorded deployment, so the NEXT apply overwrote your bytes.
+- **Undeclaring a drift-kept module no longer deletes your file** —
+  the recorded observed hash used to pass prune's intact check.
+  Preserved-drift entries are never pruned or rolled back over.
+- **`grip adopt` captures the origin even when content matches** — a
+  file adopt's scoped take-over set named `dest/dest-basename` and
+  never matched; and `--take-over` now opens the epoch before the
+  satisfied check, since content-equal adoption still needs the prior.
+- **Every journaled mutation carries a precondition** — the live
+  object must equal what the drift decision saw (absent counts), or
+  the run aborts retryably instead of clobbering a write that landed
+  in between. Merge re-derives its splice from the latest foreign
+  content at the mutation boundary.
+- **Recovery verifies its own work** — a restore is re-read and must
+  equal the prior identity before the journal entry may be dropped;
+  failed removals and failed link reads propagate instead of reading
+  as absence.
+- **Foreign or dangling symlinks at copy/template destinations refuse**
+  (or take over, capturing the link as prior) — `exists()` used to
+  follow links, reading a dangling link as "absent" and losing its
+  identity.
+- **Store integrity is proven, not named** — prior blobs recompute on
+  reuse (a corrupt blob quarantines aside); rollback preflight
+  verifies each module's `tree256` against the actual tree.
+- **`current` must resolve under `$GRIPSACK_HOME/generations/<N>`**
+  with N matching — `current -> /tmp/42` is corruption, not a
+  generation. Owned-link intactness compares the EXACT expected store
+  target, not "somewhere under gripsack".
+- **Persisted-generation validation and merge semantics agree** —
+  merge blocks validate per (destination, module); several modules may
+  own blocks in one file, and publish validates what load would
+  reject.
+- **High-water moves before the rename** and a post-commit cleanup
+  failure reports "generation N active; cleanup pending" instead of a
+  failed apply.
+
+## [0.24.0] — 2026-09-04
+
+Provable transactions and validated generations (plan/0027, fourth
+fresh-eyes audit). The two principles of this release: a transaction
+never commits a destination that didn't reach its declared state, and
+persisted state is never treated as absent because it couldn't be
+read.
+
+### Fixed
+
+- **Transactions verify their postcondition.** Every journaled
+  mutation re-reads the destination through the pinned capability
+  afterward and requires live == intended — a helper returning success
+  without producing the state now fails the run (and compensation
+  restores the prior) instead of committing a lie. The bool-returning
+  removal/restore helpers are `Result`: an I/O failure no longer
+  reads as "drifted, kept".
+- **GC fails closed.** An unreadable `generations/` inventory errors
+  instead of collecting the active generation's store objects; the
+  current generation must be present in the inventory and every
+  retained manifest must validate before a deletion plan exists.
+- **Persisted generations are strictly validated** at the one
+  boundary (`read_manifest`): embedded number must equal the
+  directory, destinations unique (case-folded, E111 applies to
+  history), content hashes well-formed, store paths confined to
+  `$GRIPSACK_HOME/store`. A current generation whose manifest is
+  unreadable now blocks apply and rollback instead of planning
+  without the authoritative state.
+- **A generation publishes as one immutable object** — manifest and
+  env profile stage under `generations/.staging-<N>` and rename in
+  no-clobber; a failed apply leaves nothing visible. Rollback only
+  backfills a MISSING profile (pre-0.22 history), never rewrites a
+  generation.
+- **Generation IDs never reuse, even across GC of the tip** — a
+  durable `generations/high-water` mark drives allocation.
+- **The crash journal restores exact file modes** — priors record the
+  Unix mode, and recovery writes with it riding the rename
+  (temp → chmod → fsync → rename). A 0600 secret replaced by a
+  symlink mid-run comes back 0600, not umask-default.
+- **Capture, compare, and mutate share one pinned parent capability**
+  through prune and rollback helpers — no ambient-path reopens
+  mid-transition.
+
+## [0.23.0] — 2026-09-04
+
+Generation identity and path-centric transactions (plan/0026, third
+fresh-eyes audit) — the journal now records INTENT, and rollback
+plans per destination.
+
+### Fixed
+
+- **Rollback no longer clobbers tracked-copy drift.** Shared
+  destinations restore only when live state IS the current
+  generation's deployment; live == target is a no-op; anything else
+  is preserved with a report line (`kept … your edit stands`).
+- **A destination gets exactly one transition per rollback.** The
+  pre-0.23 two-pass rollback (prune by module, then restore)
+  journaled a renamed module's destination twice — the second entry
+  overwrote the true pre-rollback prior, so a killed rollback could
+  restore the wrong state. The planner now normalizes both
+  generations into destination-keyed maps first.
+- **Generation numbers are never reused.** Allocation is
+  `max(on-disk, current) + 1`, not `current + 1` — a post-rollback
+  apply creates generation 4, not a rewritten 2. `write_manifest`
+  refuses an existing generation number outright.
+- **Commit detection is exact-equality, not ordering.** The run
+  marker carries `previous_generation`; reconcile decides committed
+  iff `current == target`, uncommitted iff `current == previous`,
+  and refuses to guess otherwise. Roll-FORWARD (`grip rollback` to a
+  newer generation) no longer breaks the classification.
+- **The intended post-state is journaled BEFORE the mutation** —
+  `record` persists prior and intent together; `mark_after` is gone.
+  A post-crash user edit is now distinguishable from the mutation
+  itself (three-way decide: landed-intact → restore, never-landed →
+  nothing to do, neither → user's edit wins).
+- **Journal cleanup is two durability barriers** — entries deleted
+  and fsync'd, then the marker deleted and fsync'd: marker durably
+  gone now implies entries durably gone.
+- **Content updates preserve the destination's mode** — an apply
+  touching a 0600 secret or 0755 script no longer re-lands it at
+  0644&umask.
+- **`current` generation readers fail closed** — permission errors,
+  I/O failures, and a `current` link that parses to no generation are
+  errors, not "no generations" (apply allocates from it; gc protects
+  it).
+- **Rollback preflights the target generation** — a missing store
+  path or entry source aborts before the first mutation.
+- **Renaming a merge-block's module moves the block** — block prune
+  keys on (module, destination); the old module's block no longer
+  lingers as an unowned ghost.
+
+## [0.22.0] — 2026-09-04
+
+Transaction coverage for everything that mutates a destination
+(plan/0025, fresh-eyes review of 0.21.1).
+
+### Changed
+
+- **The exported env profile is generation-local** — it now lives at
+  `generations/<N>/env/profile.sh`, sourced through
+  `$GRIPSACK_HOME/current/env/profile.sh`, so it activates with the
+  generation flip on apply AND rollback (previously two asymmetric
+  windows existed either side of the flip). **If your rc file sources
+  the old `env/profile.sh` path, update it to
+  `current/env/profile.sh`** — the old file is removed on the next
+  apply. The rc-side path stays stable; it just resolves through
+  `current` now.
+
+### Fixed
+
+- **`grip rollback` runs the same journaled transaction as apply** —
+  run marker (with an op kind; a rollback's commit condition
+  inverts), per-destination entries, flip, commit. A kill mid-
+  rollback is recovered by the next run; an ordinary failure restores
+  the pre-rollback state before returning.
+- **Prune-on-undeclare mutations are journaled.** A kill between
+  prune and the flip previously left pruned destinations removed
+  under the old generation with no record; reconcile now restores
+  them before the run proceeds.
+- **The journal drift guard actually matches now.** `decide` compared
+  `mark_after`'s identity against the raw sha256 of the destination,
+  but deploy has always recorded the canonical bytes hash — the two
+  never matched, so recovery *kept* every file entry instead of
+  restoring it. Latent since 0.19.0; the unit and e2e tests pinned
+  the same wrong pairing, which is why it survived. Found by this
+  round's kill-point e2e (real SIGABRT windows, not crafted state).
+- **Failed applies and rollbacks compensate through one path** — the
+  journal's own reconcile — covering lockfile/prune/manifest/env
+  errors after the scheduler, not just scheduler failures.
+- **Take-over prior capture fails closed.** `capture_prior` collapsed
+  permission/I/O/UTF-8 errors into "no prior existed"; only NotFound
+  means absent now, and non-UTF-8 symlink targets refuse the
+  take-over (matching the journal's rule). The pre-adoption state is
+  the product's central promise; it is never silently unrecoverable.
+- **Journal reconcile fsyncs its deletions and fails closed on
+  unreadable commit evidence** (run marker, `current`) — permission
+  and I/O errors are not "absent" in recovery code.
+- **Cross-filesystem (EXDEV) store publishes preserve permissions**
+  — the 0.21.0 capability copy path re-created files with default
+  modes, dropping exec bits and the store's read-only policy, and
+  skipped file/dir fsyncs. Covered by a real two-filesystem test
+  (tmpfs → disk).
+
+## [0.21.2] — 2026-09-04
+
+### Fixed
+
+- **`doctor`'s upgrade advice pins the minor line**
+  (`@gripsack/core@^0.21.0`), not the exact embedded patch —
+  `^0.21.1` cannot resolve when npm's latest is 0.21.0, and the
+  frontend doesn't republish on every core patch (plan/0024,
+  follow-up caught by smoke-testing the shipped 0.21.1 binary).
+
+## [0.21.1] — 2026-09-04
+
+Review-round fixes (plan/0024) from a real 0.18.1→0.21.0 migration
+report.
+
+### Fixed
+
+- **Merge blocks: the scan sees every block a module owns.** A
+  duplicate managed block was invisible in steady state, the marker
+  `sha=` content guarantee covered only the first block, and a
+  drifted first block's repair silently deleted the rest. Apply now
+  reconciles to one block and the report names it (`removed N
+  duplicate blocks`); prune/rollback remove all of a module's blocks.
+- **`plan` compares template and merge entries in deployed terms** —
+  rendered bytes and the trimmed block, not the raw repo source that
+  could never match — and consults the destination, so `(update)`
+  means "apply would write" in both directions: no permanent phantom
+  updates, and hand-edited merge blocks (visible from the `sha=`
+  marker alone) show as drift instead of `satisfied`.
+- **`doctor`'s stale-`@gripsack/core`-pin line is a yellow `warn`,
+  not a green `ok`** (the marker replacement was a no-op), and its
+  upgrade advice is followable: `@gripsack/core` 0.21.0 is now
+  published to npm in lockstep with the embedded frontend.
+
+## [0.21.0] — 2026-09-04
+
+Capability-based filesystem writes (plan/0021), an in-binary SBOM
+(plan/0022), and one portability fix (plan/0023).
+
+### Changed
+
+- **E111 case-folds destinations on every host** — the 0.20.0 check
+  folded case only when the host reported `os: macos`; it now folds
+  unconditionally. The check protects the repo's portability, not
+  the current host: a repo written on Linux no longer corrupts on a
+  Mac (case-insensitive filesystems treat `~/Foo` and `~/foo` as one
+  file). Case-variant destinations were ~always typos anyway.
+- **Filesystem writes go through capability-relative paths**
+  (plan/0021) — the journal, generation flip, store publishes, and
+  deploy destinations now name files relative to a directory handle
+  opened once (cap-std/rustix), so a path component swapped between
+  gripsack's check and its write cannot redirect the write (TOCTOU).
+  No behavior change; every existing unit and e2e test passes with
+  its assertions untouched.
+
+### Added
+
+- **In-binary SBOM on every release binary** — release builds now go
+  through `cargo auditable`, embedding the full dependency tree into
+  `grip` itself. Audit any installed binary directly: `cargo audit
+  bin "$(which grip)"`. The release workflow audits the shipped,
+  stripped tarball binary and fails the release if the embed is
+  missing or an advisory matches.
+
 ## [0.20.0] — 2026-09-04
 
 The macOS hardening round + release attestations (plan/0020's two
