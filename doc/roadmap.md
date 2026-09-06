@@ -240,6 +240,16 @@ functions for string/path mechanics, TLA+ (TLC in CI) for protocols.)
   `--keep-live` / `--apply-repo` / `--adopt-live` per destination,
   and an explicit origin-rebase, instead of preserve-and-warn plus
   global `--take-over`.
+- **Stateful journey property-testing** (0036 meta-program) — the
+  0035 findings' shared root: our e2e tests what we built; nobody
+  fuzzed the user's JOURNEY. A harness that runs random
+  declare/apply/edit/redeclare/rollback sequences against a sandbox
+  with oracles ("a still-declared file is never deleted") would have
+  caught the spelling-delete and the cache classes pre-review.
+  Pairs with: a field-fidelity corpus (every DSL field must survive
+  to IR — the typo-erasure and dropped-trigger class) and a written
+  trust-boundary checklist (every channel a repo can influence, each
+  with a test).
 - **Build closures in isolated environments** (0035) — build
   dependencies shouldn't deploy into HOME to serve a compile; a
   roots-vs-closure design (the resolved graph already carries the
@@ -277,9 +287,11 @@ functions for string/path mechanics, TLA+ (TLC in CI) for protocols.)
   never touch eval), network intent declared and shown in plan.
   **`grip update --dry-run`** folds in here — "resolve, don't write"
   is the natural read mode of an explicit resolve phase.
-- **Rollback adapters** — user-initiated `grip rollback` re-runs
-  post-link/post-activate adapters (the unified engine covers
-  destinations; adapters still don't re-run on rollback).
+- **Rollback adapters** (0035; next up after the 0.32.0 round) —
+  user-initiated `grip rollback` re-runs post-link/post-activate
+  adapters: the durable pending record (0032) is the seam, and
+  restoring a generation should restore the RUNNING state too, not
+  just the files.
 - **Module env inheritance for dependents** — a dependent sees the env
   its dependencies export (build-time today).
 - **Secrets model** — references to external secret managers
