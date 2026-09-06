@@ -50,9 +50,12 @@ environment.
 Everything is a **module** — a tool, a font, a set of dotfiles. A module
 declares typed steps, not scripts: a **source** (GitHub release,
 tarball, git, brew, conda, …), an optional build, where its files go, and
-which config files it manages. Modules depend on modules; build-only
-dependencies are *ephemeral* — a Rust toolchain used to compile
-something doesn't linger in your profile afterward.
+which config files it manages. Modules depend on modules. Build-only
+dependencies form a [build closure](modules.md#dependencies): they are
+published to the store and supplied to build steps through PATH and
+`GRIP_DEP_*`, never deployed merely to serve a compile. Retained
+generations pin their store paths; rollback restores files without
+rebuilding. Core/TypeScript 0.35.0 uses IR v2 (`Dependency.for`).
 
 When a source is unusual — your company's internal registry — the
 sourcing ladder keeps the core small:

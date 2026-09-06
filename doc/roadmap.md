@@ -6,6 +6,13 @@ typo in a module.*
 
 ## Shipped
 
+- **Build closures** ([plan 0039](https://github.com/gripsack-dev/gripsack/blob/main/plan/0039-build-closures.md),
+  core/TS 0.35.0) — `dep(name, { for: "build" })` supplies store tools
+  to build steps without deploying them. Transitive build-edge PATH,
+  `GRIP_DEP_*`, payload receipts, and generation-pinned GC; pin changes
+  rebuild consumers, rollback never does. IR v2 is a clean alpha
+  cutover. See [dependencies and migration](modules.md#dependencies).
+
 - The core flow: `apply` / `plan` / `generations` / `rollback` —
   generations on disk, atomic flip, no-op satisfaction
 - Run-level rollback: an apply that fails mid-graph restores every
@@ -250,10 +257,6 @@ functions for string/path mechanics, TLA+ (TLC in CI) for protocols.)
   to IR — the typo-erasure and dropped-trigger class) and a written
   trust-boundary checklist (every channel a repo can influence, each
   with a test).
-- **Build closures in isolated environments** (0035) — build
-  dependencies shouldn't deploy into HOME to serve a compile; a
-  roots-vs-closure design (the resolved graph already carries the
-  identity) with a per-build PATH.
 - **Fetch memory budget** (0033/0035, source-derived) — streaming
   archive extraction, an acquisition concurrency cap separate from
   module parallelism, HTTP-client reuse, memoized resolved graph
@@ -292,8 +295,10 @@ functions for string/path mechanics, TLA+ (TLC in CI) for protocols.)
   adapters: the durable pending record (0032) is the seam, and
   restoring a generation should restore the RUNNING state too, not
   just the files.
-- **Module env inheritance for dependents** — a dependent sees the env
-  its dependencies export (build-time today).
+- **Module env inheritance for dependents** (0039: stays separate) —
+  decide precedence and variable expansion for general dependency
+  exports. Build closures supply PATH and `GRIP_DEP_*` only; they do
+  not inherit activation-profile `env`. Existing priority retained.
 - **Secrets model** — references to external secret managers
   (age/sops/1Password), decrypted at activation; values never in the
   store, manifests, plans, or logs (0001 §7's seed, made public).
@@ -302,6 +307,15 @@ functions for string/path mechanics, TLA+ (TLC in CI) for protocols.)
   bind time) is the next rung.
 - **More reference fetchers** — `pip` (corporate PyPI mirrors) and the
   internal-registry patterns, out-of-tree like `gripfetch-apt`.
+- **Library/header build exports — low priority, demand-driven**
+  (0039 brainstorm) — consider `provides`/library/include paths only
+  when a real consumer fixture needs them. Below the reliability
+  backlog; no speculative environment variables shipped.
+- **Controlled build PATH — low priority, opt-in design first**
+  (0039 brainstorm) — investigate one global strict-build setting,
+  including an explicit system-tool baseline and fixture impact.
+  Do not silently turn today's prepend-only PATH into a hermetic
+  environment. Existing builds use ambient shell/coreutils.
 
 ## North star
 
