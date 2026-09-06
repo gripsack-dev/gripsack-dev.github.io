@@ -155,8 +155,62 @@ entrypoint *is* the extension point.
 
 ## Dependencies
 
-`dep("git")` is a runtime edge; `dep("rust", "build")` is an
-ephemeral build-only dependency — present while building, GC'd after.
+`dep("git")` is a runtime dependency. Since **core and TypeScript 0.35.0**,
+`dep("compiler", { for: "build" })` prepares a build closure instead:
+
+```ts
+import { dep, installStep, module, shellStep, symlink } from "@gripsack/core";
+
+export default module("consumer", {
+  depends: [dep("compiler", { for: "build" })],
+  steps: [
+    shellStep('mkdir -p out && cp "$(command -v cc)" out/built', "build"),
+    installStep({ "out/built": symlink("~/.local/bin/built") }, "install", {
+      needs: ["build"],
+    }),
+  ],
+});
+```
+
+Both modules must be listed in the host environment. The compiler must
+publish an executable at `bin/cc`. A module with incoming build edges
+and **no incoming runtime edge** is build-only: no destination links or
+copies, activation hooks, or shell-profile exports. Any incoming runtime
+edge wins; a standalone module deploys normally. Subset applies use the
+same whole-graph rule. Remove both declarations when retiring the
+consumer and its tool; leaving the tool standalone means you want it
+deployed.
+
+Build, custom-shell, and structured `runStep` processes get:
+
+- dependency `bin/` directories **prepended** to PATH in dependency-first
+  graph order, retaining an explicit step PATH or the ambient PATH;
+- `GRIP_DEP_COMPILER` pointing to the compiler's store root. Names are
+  uppercased, with punctuation mapped to `_`; ambiguous aliases in one
+  closure are rejected with E123 rather than overwritten.
+
+The closure follows build edges transitively and deduplicates diamonds.
+A build tool's runtime dependencies are **not** in that closure: they
+deploy through runtime edges. This is not a hermetic build sandbox;
+ambient tools remain available, and arbitrary shell steps still run
+with your privileges. Module `env` exports do not flow into dependents.
+
+Payload verification runs normally and retains receipts tied to the
+store identity. Destination checks are omitted for build-only modules.
+The manifest keeps store-only module records (no deployment effects)
+and the consumer's `build_closure`. **Every retained generation** pins
+its paths; GC collects them after those generations are pruned.
+Rollback restores the recorded consumer files and never rebuilds.
+
+### IR v2 migration
+
+0.35.0 emits and accepts **IR v2** only: dependencies use `for`, not
+`edge`. Change `dep("rust", "build")` to
+`dep("rust", { for: "build" })`. Update a pinned frontend with
+`npm install --save-dev @gripsack/core@^0.35.0`, or remove the pin to
+use the embedded copy. v1 input fails explicitly with E100; invalid
+dependency purposes receive a source-labeled E122. Existing lockfiles
+and generations remain readable; this changes the eval IR, not history.
 
 ## npm dependencies in module code
 
