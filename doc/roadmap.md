@@ -6,6 +6,18 @@ typo in a module.*
 
 ## Shipped
 
+- **Contract fidelity and persistence** ([plan 0041](https://github.com/gripsack-dev/gripsack/blob/main/plan/0041-p1-contract-fidelity.md),
+  core/TS 0.36.0) — fail-closed GC admission; explicit/declarative parity;
+  real ordering-only `needs`; output gates; accurate warm preview; IR v3
+  removes inert retries. Private-mode receipts and exact template rollback
+  are corrected. Every recorded cut in six persistence scenarios is
+  exercised with errors, process loss and user drift; a separate ordering
+  model rejects the former EXDEV chmod-after-fsync bug. Physical power
+  loss is not simulated.
+- **Journey harness** (0.34.0, plan 0038) and **rollback activation**
+  (0.33.0, plan 0037) — seeded stateful journeys are in CI; rollback
+  replays the target generation's durable activation intents.
+
 - **Build closures** ([plan 0039](https://github.com/gripsack-dev/gripsack/blob/main/plan/0039-build-closures.md),
   core/TS 0.35.0) — `dep(name, { for: "build" })` supplies store tools
   to build steps without deploying them. Transitive build-edge PATH,
@@ -214,12 +226,23 @@ transaction-adjacent protocols get an exhaustive model before or
 with the implementation — the Rust harness driving shipped decision
 functions for string/path mechanics, TLA+ (TLC in CI) for protocols.)
 
-- **The full kill-point matrix** ([plan 0025](https://github.com/gripsack-dev/gripsack/tree/main/plan/0025-transaction-coverage.md)) —
-  `GRIPSACK_CRASH_AFTER`-style aborts at every durable boundary
-  (journal write, file and dir fsyncs, rename, flip, cleanup), each
-  with the same oracle: previous generation, or committed target, or
-  explicitly preserved user drift. Today the deploy, prune, and
-  rollback windows are covered; the matrix is the remainder.
+- **P2 — Bounded acquisition and subprocess supervision**
+  ([0040 H](https://github.com/gripsack-dev/gripsack/blob/main/plan/0040-project-sweep.md)) —
+  streaming extraction and aggregate acquisition limits; bound stdout
+  queues, stderr lines and retained diagnostics; make deadlines cover
+  reaping and inherited pipes. Shared process mechanics only after the
+  two hosts' distinct contracts are pinned. Ahead of ecosystem breadth.
+- **P2 — Causal worker tracing and reliable log selection** (0040 I) —
+  carry run/module spans across worker threads and select the explicit
+  latest pointer, not filename ordering. Require real emitted ancestry
+  and concurrent-run coverage.
+- **P2 — Executable documentation and contract coverage** (0040 J) —
+  execute published examples and cover consumer-visible field behavior
+  across schema/DSL/core; the P1 parity and retry fixes are shipped, not
+  substitutes for continuing drift prevention.
+- **P2 — Reproducible toolchains and update publication** (0040 L) —
+  deliberate Rust/Deno/image pin updates and durable unique self-update
+  staging. Keep install-time provenance below as its separate trust decision.
 - **Signed update-channel manifest + install-time verification** —
   install.sh and `grip self-update` already verify the sha256
   sidecar; the next step is provenance verified *automatically* at
@@ -237,30 +260,18 @@ functions for string/path mechanics, TLA+ (TLC in CI) for protocols.)
   carried) — `update` writes `sha256` and the first `apply` adds
   `tree256` today, costing a second commit per module; fold
   finalization into `update`. The pixi hash split is the same item.
-- **Persistent fuzz + fault harnesses in-repo** ([plan 0027](https://github.com/gripsack-dev/gripsack/tree/main/plan/0027-provable-transactions.md),
-  fourth audit P2) — the playbook's harnesses live outside the repo
-  today; land them under it (manifest parsing, merge-block parsing,
-  archive extraction, journal recovery, GC reachability) with
-  deterministic smoke budgets in CI and longer runs on a schedule.
+- **P2 — Persistent fuzz harnesses in-repo** ([plan 0027](https://github.com/gripsack-dev/gripsack/tree/main/plan/0027-provable-transactions.md)) —
+  manifest/merge/archive parsing, recovery and GC corpora with bounded CI
+  smoke runs and longer scheduled runs. The recorded-cut persistence
+  matrix has landed in 0.36.0; parser fuzzing remains.
 - **Explicit drift resolution: `grip resolve`** ([plan 0030](https://github.com/gripsack-dev/gripsack/tree/main/plan/0030-canonical-destinations.md);
   named the next product capability by two external reviews) —
   `--keep-live` / `--apply-repo` / `--adopt-live` per destination,
   and an explicit origin-rebase, instead of preserve-and-warn plus
   global `--take-over`.
-- **Stateful journey property-testing** (0036 meta-program) — the
-  0035 findings' shared root: our e2e tests what we built; nobody
-  fuzzed the user's JOURNEY. A harness that runs random
-  declare/apply/edit/redeclare/rollback sequences against a sandbox
-  with oracles ("a still-declared file is never deleted") would have
-  caught the spelling-delete and the cache classes pre-review.
-  Pairs with: a field-fidelity corpus (every DSL field must survive
-  to IR — the typo-erasure and dropped-trigger class) and a written
-  trust-boundary checklist (every channel a repo can influence, each
-  with a test).
-- **Fetch memory budget** (0033/0035, source-derived) — streaming
-  archive extraction, an acquisition concurrency cap separate from
-  module parallelism, HTTP-client reuse, memoized resolved graph
-  identities.
+- **P2 — Fetch and resolved-graph reuse** (0033/0035/0040) —
+  HTTP-client reuse and memoized resolved graph identities; aggregate
+  memory/process bounds are covered by the higher-priority item above.
 - **Compare-and-swap displacement** (0030) — `renameat2`/
   `renameatx_np` give the mutation step atomic compare-and-swap where
   the platform allows it; the precondition-at-mutation holds
@@ -290,11 +301,6 @@ functions for string/path mechanics, TLA+ (TLC in CI) for protocols.)
   never touch eval), network intent declared and shown in plan.
   **`grip update --dry-run`** folds in here — "resolve, don't write"
   is the natural read mode of an explicit resolve phase.
-- **Rollback adapters** (0035; next up after the 0.32.0 round) —
-  user-initiated `grip rollback` re-runs post-link/post-activate
-  adapters: the durable pending record (0032) is the seam, and
-  restoring a generation should restore the RUNNING state too, not
-  just the files.
 - **Module env inheritance for dependents** (0039: stays separate) —
   decide precedence and variable expansion for general dependency
   exports. Build closures supply PATH and `GRIP_DEP_*` only; they do

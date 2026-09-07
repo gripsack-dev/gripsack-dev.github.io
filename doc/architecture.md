@@ -55,7 +55,10 @@ dependencies form a [build closure](modules.md#dependencies): they are
 published to the store and supplied to build steps through PATH and
 `GRIP_DEP_*`, never deployed merely to serve a compile. Retained
 generations pin their store paths; rollback restores files without
-rebuilding. Core/TypeScript 0.35.0 uses IR v2 (`Dependency.for`).
+rebuilding. Core/TypeScript 0.36.0 uses IR v3: `Dependency.for` remains,
+while inert retry fields are rejected. Both module authoring styles feed
+one prepared execution view; cross-module step needs order whole modules
+without changing deployment purposes.
 
 When a source is unusual — your company's internal registry — the
 sourcing ladder keeps the core small:
@@ -130,7 +133,7 @@ machine state; hermetic builds are Nix's guarantee, honestly theirs.
 **The store is content-addressed where content is knowable**
 ([plan 0014](https://github.com/gripsack-dev/gripsack/tree/main/plan/0014-content-addressed-fetches.md)).
 A fetched or config-only payload's path names its canonical content
-hash — so the store verifies itself (`grip store verify` needs no
+hash — so the store verifies itself (`grip store-verify` needs no
 lockfile and no hostname), and a mirror swap with identical bytes
 re-proves once, then dedups to the same path. Built modules stay
 input-addressed: their output can't be named before the build runs,
