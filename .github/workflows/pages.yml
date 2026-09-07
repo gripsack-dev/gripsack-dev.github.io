@@ -34,7 +34,7 @@ jobs:
     # Bump GRIPSACK_VERSION deliberately with the docs' target release.
     runs-on: ubuntu-latest
     env:
-      GRIPSACK_VERSION: 0.37.0
+      GRIPSACK_VERSION: 0.38.0
     steps:
       - uses: actions/checkout@v7
       - uses: actions/checkout@v7

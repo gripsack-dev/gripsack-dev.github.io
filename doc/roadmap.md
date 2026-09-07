@@ -280,8 +280,8 @@ functions for string/path mechanics, TLA+ (TLC in CI) for protocols.)
   `gripresolve-*` plugins on the same NDJSON envelope as fetchers:
   spawned with a scrubbed, declared-env-only environment (credentials
   never touch eval), network intent declared and shown in plan.
-  **`grip update --dry-run`** folds in here — "resolve, don't write"
-  is the natural read mode of an explicit resolve phase.
+  The read-only update use case shipped separately as `grip update --check`
+  in 0.38.0; custom resolver executables remain deferred.
 - **Module env inheritance for dependents** (0039: stays separate) —
   decide precedence and variable expansion for general dependency
   exports. Build closures supply PATH and `GRIP_DEP_*` only; they do
