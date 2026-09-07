@@ -24,9 +24,56 @@ permissions:
 concurrency:
   group: pages
   cancel-in-progress: true
-
 jobs:
+  check-examples:
+    # 0042 §E executable docs: the TypeScript examples published in
+    # doc/ are extracted and evaluated for real — the SAME checker
+    # core CI runs (core repo scripts/check_examples.py), here against
+    # deliberately versioned published artifacts: the released grip
+    # binary, the published npm package, and the tagged driver tree.
+    # Bump GRIPSACK_VERSION deliberately with the docs' target release.
+    runs-on: ubuntu-latest
+    env:
+      GRIPSACK_VERSION: 0.37.0
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/checkout@v7
+        with:
+          repository: gripsack-dev/gripsack
+          ref: core-v${{ env.GRIPSACK_VERSION }}
+          path: core
+      - name: Fetch the released grip (versioned artifact)
+        run: |
+          V="$GRIPSACK_VERSION"
+          PKG="gripsack-$V-x86_64-unknown-linux-musl"
+          BASE="https://github.com/gripsack-dev/gripsack/releases/download/core-v$V"
+          curl -fsSL "$BASE/$PKG.tar.gz" -o "/tmp/$PKG.tar.gz"
+          curl -fsSL "$BASE/$PKG.tar.gz.sha256" -o "/tmp/$PKG.tar.gz.sha256"
+          (cd /tmp && sha256sum -c "$PKG.tar.gz.sha256")
+          mkdir -p /tmp/grip-bin && tar -xzf "/tmp/$PKG.tar.gz" -C /tmp/grip-bin
+          echo "GRIP=$(find /tmp/grip-bin -type f -name grip)" >> "$GITHUB_ENV"
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version: 22.23.2
+      - name: Fetch the published npm package (versioned artifact)
+        # the same artifact shape the registry serves, pinned to the
+        # docs' target release; the checker also verifies the tarball
+        # version matches the tagged driver tree
+        run: |
+          cd /tmp
+          SDK="$(npm pack "@gripsack/core@$GRIPSACK_VERSION" --silent)"
+          echo "SDK=/tmp/$SDK" >> "$GITHUB_ENV"
+      - uses: denoland/setup-deno@v2
+        with:
+          # the version the pinned core release provisions
+          deno-version: v2.9.6
+      - name: Check the published examples
+        run: >
+          python3 core/scripts/check_examples.py --site . --core-repo core
+          --grip "$GRIP" --deno "$(which deno)" --sdk "$SDK" --selfcheck
+
   deploy:
+    needs: [check-examples]
     runs-on: ubuntu-latest
     environment:
       name: github-pages

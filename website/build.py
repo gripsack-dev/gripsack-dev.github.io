@@ -211,7 +211,7 @@ def rail(active: str, toc: list[tuple[str, str]], root: str = "../") -> str:
     )
     return f"""<aside class="rail">
   <a class="brand" href="{root}index.html">
-    <img src="../assets/icon.svg" alt="gripsack icon"><span class="wordmark">gripsack</span>
+    <img src="{root}assets/icon.svg" alt="gripsack icon"><span class="wordmark">gripsack</span>
   </a>
   <span class="rail-head">menu</span>
   <nav>
