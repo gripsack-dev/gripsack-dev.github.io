@@ -30,22 +30,23 @@ E118 refuses more with a hint to split):
 
 <div class="window">
   <div class="titlebar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="wtitle">modules/patched.ts</span></div>
-<pre><code class="language-typescript">import { fileFetch, installStep, module, shellStep, symlink } from "@gripsack/core";
+<pre><code class="language-typescript">import { fetchStep, fileFetch, installStep, module, shellStep, symlink } from "@gripsack/core";
 
 export default module("patched", {
-  fetch: fileFetch("payloads/hello.tar.gz"),
   steps: [
-    shellStep("patch -p1 &lt; fix.patch", "patch"),
+    fetchStep(fileFetch("payloads/hello.tar.gz")),
+    shellStep("patch -p1 &lt; fix.patch", "patch", { needs: ["fetch"] }),
     { ...installStep({ "bin/hx": symlink("~/.local/bin/hx") }),
       needs: ["patch"] },
   ],
 });</code></pre>
 </div>
 
-Steps carry `needs` (sibling ids or `module:step`), so you write the
-edges yourself — auto-chaining only fills *empty* `needs` with the
-previous step, which is right for the simple case and worth replacing
-with explicit edges the moment a phase has more than one step.
+Explicit steps do not mix with declarative
+`fetch`/`build`/`install`/`config`/`activate` fields. Source staging,
+config lint and module-level verification work in either style.
+Write `needs` explicitly; declaration order breaks ties between ready
+steps but is not an implicit dependency.
 
 There was a class style (`class X extends Module`); it was removed in
 0.18.0 — **prefer a factory function** for reuse, which keeps
@@ -77,8 +78,8 @@ export const zed = langServer("zed", "zed-industries/zed");</code></pre>
 `merge(to, marker?)` owns exactly one delimited block inside a
 file other tools also write — everything outside the markers is never
 touched. The block is regenerated wholesale on every apply (drift
-*inside* the markers self-heals), prune removes only the block, and
-two modules can each own a block in the same file. The comment style
+*inside* the markers self-heals), and prune removes only the block.
+Sharing one physical destination between modules is rejected. The comment style
 is inferred from the destination (`.jsonc` → `//`, `.vimrc` → `"`,
 `.html` → `<!-- -->`, rc files and everything unknown → `#`);
 `marker` overrides the prefix.
@@ -90,13 +91,33 @@ are expressible). An undefined variable fails the apply loudly, never
 renders empty. Compute per-host values in the host entrypoint from
 `ctx.facts` — the core stays a dumb substituter.
 
-## Steps, resources, retries
+Takeover retains a private file's permissions. Later tracked-copy
+content updates preserve acquired access bits; a source executable-bit
+change updates executability without granting new read/write access.
+Templates preserve live permissions on apply. Rollback restores each
+recorded landed mode exactly, including same-content template restores.
+
+## Steps, resources and execution contracts
 
 Explicit steps carry `needs` (sibling ids or `module:step`), `resources`
 (named mutexes — declare them first with `resource("pixi.lock")`; a
-typo fails at eval), `verify` contracts, and `retries` overrides. The
-action ladder: typed primitives → `runStep` (argv as data) →
-`shellStep` (last rung) → `gripfetch-*` plugins for transports.
+typo fails at eval), and `verify` contracts. The action ladder:
+typed primitives → `runStep` (argv as data) → `shellStep` →
+`gripfetch-*` plugins for transports.
+
+Cross-module `needs` waits for the producer module's pre-activation work,
+including verification. This is module-granular ordering, not a global
+step scheduler. It does not deploy a build-only module or provide PATH
+exports: use dependency purposes for those. `producer:done` names its
+pre-activation barrier. Activation targets, self-qualified references and
+cycles in the combined ordering graph fail before mutation.
+
+Build, custom-shell and structured run steps are **cached artifact
+recipes**. Declared outputs must exist after shell and run actions;
+omitting outputs does not make a step run on every apply. Effects that
+belong at activation go in `customHook`. The inert module/step `retries`
+field was removed in 0.36.0 rather than pretending arbitrary effects
+have a safe automatic retry policy.
 
 ## Conditionals (hosts, facts, tags)
 
@@ -202,15 +223,18 @@ and the consumer's `build_closure`. **Every retained generation** pins
 its paths; GC collects them after those generations are pruned.
 Rollback restores the recorded consumer files and never rebuilds.
 
-### IR v2 migration
+### IR v3 migration
 
-0.35.0 emits and accepts **IR v2** only: dependencies use `for`, not
-`edge`. Change `dep("rust", "build")` to
-`dep("rust", { for: "build" })`. Update a pinned frontend with
-`npm install --save-dev @gripsack/core@^0.35.0`, or remove the pin to
-use the embedded copy. v1 input fails explicitly with E100; invalid
-dependency purposes receive a source-labeled E122. Existing lockfiles
-and generations remain readable; this changes the eval IR, not history.
+0.36.0 emits and accepts **IR v3** only. Remove module/step `retries`;
+untyped declarations fail explicitly rather than ignoring the field.
+Update a pinned frontend with
+`npm install --save-dev @gripsack/core@^0.36.0`, or remove the pin to use
+the embedded copy. v1/v2 input fails with E100 before field decoding.
+Existing lockfiles and generations remain readable.
+
+Dependency purposes still use `for`, not the v1 `edge` field.
+`dep("rust", "build")` becomes `dep("rust", { for: "build" })`;
+unknown purposes receive source-labeled E122 diagnostics.
 
 ## npm dependencies in module code
 
