@@ -70,6 +70,16 @@ endpoints.
 | key | type | default | what |
 |---|---|---|---|
 | `keep_generations` | integer | ∞ | generations retained before `grip gc` reclaims store paths |
+| `acquisition_jobs` | positive integer | 2 | maximum simultaneous payload acquisitions, independent of module `--jobs` |
+| `download_limit_bytes` | positive integer | 536870912 | streamed download cap per payload (512 MiB) |
+| `expanded_limit_bytes` | positive integer | 4294967296 | expanded stream/tree cap per payload (4 GiB) |
+| `archive_entry_limit` | positive integer | 100000 | archive/materialized-tree entry cap |
+| `decoder_memory_bytes` | positive integer | 134217728 | backend decoder working-memory/window budget (128 MiB); archive metadata is separately admitted within a bounded budget |
+
+Limits are layered like other settings: the repo wins over the user file.
+Zero does not mean unlimited; invalid values fail configuration admission.
+Downloads are hashed into private disk spools and verified before extraction.
+Exceeding a limit is an error, never silent truncation or partial publication.
 
 ## Environment variables
 
@@ -91,7 +101,7 @@ grip adopt <path>                   # interview-style adoption of an existing co
 grip apply [--host H] [MODULE...]   # fetch, build, deploy — one new generation
 grip plan [--host H] [MODULE...]    # show what apply would change
 grip check                         # eval + sema + linters; exit code = validity
-grip update [MODULE]               # re-resolve pins into the lockfile
+grip update [MODULE]               # acquire sources and finalize pins without deployment
 grip rollback [N]                   # flip current back to generation N
 grip generations                    # list generations and their status
 grip gc                             # collect unreferenced store paths
@@ -99,8 +109,19 @@ grip gc --dry-run                  # show what gc would reclaim
 grip why-owns <path>                # which module owns a deployed path
 grip doctor                         # check config, deno, the embedded frontend
 grip trust list/add/remove          # the repo trust list — the gate before any eval
-grip store verify [--repair]        # re-hash store paths against expectations
+grip store-verify [--repair]         # re-hash store paths against expectations
 grip self-update                    # update grip itself from the latest core release
 ```
+
+`update` completes source pins in one lockfile write. Source-only merged
+artifacts become an unrooted cache: GC may evict them before the first apply,
+and a pinned cold apply reconstructs them without another lockfile change.
+Retained generations continue to protect their artifact roots. Build recipes
+and hooks are never executed by update.
+
+Self-update holds a per-executable lock and rechecks the installed version,
+so an older waiting updater cannot downgrade it. Publication checks mode,
+syncs bytes, renames, then syncs the directory. An error after rename reports
+that the executable changed; it never attempts an automatic rollback.
 
 All shipped; the config schema on this page is their stable contract.

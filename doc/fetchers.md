@@ -12,10 +12,10 @@ verifies).
 |---|---|---|
 | `fileFetch(path)` | live | content hash |
 | `tarball(url, sha256)` | live | pinned sha256, verified before the store |
-| `git(url, rev?)` | live | a pinned rev is immutable and shallow-fetched; no rev floats the default branch's HEAD — pinned into the lockfile at resolve time, `grip update` moves it |
+| `git(url, rev?)` | live | shallow-fetched and pinned to the resolved commit. No rev follows the default branch at update; a named branch/tag is also frozen to its resolved commit for apply. An explicit commit ID remains fixed |
 | `githubRelease(repo, asset, version?, baseUrl?)` | live | resolved release + asset hash, locked; `version` pins the tag (resolved via `/releases/tags/`, never floats). `baseUrl` accepts the bare GHE host (`/api/v3` is appended for you). Private/GHE releases download through the API asset endpoint when a token is bound — tokens are host-scoped the gh-CLI way: `GH_TOKEN`/`GITHUB_TOKEN` only ever go to github.com; `GH_ENTERPRISE_TOKEN`/`GITHUB_ENTERPRISE_TOKEN` only to enterprise hosts. A download that comes back `text/html` fails as "looks like a login page", not as a hash mismatch |
-| `brew(...)` (bottles) | live | bottle hash, locked; **floats to the current formula** — the API only serves stable, so `version=` is a tripwire that fails at resolve (`grip update` to move), never a range. Payload is the raw bottle layout: install paths look like `jq/{version}/bin/jq` (`{version}` substitutes from the lock) |
-| `pixi(...)` (conda) | live | package hashes from the pixi resolution, locked; `grip update` re-resolves. Two per-host caveats: conda payloads embed the machine's `PIXI_HOME` path, so the same package can pin to different hashes on different hosts (lockfiles are per host by design — this is why), and behind a TLS-intercepting proxy pixi uses its bundled roots only — export `SSL_CERT_FILE` (it inherits it) so the corporate CA verifies |
+| `brew(...)` (bottles) | live | update resolves the current stable formula and pins its bottle URL, version and digest. A declared version is a tripwire against that resolution, not a range. Cold apply reuses the locked bottle without asking for today's stable version. Raw bottle layout remains: install paths look like `jq/{version}/bin/jq` |
+| `pixi(...)` (conda) | live | the installed primary-package version and the core-harvested payload tree are pinned together; conda bookkeeping is excluded. Update re-resolves; cold apply requests the pinned version and checks the same tree domain. Payloads may embed the machine's fixed private `PIXI_HOME`, so lockfiles remain per-host. Pixi inherits the artifact environment for proxy/CA configuration |
 
 `mise` is deliberately not a fetcher: its backends are mostly GitHub
 releases, which `github_release` already covers.
@@ -23,6 +23,23 @@ releases, which `github_release` already covers.
 A gzipped *single file* (`.gz` that isn't a tar) stages decompressed as
 one executable, named for the asset minus the suffix — alongside
 `.tar.gz`/`.tar.xz`/`.zip` archives and bare uncompressed binaries.
+
+## Complete source pins
+
+Since 0.37.0, `grip update` acquires and verifies sources, captures the selected
+repo overlay and writes completed pins once after all selected modules succeed.
+Source-only merged trees are cached without creating destinations or a generation.
+Build recipes and activation hooks do not run. The first warm or cold apply leaves
+the completed lockfile unchanged; a failed update preserves its previous bytes.
+“One commit” means one user lockfile diff — grip does not make git commits.
+
+Archive downloads are bounded private spools and their full transport digest is
+verified before extraction. Decoded bytes, entry counts, metadata and decoder
+working memory are admitted separately. Traversal, link escape and unsupported
+entries fail before publication. See [acquisition limits](settings/reference.md).
+Trusted runtime provisioning captures host network policy before repo build-env
+injection; artifact clients capture it afterwards. Pools are shared only within
+that command and environment phase.
 
 ## Placeholders
 
@@ -65,6 +82,14 @@ speaking NDJSON over stdio:
   live in fetchers because the fetcher knows its registry; `[throttle]`
   in env.toml outranks any declaration. A plugin that predates the op
   is tolerated (no declared budgets) but must not pretend success.
+
+Protocol hosts bound serialized requests (4 MiB), stdout lines (1 MiB),
+cumulative stdout/stderr (16 MiB each), retained stderr (64 KiB), and diagnostics
+(1,024). Fetch, capability and linter exchanges retain their own success policies.
+Deadlines include cleanup; a response never hides later output/exit failures.
+The host owns the process group and closes inherited pipes. Prompt OS scheduling
+and SIGKILL/reaping are assumptions; descendants deliberately leaving the group
+are not a sandbox guarantee. Cleanup failures are reported, never detached.
 
 The core hash-verifies every returned byte against the lockfile before
 it enters the store — a plugin cannot poison the store. Be precise

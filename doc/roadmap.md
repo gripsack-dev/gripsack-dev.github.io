@@ -6,6 +6,16 @@ typo in a module.*
 
 ## Shipped
 
+- **Complete pins and bounded execution** ([plan 0042](https://github.com/gripsack-dev/gripsack/blob/main/plan/0042-bounded-acquisition-and-complete-pins.md),
+  core/TS 0.37.0) — update-time source acquisition and overlay pin completion,
+  including Pixi; streaming verified archives and independent acquisition
+  budgets; bounded protocol supervision; command-owned HTTP/recipe caches;
+  causal worker/step logs; packaged executable examples and strict schema/pack
+  admission; persistent sandboxed fuzz corpora; repeated-recovery and calibrated
+  supervisor/publication models; deliberate toolchain/image pins and durable
+  concurrent self-update. Reproducibility is a controlled two-clean-build
+  comparison, not a universal cross-time claim or an external audit.
+
 - **Contract fidelity and persistence** ([plan 0041](https://github.com/gripsack-dev/gripsack/blob/main/plan/0041-p1-contract-fidelity.md),
   core/TS 0.36.0) — fail-closed GC admission; explicit/declarative parity;
   real ordering-only `needs`; output gates; accurate warm preview; IR v3
@@ -226,52 +236,24 @@ transaction-adjacent protocols get an exhaustive model before or
 with the implementation — the Rust harness driving shipped decision
 functions for string/path mechanics, TLA+ (TLC in CI) for protocols.)
 
-- **P2 — Bounded acquisition and subprocess supervision**
-  ([0040 H](https://github.com/gripsack-dev/gripsack/blob/main/plan/0040-project-sweep.md)) —
-  streaming extraction and aggregate acquisition limits; bound stdout
-  queues, stderr lines and retained diagnostics; make deadlines cover
-  reaping and inherited pipes. Shared process mechanics only after the
-  two hosts' distinct contracts are pinned. Ahead of ecosystem breadth.
-- **P2 — Causal worker tracing and reliable log selection** (0040 I) —
-  carry run/module spans across worker threads and select the explicit
-  latest pointer, not filename ordering. Require real emitted ancestry
-  and concurrent-run coverage.
-- **P2 — Executable documentation and contract coverage** (0040 J) —
-  execute published examples and cover consumer-visible field behavior
-  across schema/DSL/core; the P1 parity and retry fixes are shipped, not
-  substitutes for continuing drift prevention.
-- **P2 — Reproducible toolchains and update publication** (0040 L) —
-  deliberate Rust/Deno/image pin updates and durable unique self-update
-  staging. Keep install-time provenance below as its separate trust decision.
-- **Signed update-channel manifest + install-time verification** —
+- **P2 — Signed update-channel manifest + install-time verification** —
   install.sh and `grip self-update` already verify the sha256
   sidecar; the next step is provenance verified *automatically* at
   install time (attestation-aware installer, signed channel
   manifest) rather than taught as a manual step ([plan 0020](https://github.com/gripsack-dev/gripsack/tree/main/plan/0020-review-response.md)
   queue; the 0025 review's install-order point folds in here).
-- **Non-UTF-8 symlink targets end-to-end** ([plan 0021](https://github.com/gripsack-dev/gripsack/tree/main/plan/0021-cap-std-fs-hardening.md)
+- **P2 — Non-UTF-8 symlink targets end-to-end** ([plan 0021](https://github.com/gripsack-dev/gripsack/tree/main/plan/0021-cap-std-fs-hardening.md)
   pitfalls) — `OsStr` bytes through the journal and prior store;
   today's loud refusal becomes byte-preserving capture and restore.
 - **`--force` for drift overwrite** ([plan 0026](https://github.com/gripsack-dev/gripsack/tree/main/plan/0026-path-centric-transactions.md)) —
   an explicit override for the preserve-and-warn default in apply
   and rollback. A product decision, not a safety gap — queued for an
   owner decision.
-- **One-commit release modules** ([plan 0024](https://github.com/gripsack-dev/gripsack/tree/main/plan/0024-review-response-0.21.0.md),
-  carried) — `update` writes `sha256` and the first `apply` adds
-  `tree256` today, costing a second commit per module; fold
-  finalization into `update`. The pixi hash split is the same item.
-- **P2 — Persistent fuzz harnesses in-repo** ([plan 0027](https://github.com/gripsack-dev/gripsack/tree/main/plan/0027-provable-transactions.md)) —
-  manifest/merge/archive parsing, recovery and GC corpora with bounded CI
-  smoke runs and longer scheduled runs. The recorded-cut persistence
-  matrix has landed in 0.36.0; parser fuzzing remains.
 - **Explicit drift resolution: `grip resolve`** ([plan 0030](https://github.com/gripsack-dev/gripsack/tree/main/plan/0030-canonical-destinations.md);
   named the next product capability by two external reviews) —
   `--keep-live` / `--apply-repo` / `--adopt-live` per destination,
   and an explicit origin-rebase, instead of preserve-and-warn plus
   global `--take-over`.
-- **P2 — Fetch and resolved-graph reuse** (0033/0035/0040) —
-  HTTP-client reuse and memoized resolved graph identities; aggregate
-  memory/process bounds are covered by the higher-priority item above.
 - **Compare-and-swap displacement** (0030) — `renameat2`/
   `renameatx_np` give the mutation step atomic compare-and-swap where
   the platform allows it; the precondition-at-mutation holds
@@ -279,11 +261,10 @@ functions for string/path mechanics, TLA+ (TLC in CI) for protocols.)
 - **Cross-module merge aggregation** (0030 H6) — several modules'
   blocks in ONE file as a single whole-file transition; E111/E119
   reject sharing until then.
-- **Reproducible-build verification + an external audit** (fifth
-  audit, supply-chain list) — prove one release target rebuilds
-  byte-identically, and put a stable release candidate in front of an
-  independent reviewer. Prerequisite per the same audit: a quiet soak
-  cycle first — no transaction-schema churn next release.
+- **P2 — Independent external audit after a quiet soak** (fifth audit,
+  supply-chain list) — the bounded release-target reproducibility comparison
+  ships in 0.37.0. An independent reviewer remains a separate evidence step,
+  triggered by a stable candidate and a quiet cycle without transaction-schema churn.
 - **`allow_outside_home` setting** (fifth audit, finding 12
   half-adopted) — outside-home absolute destinations are allowed today
   (same-privilege by design; real usage exists). An explicit setting

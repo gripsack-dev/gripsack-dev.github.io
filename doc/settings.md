@@ -76,6 +76,14 @@ keep_generations = 20
 How many generations to keep before `grip gc` reclaims store paths.
 Rollback depth vs disk. Default keeps everything until you gc manually.
 
+Acquisition has its own budget, separate from module concurrency. By default,
+at most two payloads acquire at once, with 512 MiB downloaded, 4 GiB expanded,
+100,000 entries and a 128 MiB decoder budget per payload. Downloads use private
+disk spools, not payload-sized RAM buffers. The positive integer settings
+`acquisition_jobs`, `download_limit_bytes`, `expanded_limit_bytes`,
+`archive_entry_limit` and `decoder_memory_bytes` are listed in the
+[settings reference](settings/reference.md#settings-envtoml-or-user-config).
+
 ## Machine-local config
 
 `~/.config/gripsack/config.toml` accepts `[settings]` and `[fetchers.*]`
