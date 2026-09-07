@@ -57,6 +57,7 @@ modules values:
 <pre><code class="language-typescript">import { githubRelease, module, symlink } from "@gripsack/core";
 
 export function langServer(name: string, repo: string) {
+  return module(name, {
     fetch: githubRelease({ repo, asset: `${name}-{version}.tar.gz` }),
     install: { [`bin/${name}`]: symlink(`~/.local/bin/${name}`) },
   });
