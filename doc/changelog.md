@@ -54,6 +54,8 @@ Complete source pins, bounded acquisition, and stronger protocol evidence
   two-clean-build runner records exact image/lock/toolchain inputs and compares
   release binaries; it makes no universal cross-time reproducibility claim.
 - The SDK exports a closed `Build` type shared by `module()` and `buildStep()`.
+  IR stays at v3; existing lockfiles and generations remain readable. Update a
+  deliberate SDK pin to `@gripsack/core@^0.37.0`.
 
 ## [0.36.0] — 2026-09-07
 

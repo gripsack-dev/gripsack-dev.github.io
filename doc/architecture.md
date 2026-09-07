@@ -34,6 +34,8 @@ acquire, verify and capture the selected repo overlay. It writes complete
 source pins once, only after every selected source succeeds. Source-only
 merged artifacts are cached; recipes still run only during apply. The first
 warm or cold apply leaves a completed lockfile unchanged.
+`grip update --check` performs the same preparation in private scratch, reports
+would-be changes, and publishes neither lockfile nor source cache.
 
 The payoff of the split: `grip plan` can show you exactly what would
 change without changing anything, errors point at your source instead of

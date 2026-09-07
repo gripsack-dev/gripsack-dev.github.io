@@ -102,12 +102,13 @@ grip apply [--host H] [MODULE...]   # fetch, build, deploy — one new generatio
 grip plan [--host H] [MODULE...]    # show what apply would change
 grip check                         # eval + sema + linters; exit code = validity
 grip update [MODULE]               # acquire sources and finalize pins without deployment
+grip update --check [MODULE]       # resolve in scratch; exit 1 if any pin would move
 grip rollback [N]                   # flip current back to generation N
 grip generations                    # list generations and their status
 grip gc                             # collect unreferenced store paths
 grip gc --dry-run                  # show what gc would reclaim
 grip why-owns <path>                # which module owns a deployed path
-grip doctor                         # check config, deno, the embedded frontend
+grip doctor                         # check deno and the frontend eval actually resolves
 grip trust list/add/remove          # the repo trust list — the gate before any eval
 grip store-verify [--repair]         # re-hash store paths against expectations
 grip self-update                    # update grip itself from the latest core release
@@ -118,6 +119,12 @@ artifacts become an unrooted cache: GC may evict them before the first apply,
 and a pinned cold apply reconstructs them without another lockfile change.
 Retained generations continue to protect their artifact roots. Build recipes
 and hooks are never executed by update.
+
+`update --check` performs resolution and acquisition in private scratch without
+publishing source-cache artifacts or writing the lockfile. Exit 0 means current;
+exit 1 means at least one pin would change (errors also fail). The command can
+use the network; normal eval/runtime provisioning and run-log bookkeeping still
+apply. It neither deploys nor runs recipes/hooks.
 
 Self-update holds a per-executable lock and rechecks the installed version,
 so an older waiting updater cannot downgrade it. Publication checks mode,

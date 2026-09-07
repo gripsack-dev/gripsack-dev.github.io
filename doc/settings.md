@@ -39,6 +39,17 @@ downloads it once (sha256-verified, ~40MB, cached; 2.9.6 today),
 `grip doctor` checks it, and `GRIPSACK_DENO` points at your own. Eval
 platforms: glibc Linux and macOS — Deno ships no musl build.
 
+The repo's installed `node_modules/@gripsack/core` shadows the embedded
+frontend. `grip doctor` reads that installed package's version, not just the
+range declared in `package.json`: a stale installed copy is a **MISS** even
+when the declaration is current. Update the local install to
+`@gripsack/core@^0.38.0`, or remove the shadowing copy to use the embedded
+frontend. With no local install, an old declaration remains a warning.
+
+File permission policy needs no setting. Copies/templates follow payload
+executability, track content plus full mode, and preserve user chmod drift;
+merge markers track their host's mode. See [ownership modes](modules.md#ownership-modes).
+
 ## Build-time environment
 
 ```toml

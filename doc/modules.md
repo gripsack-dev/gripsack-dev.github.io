@@ -78,8 +78,11 @@ export const zed = langServer("zed", "zed-industries/zed");</code></pre>
 
 `merge(to, marker?)` owns exactly one delimited block inside a
 file other tools also write — everything outside the markers is never
-touched. The block is regenerated wholesale on every apply (drift
-*inside* the markers self-heals), and prune removes only the block.
+touched. Content drift *inside* the markers self-heals on apply; prune removes
+only an intact block. The open marker records its content hash and the hosting
+file's permission mode (`sha=<16hex> mode=0644`). Chmod-only drift is preserved
+and warned, not silently accepted as intact or deleted during prune.
+Older markers acquire mode metadata on the next deployment.
 Sharing one physical destination between modules is rejected. The comment style
 is inferred from the destination (`.jsonc` → `//`, `.vimrc` → `"`,
 `.html` → `<!-- -->`, rc files and everything unknown → `#`);
@@ -92,11 +95,22 @@ are expressible). An undefined variable fails the apply loudly, never
 renders empty. Compute per-host values in the host entrypoint from
 `ctx.facts` — the core stays a dumb substituter.
 
-Takeover retains a private file's permissions. Later tracked-copy
-content updates preserve acquired access bits; a source executable-bit
-change updates executability without granting new read/write access.
-Templates preserve live permissions on apply. Rollback restores each
-recorded landed mode exactly, including same-content template restores.
+Fresh tracked copies and templates land at 0755 for an executable payload,
+otherwise 0644. Takeover retains the destination's full permissions. Later
+content updates preserve acquired access bits; source executable-bit changes
+update executability without granting new read/write access.
+
+Templates are whole-file outputs: their manifest records SHA-256 identity over
+the **rendered bytes and full permission mode**. No banner is injected into
+configs or scripts. Chmod is drift just like a content edit: visible in plan,
+preserved with a warning on apply/rollback, and guarded against prune even
+after repeated apply. Authorized rollback restores the recorded mode exactly.
+Old template receipts remain readable; both their bytes hash and separately
+recorded mode must match before they authorize a change.
+
+Merge preserves an existing host's mode; a newly created host uses 0644.
+`store-verify` reports active template/merge chmod drift separately from store
+corruption—`--repair` does not delete healthy artifacts because outputs drifted.
 
 ## Steps, resources and execution contracts
 
