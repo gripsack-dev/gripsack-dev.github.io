@@ -230,6 +230,20 @@ typo in a module.*
   manifest as the desired state. Plan/apply agreement is by
   construction, with a VM-level harness proving the lifting (560
   materialized cases, 0.31.0).
+- **Crash-recovery admission hardening** (plan/0045, 0.40.0): journal
+  entries carry tagged, versioned identities — a post-crash symlink can
+  no longer spell a removal intent or a file hash and get "recovered"
+  over; pre-0.40 entries fail closed into quarantine instead of being
+  guessed; torn run markers are rejected at parse; and `gc` refuses to
+  run while crash recovery is unfinished (a journaled prior blob can be
+  referenced by no manifest). Mutation authority is now a type:
+  `gc`/`rollback`/`store verify --repair` require a lifecycle session,
+  so the lock can't be skipped by library consumers.
+- **Editor-reachable embedded frontend** (0.40.0): the materialized
+  frontend ships its TypeScript source with a `src/`-pointing
+  `package.json` and a stable `$GRIPSACK_HOME/frontend/current`
+  symlink — IDE typechecking without an npm install. `grip doctor`
+  prints the wiring.
 
 ## Next
 
@@ -242,6 +256,19 @@ transaction items land. Model-first since 0032: new
 transaction-adjacent protocols get an exhaustive model before or
 with the implementation — the Rust harness driving shipped decision
 functions for string/path mechanics, TLA+ (TLC in CI) for protocols.)
+
+- **Verified decision kernels** (the hardening handoff's programme, in
+  ROI order — the guarantee ledger in
+  [`verification/guarantees.md`](https://github.com/gripsack-dev/gripsack/tree/main/verification/guarantees.md)
+  tracks status): first a Verus pilot proving the commit classifier
+  (`classify` is small, pure, and already drives the Rust explorers);
+  then a pure GC planner with a composition proof (deletion sets never
+  intersect recovery roots); then the ownership/lineage decisions
+  (`plan_copy`/`plan_link`, already pure and explorer-driven); then
+  structural op contracts so incoherent operations are
+  unrepresentable at the type level. Lean/Aeneas and TLAPS studies
+  come only after those land, for a named unbounded theorem.
+
 
 - **P2 — Opt-in, host-scoped gh credential integration** (0044 D1) —
   reuse an explicitly selected host credential, covering public GitHub and

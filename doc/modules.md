@@ -272,9 +272,19 @@ env, no network, no subprocesses, no filesystem outside the repo. A
 dependency that needs an effect fails loudly at eval; that effect
 belongs in a probe or a fetcher, not in a library.
 
-The repo's `package.json` is also the IDE story: `@gripsack/core` as a
+The repo's `package.json` is one IDE story: `@gripsack/core` as a
 devDependency gives editors autocomplete and inline errors on module
 code, and doubles as the deliberate pin (0013 D3 — the repo's install
 shadows the embedded frontend). `grip init` scaffolds all of it:
 `package.json` pinned to a compatible version, `tsconfig.json`,
 `.gitignore`, and a fresh `git init`.
+
+Since 0.40 there is a registry-free path too: the frontend the binary
+embeds materializes at `$GRIPSACK_HOME/frontend/ts-<version>/` with a
+stable `frontend/current` symlink, and its `package.json` resolves
+types straight from `src/`. Point your editor at it — symlink
+`node_modules/@gripsack/core` to `$GRIPSACK_HOME/frontend/current`, or
+add a tsconfig `paths` entry for `@gripsack/core` →
+`$GRIPSACK_HOME/frontend/current/src/index.ts` — with
+`npm i -D @types/node` and `noEmit` + `allowImportingTsExtensions` in
+your tsconfig. `grip doctor` prints the exact wiring for your machine.
