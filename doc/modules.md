@@ -83,6 +83,12 @@ only an intact block. The open marker records its content hash and the hosting
 file's permission mode (`sha=<16hex> mode=0644`). Chmod-only drift is preserved
 and warned, not silently accepted as intact or deleted during prune.
 Older markers acquire mode metadata on the next deployment.
+One lossless inspection feeds both reporting and rewriting. Complete duplicates
+are reconciled and edits in any duplicate are reported, but conflicting mode
+evidence blocks mutation regardless of order. Unmatched, nested or interleaved
+markers fail before mutation: text following an unmatched opener is not silently
+claimed as managed content. Foreign bytes, including trailing whitespace, remain
+outside the replacement ranges.
 Sharing one physical destination between modules is rejected. The comment style
 is inferred from the destination (`.jsonc` → `//`, `.vimrc` → `"`,
 `.html` → `<!-- -->`, rc files and everything unknown → `#`);
@@ -111,6 +117,11 @@ recorded mode must match before they authorize a change.
 Merge preserves an existing host's mode; a newly created host uses 0644.
 `store-verify` reports active template/merge chmod drift separately from store
 corruption—`--repair` does not delete healthy artifacts because outputs drifted.
+
+Payload keys and payload `verify` paths can use `{version}` for the raw locked
+tag or `{version.bare}` to remove one leading lowercase `v`. Asset matching's
+legacy fallback does not silently change path spelling. See
+[fetch placeholders and preflight](fetchers.md#placeholders).
 
 ## Steps, resources and execution contracts
 

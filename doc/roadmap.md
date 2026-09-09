@@ -6,6 +6,13 @@ typo in a module.*
 
 ## Shipped
 
+- **Complete surveys and safe source boundaries** ([plan 0044](https://github.com/gripsack-dev/gripsack/blob/main/plan/0044-survey-paths-and-transport-feedback.md),
+  core/SDK 0.39.0) — lossless merge inspection prevents unowned-tail deletion;
+  every block contributes mode evidence; `update --check` surveys through local
+  failures with distinct 0/1/2 exits; explicit `{version.bare}` and staged layout
+  checks; host-bound auth diagnostics and bounded HTTP retries with attempt
+  evidence. Four calibrated TLA+ models have real-code/CLI bridges.
+
 - **Complete pins and bounded execution** ([plan 0042](https://github.com/gripsack-dev/gripsack/blob/main/plan/0042-bounded-acquisition-and-complete-pins.md),
   core/TS 0.37.0) — update-time source acquisition and overlay pin completion,
   including Pixi; streaming verified archives and independent acquisition
@@ -236,6 +243,21 @@ transaction-adjacent protocols get an exhaustive model before or
 with the implementation — the Rust harness driving shipped decision
 functions for string/path mechanics, TLA+ (TLC in CI) for protocols.)
 
+- **P2 — Opt-in, host-scoped gh credential integration** (0044 D1) —
+  reuse an explicitly selected host credential, covering public GitHub and
+  multiple enterprise hosts without an ambient one-host workaround. No automatic
+  sweep of `hosts.yml`: gh normally uses an OS credential store. Revisit with a
+  concrete multi-host consumer and an opt-in contract for host allowlisting,
+  precedence, keychain/noninteractive operation, bounded execution and redaction.
+  A module's `base_url` alone must never authorize sending a token.
+- **P2 — Read-only evidence for recipe-produced layouts** (0044 D2) —
+  source-only staged preflight is adopted; build-produced paths cannot be proven
+  by looking at their source archives. Existing apply-time verification stays.
+  Matching cached build artifacts are already checked; only prediction of
+  unavailable recipe outputs is deferred.
+  Revisit when a producer can supply a trustworthy, versioned output inventory
+  without executing builds, hooks or verification programs during `--check`.
+  Until then, report deferred evidence instead of a guessed success.
 - **P2 — Signed update-channel manifest + install-time verification** —
   install.sh and `grip self-update` already verify the sha256
   sidecar; the next step is provenance verified *automatically* at

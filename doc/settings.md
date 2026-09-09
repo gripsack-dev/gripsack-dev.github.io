@@ -43,7 +43,7 @@ The repo's installed `node_modules/@gripsack/core` shadows the embedded
 frontend. `grip doctor` reads that installed package's version, not just the
 range declared in `package.json`: a stale installed copy is a **MISS** even
 when the declaration is current. Update the local install to
-`@gripsack/core@^0.38.0`, or remove the shadowing copy to use the embedded
+`@gripsack/core@^0.39.0`, or remove the shadowing copy to use the embedded
 frontend. With no local install, an old declaration remains a warning.
 
 File permission policy needs no setting. Copies/templates follow payload

@@ -102,7 +102,7 @@ grip apply [--host H] [MODULE...]   # fetch, build, deploy — one new generatio
 grip plan [--host H] [MODULE...]    # show what apply would change
 grip check                         # eval + sema + linters; exit code = validity
 grip update [MODULE]               # acquire sources and finalize pins without deployment
-grip update --check [MODULE]       # resolve in scratch; exit 1 if any pin would move
+grip update --check [MODULE]       # complete survey; 0 current, 1 changes, 2 incomplete/error
 grip rollback [N]                   # flip current back to generation N
 grip generations                    # list generations and their status
 grip gc                             # collect unreferenced store paths
@@ -121,10 +121,13 @@ Retained generations continue to protect their artifact roots. Build recipes
 and hooks are never executed by update.
 
 `update --check` performs resolution and acquisition in private scratch without
-publishing source-cache artifacts or writing the lockfile. Exit 0 means current;
-exit 1 means at least one pin would change (errors also fail). The command can
-use the network; normal eval/runtime provisioning and run-log bookkeeping still
-apply. It neither deploys nor runs recipes/hooks.
+publishing source-cache artifacts or writing the lockfile. It reports per-module
+failures without hiding the rest of the survey. Exit **0** means complete/current;
+**1** means complete with changes; **2** means incomplete or an operational error.
+The command can use the network; normal eval/runtime provisioning and run-log
+bookkeeping still apply. It neither deploys nor runs recipes/hooks/verifiers.
+Known source-only layout errors fail before publication; unavailable artifacts
+and recipe-produced paths are explicitly deferred.
 
 Self-update holds a per-executable lock and rechecks the installed version,
 so an older waiting updater cannot downgrade it. Publication checks mode,
