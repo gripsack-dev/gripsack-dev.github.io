@@ -287,4 +287,7 @@ types straight from `src/`. Point your editor at it — symlink
 add a tsconfig `paths` entry for `@gripsack/core` →
 `$GRIPSACK_HOME/frontend/current/src/index.ts` — with
 `npm i -D @types/node` and `noEmit` + `allowImportingTsExtensions` in
-your tsconfig. `grip doctor` prints the exact wiring for your machine.
+your tsconfig. Eval keeps working either way: a symlinked pin escapes
+Deno's node_modules type-stripping ban by realpath, and an
+npm-installed pin executes the package's compiled `dist/` entry.
+`grip doctor` prints the exact wiring for your machine.

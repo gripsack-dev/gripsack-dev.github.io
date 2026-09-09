@@ -240,10 +240,13 @@ typo in a module.*
   `gc`/`rollback`/`store verify --repair` require a lifecycle session,
   so the lock can't be skipped by library consumers.
 - **Editor-reachable embedded frontend** (0.40.0): the materialized
-  frontend ships its TypeScript source with a `src/`-pointing
-  `package.json` and a stable `$GRIPSACK_HOME/frontend/current`
-  symlink — IDE typechecking without an npm install. `grip doctor`
-  prints the wiring.
+  frontend resolves types straight from its TypeScript source
+  (`package.json` `types` → `src/index.ts`) behind a stable
+  `$GRIPSACK_HOME/frontend/current` symlink — IDE typechecking without
+  an npm install. The npm package keeps a compiled `dist/` runtime
+  entry because Deno never type-strips under a real `node_modules`;
+  the pin shim falls back to the source entry for symlinked trees.
+  `grip doctor` prints the wiring.
 
 ## Next
 

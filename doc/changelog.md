@@ -35,13 +35,16 @@ Recovery admission hardening and editor-reachable frontends (0045).
 
 - **The embedded frontend is editor-reachable.** The npm package and
   the materialized `$GRIPSACK_HOME/frontend/ts-<version>/` tree now
-  ship TypeScript source with `types`/`exports` pointing at
-  `src/index.ts` (no phantom `dist/`), and materialization flips a
-  stable `$GRIPSACK_HOME/frontend/current` symlink. Point an editor at
-  it — symlink `node_modules/@gripsack/core` → `frontend/current` or a
+  resolve types straight from `src/index.ts` — no phantom `dist/` in
+  `types` — and materialization flips a stable
+  `$GRIPSACK_HOME/frontend/current` symlink. Point an editor at it —
+  symlink `node_modules/@gripsack/core` → `frontend/current` or a
   tsconfig `paths` entry — with `npm i -D @types/node` and
   `noEmit` + `allowImportingTsExtensions` in tsconfig. `grip doctor`
-  prints the exact wiring.
+  prints the exact wiring. The package keeps shipping compiled
+  `dist/` as the runtime entry: Deno never type-strips under a real
+  (non-symlinked) `node_modules`, so the deliberate pin executes the
+  compiled form while editors read the source.
 - **Mutation authority is a type.** `LifecycleSession` owns the
   lifecycle lock and the home it covers; `gc`, `rollback` and
   `store verify --repair` cannot run without one — the lock is no
