@@ -248,8 +248,8 @@ typo in a module.*
 ## Next
 
 Order is priority: reliability of the core loop first, ecosystems
-last. The first block is the review-round backlog — items three
-external audits proposed and the project accepted but deliberately
+last. The first block is the active verification programme; then
+the review-round backlog — items three external audits proposed and the project accepted but deliberately
 deferred, each with its plan reference and trigger. (0025's breadth
 freeze stands: nothing new in the ecosystem block until the
 transaction items land. Model-first since 0032: new
