@@ -4,7 +4,14 @@ What gripsack guarantees, precisely — separated by surface, because
 "safe" is not one property. Everything on this page is enforced by
 test: the transaction invariants are also machine-checked (the
 journal protocol as an exhaustive state-machine model plus a
-TLC-checked TLA+ spec — [plan 0028](https://github.com/gripsack-dev/gripsack/tree/main/plan/0028-machine-checked-model.md)).
+TLC-checked TLA+ spec — [plan 0028](https://github.com/gripsack-dev/gripsack/tree/main/plan/0028-machine-checked-model.md)),
+and the decision kernels they lean on — commit classification,
+ownership authority, GC retention, the merge splice, build closures,
+and the scheduler's readiness/release/latch decisions — are proved by
+Verus, one implementation serving production and the verifier. The
+per-guarantee ledger with admission boundaries, trusted components
+and calibrations:
+[`verification/guarantees.md`](https://github.com/gripsack-dev/gripsack/tree/main/verification/guarantees.md).
 
 If anything on this page ever disagrees with the binary in your hand,
 that is a release-blocking bug — please file it.

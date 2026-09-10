@@ -262,6 +262,18 @@ typo in a module.*
   carry their authority in the variant; a preview marker reaching
   execution is a classified error, never a panic.
 
+- **Verified merge, build-closure and scheduler foundations** (plan/0047, 0.42.0):
+  the managed-block splice keeps every foreign byte verbatim and in
+  order (spec-mirror contract over real bytes); the build closure is
+  exactly the build-reachable set, sound and complete over cycles; and
+  the scheduler's decisions — readiness, dependent release, the failure
+  latch — are the proved `PureScheduler` transition system that
+  production `run_all` now drives directly. The threads and the
+  mutex/condvar bridge stay tested, never claimed verified. Calibration
+  grows to four seeded mutants, one per kernel family;
+  `MERGE-SPLICE-001`, `GRAPH-CLOSURE-001` and `SCHEDULER-001` are
+  **checked** in the guarantee ledger.
+
 ## Next
 
 Order is priority: reliability of the core loop first, ecosystems
@@ -310,6 +322,20 @@ functions for string/path mechanics, TLA+ (TLC in CI) for protocols.)
   `renameatx_np` give the mutation step atomic compare-and-swap where
   the platform allows it; the precondition-at-mutation holds
   meanwhile.
+- **Merge parser range invariants (Layer 2)** (0047 §4) — prove the
+  marker scanner's output satisfies the splice kernel's admission
+  (sorted, non-overlapping, in-bounds ranges) for all inputs, malformed
+  markers included. Time-boxed in 0047 and deferred with the bound
+  recorded in `MERGE-SPLICE-001`; small scope, completes the merge
+  contract boundary.
+- **HTTP retry-budget kernel** (0046's kernel list) — the bounded
+  retry/cooldown policy as a proved pure kernel: attempt counts,
+  cooldown respect and deadline accounting as contracts. The smallest
+  remaining kernel on the list.
+- **TLAPS: unbounded transaction safety** (0047 tooling decision) —
+  an inductive safety proof over the EXISTING `specs/Transaction.tla`,
+  upgrading the bounded TLC evidence to unbounded. No new model;
+  liveness stays TLC's.
 - **Cross-module merge aggregation** (0030 H6) — several modules'
   blocks in ONE file as a single whole-file transition; E111/E119
   reject sharing until then.
