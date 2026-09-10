@@ -248,30 +248,30 @@ typo in a module.*
   the pin shim falls back to the source entry for symlinked trees.
   `grip doctor` prints the wiring.
 
+- **Verified decision kernels** (plan/0046, 0.41.0): the recovery
+  commit classifier, the copy/link ownership decisions, and GC
+  retention planning are proved by Verus against contracts derived
+  from the authority rules — one implementation serves production,
+  the Rust explorers, and the verifier (`docker compose run --build
+  --rm verify`, in the required CI gate, mutation-calibrated). Plain
+  cargo and the musl release build the same source with specs erased.
+  The guarantee ledger tracks status:
+  [`verification/guarantees.md`](https://github.com/gripsack-dev/gripsack/tree/main/verification/guarantees.md).
+- **Structural operation contracts** (0.41.0): ops are constructible
+  only through the planner's coherence-checked constructor; removals
+  carry their authority in the variant; a preview marker reaching
+  execution is a classified error, never a panic.
+
 ## Next
 
 Order is priority: reliability of the core loop first, ecosystems
-last. The first block is the active verification programme; then
-the review-round backlog — items three external audits proposed and the project accepted but deliberately
+last. The first block is the review-round backlog — items three external audits proposed and the project accepted but deliberately
 deferred, each with its plan reference and trigger. (0025's breadth
 freeze stands: nothing new in the ecosystem block until the
 transaction items land. Model-first since 0032: new
 transaction-adjacent protocols get an exhaustive model before or
 with the implementation — the Rust harness driving shipped decision
 functions for string/path mechanics, TLA+ (TLC in CI) for protocols.)
-
-- **Verified decision kernels** (the hardening handoff's programme, in
-  ROI order — the guarantee ledger in
-  [`verification/guarantees.md`](https://github.com/gripsack-dev/gripsack/tree/main/verification/guarantees.md)
-  tracks status): first a Verus pilot proving the commit classifier
-  (`classify` is small, pure, and already drives the Rust explorers);
-  then a pure GC planner with a composition proof (deletion sets never
-  intersect recovery roots); then the ownership/lineage decisions
-  (`plan_copy`/`plan_link`, already pure and explorer-driven); then
-  structural op contracts so incoherent operations are
-  unrepresentable at the type level. Lean/Aeneas and TLAPS studies
-  come only after those land, for a named unbounded theorem.
-
 
 - **P2 — Opt-in, host-scoped gh credential integration** (0044 D1) —
   reuse an explicitly selected host credential, covering public GitHub and
