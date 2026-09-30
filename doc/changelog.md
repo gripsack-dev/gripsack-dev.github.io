@@ -3,6 +3,36 @@
 User-visible changes per release. Design archaeology lives in
 `plan/`; this file is for "what's new for me".
 
+## [0.43.0] — 2026-09-29
+
+Evaluation now runs only approved bytes, enforced by the kernel on Linux:
+
+- **Kernel-confined evaluation (Linux).** Every evaluator launch and its
+  descendants run inside a Landlock filesystem boundary covering exactly the
+  approved captured source roots, the current round's input directory, the
+  evaluator's private cache/scratch (TMPDIR is redirected there), the
+  selected runtime's load roots and the operator's PATH executable space.
+  Reads and writes anywhere else are denied by the kernel — including the
+  ambient-ancestor `node_modules` loads stock Deno performs outside its own
+  permission flags. `EXECUTE` is granted only at the root: running a binary
+  never widens the read/write boundary. Captured local npm packages and
+  wrapper runtimes (sh, `/usr/bin/env`, python virtualenvs) keep working.
+- **macOS:** no kernel evaluator confinement exists yet. Evaluation fails
+  closed by default; set `GRIPSACK_EVAL_UNCONFINED=1` (operator-level,
+  loudly logged) to acknowledge the gap and run unconfined until the
+  seatbelt boundary ships.
+- Source approval binds canonical repository identity, copied source bytes and
+  runtime/grant policy. Ignored/untracked files, dirty submodules and explicit
+  SDK pins are captured; every evaluation round uses that same read-only bundle.
+- Non-interactive approval requires the expected bundle and policy digests from
+  `trust inspect --json`. Legacy path-only approvals require renewal;
+  `GRIPSACK_TRUST_ALL=1` is rejected rather than granting ambient CI authority.
+- Private evaluation receipts expose source/input/process identities without
+  raw source, output or environment values. Frontend completion does not imply
+  subsequent deployment success.
+- `adopt --resume` continues an approved generated module without rewriting it;
+  `--yes` does not waive source approval and takeover remains target-scoped.
+
 ## [0.42.0] — 2026-09-10
 
 Verified merge, build-closure and scheduling foundations (0047): the

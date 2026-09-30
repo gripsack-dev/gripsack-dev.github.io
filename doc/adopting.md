@@ -9,8 +9,8 @@ A config-only repo needs nothing but `grip` itself: the frontend
 source rides inside the binary, and the only provisioning is the eval
 runtime — the first `grip check`/`apply` downloads a pinned,
 sha256-verified Deno once (~40MB, cached). And before a repo's code
-runs at all, grip asks once: an unfamiliar repo gets a trust prompt
-naming exactly what the sandbox allows. `y`, and you're in business.
+runs, grip asks you to approve its captured bytes and policy. Edits can require
+renewed approval; `y` approves the displayed snapshot, not future worktree bytes.
 
 
 ```bash
@@ -37,8 +37,8 @@ you* the ownership question with the semantics laid out — it never
 guesses, because only you know whether the app writes its own config.
 The safe default is `tracked_copy` (wrong guesses are free there;
 `owned` is the informed opt-in). Then it generates the payload +
-module + host entry, shows the plan, and touches nothing until you
-confirm:
+module + host entry. Those new bytes need their own approval before evaluation,
+preview and apply. Only after confirmation does it change managed destinations:
 
 <div class="window">
   <div class="titlebar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="wtitle">adoption is one command — and fully reversible</span></div>
@@ -46,6 +46,7 @@ confirm:
 adopting ~/.config/helix — 2 files, 1.1 kB
   ownership: owned — helix doesn't rewrite its config
   wrote configs/helix/ · modules/helix.ts · hosts/laptop.ts
+  approve the displayed generated-source digest and policy? [y/N] y
   prior state will be recorded — rollback restores your original files
 apply? [y/N] y
 applied — generation 1 active
@@ -61,6 +62,21 @@ the module later — restores the original files, bytes and permission
 bits, drift-guarded: edits you make after adopting are yours, and a
 rollback keeps them. On a fresh machine adopt first records an empty
 **generation 0**, so there's always something to roll back to.
+
+`--yes` skips apply confirmation, never source approval. In a non-interactive
+workflow, the first command can leave generated repository files without
+activating anything. Inspect and approve that new snapshot, then continue:
+
+```sh
+grip trust inspect --json
+# Review the inventory and policy, then use their exact fingerprints:
+grip trust add --bundle <digest> --policy <digest>
+grip adopt ~/.config/helix --resume --yes
+```
+
+Omit `--mode` on resume: the approved module already declares it. Resume does
+not regenerate or overwrite repository files, and rejects destinations outside
+the requested target. Preview and apply consume the same evaluated snapshot.
 
 ## The safety net under all of it
 

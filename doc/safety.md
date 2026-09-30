@@ -80,6 +80,52 @@ unreadable blocks every mutating command. Corrupt journal entries
 quarantine into `journal/quarantine/` and block mutation until
 inspected — recovery metadata is never silently discarded.
 
+
+## Source approval and evaluation
+
+Approval binds **canonical repository identity + captured source digest +
+evaluation policy**, including the selected runtime's byte identity and declared
+native-action configuration. Git HEAD and sanitized remote metadata are audit
+fields, not authority. Dirty work is allowed after approving the copied bytes;
+changing branch names alone does not grant or revoke identical source.
+
+The core copies the complete admitted read set before approval: repository
+files, including ignored/untracked imports, dirty submodules, configuration and
+explicit SDK pins. In-root aliases resolve inside that captured set. Escapes,
+cycles, special objects, unreadable source and exhausted capture budgets fail
+closed. Git control metadata and the selected runtime-state subtree are
+excluded and unavailable to evaluation. Other outside dependency directories
+are not granted merely because a symlink names them.
+
+Every probe round reads the same private, read-only bundle and one separately
+hashed immutable host-input file. The live repository is not a read grant;
+remote/package fetching and ambient Deno configuration are disabled. Native
+overlays materialize the resolved captured objects. A lockfile written inside
+the repository changes its next captured read set and may require reapproval.
+
+This is **not** an atomic multi-file snapshot of a concurrently edited
+worktree, a proof of source intent, or a sandbox for native plugins. The digest
+identifies the bytes actually copied. Deno, the core and the selected runtime
+storage remain trusted; privileged or arbitrary same-UID modification of that
+storage is outside this guarantee. Native process-group supervision is not
+complete descendant confinement.
+
+### Migrating trust and CI
+
+Old path-only entries remain inspectable but cannot authorize execution.
+`GRIPSACK_TRUST_ALL=1` now fails; unset it. Review
+`grip trust inspect --json`, then pass the expected `--bundle` and `--policy`
+digests to `grip trust add`. An intervening source/policy change fails rather
+than silently authorizing the new bytes. Interactive approval shows both
+identities. Neither `CI=true` nor a runner or checkout name grants trust.
+
+Private versioned receipts under `$GRIPSACK_HOME/evaluations` record source,
+policy, runtime, sanitized provenance, input digests and process outcomes.
+`grip trust inspect --receipt ID --json` reads them without evaluating source.
+They contain no raw source/output or environment values. `completed` means
+frontend evaluation succeeded, **not** that later validation, build, deployment
+or activation succeeded.
+
 ## Plugin and tool trust
 
 `gripfetch-*` plugins and provisioned tools (deno, pixi) are **trusted
