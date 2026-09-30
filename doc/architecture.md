@@ -45,13 +45,17 @@ The frontend *source* is embedded in the `grip` binary — the DSL
 version always matches the core — so only the runtime provisions: the
 first eval downloads the pinned Deno once (per-platform sha256 baked
 into grip, ~40MB, cached under `$GRIPSACK_HOME/tools/`;
-`GRIPSACK_DENO` overrides). And eval never runs unasked: the first
-eval of a repo grip doesn't trust prompts first — naming the path,
-the remote, and exactly what the sandbox allows — and `y` records it
-(`grip trust list/add/remove`; `GRIPSACK_TRUST_ALL=1` is the CI
-bypass). Same repo + same lockfile + same declared host now means the
-same graph, because nothing observable is left to the frontend's
-environment.
+`GRIPSACK_DENO` overrides). Before repository code runs, the core copies its
+admitted read set and binds approval to that source digest, repository identity
+and actual runtime/grant policy. `grip trust inspect|add|list|remove` exposes
+those records; source or grant changes require renewed approval.
+`GRIPSACK_TRUST_ALL=1` is no longer a bypass.
+
+All fixpoint rounds use the same captured bundle with separate immutable
+core-generated input files. Git provenance does not establish which bytes were
+evaluated, and source approval does not freeze volatile host facts or make
+native build effects hermetic. [Safety](safety.md#source-approval-and-evaluation)
+states the trusted-host assumptions and migration procedure.
 
 ## Modules and sources
 

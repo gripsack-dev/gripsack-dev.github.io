@@ -88,7 +88,8 @@ Exceeding a limit is an error, never silent truncation or partial publication.
 | `GRIPSACK_HOME` | base directory for store, generations, and the `current` symlink (default: `$XDG_DATA_HOME/gripsack` or `~/.local/share/gripsack`) |
 | `GRIPSACK_BIN` | path to the `grip` binary (used by the e2e harness) |
 | `GRIPSACK_DENO` | bring-your-own eval runtime: a deno binary — wins over a deno on `PATH` and the pinned provisioned download |
-| `GRIPSACK_TRUST_ALL` | `=1` skips the repo trust prompt before eval — the CI escape hatch |
+| `GRIPSACK_TRUST_ALL` | retired: `=1` fails with migration guidance; use reviewed source/policy digests with `grip trust add` instead |
+| `GRIPSACK_EVAL_UNCONFINED` | macOS only, and temporary: no kernel evaluator confinement exists there yet, so evaluation fails closed by default; `=1` acknowledges the gap and runs unconfined (loudly logged). Linux needs no such flag — Landlock confines every launch |
 | `SSL_CERT_FILE` | the corporate CA bundle — grip's rustls-based fetching honors it and the tools grip spawns inherit it, so TLS-intercepting proxies verify; set it before invoking grip |
 | `HTTPS_PROXY` / `NO_PROXY` | corporate proxy support; the system CA roots are trusted |
 | `XDG_DATA_HOME` | honored for the default `GRIPSACK_HOME` |

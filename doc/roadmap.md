@@ -110,12 +110,13 @@ typo in a module.*
 - **Constrained evaluation** ([plan 0013](https://github.com/gripsack-dev/gripsack/tree/main/plan/0013-constrained-evaluation.md)) —
   one frontend: TypeScript under a pinned, hash-verified Deno with
   deny-by-default capabilities (no env, no network, no subprocesses,
-  read-only within the repo). Facts are injected by the core, not
+  read-only within captured source roots). Facts are injected by the core, not
   self-detected; host effects are declared probes the core binds in a
   two-stage eval, shown in `grip plan`'s host-inputs header. Host
   entrypoints are `defineEnv` functions — modules are pure values.
-  The first eval of an unfamiliar repo is an explicit trust decision
-  (`grip trust`, `GRIPSACK_TRUST_ALL` for CI). The Python frontend,
+  Source approval now binds the copied bundle and runtime/grant policy;
+  `grip trust inspect` exposes it and CI passes explicit expected digests.
+  The old blanket trust variable no longer authorizes source. The Python frontend,
   bun, and uv are retired; the parity corpus became a golden IR
   snapshot corpus.
 - **Content-addressed store identity** ([plan 0014](https://github.com/gripsack-dev/gripsack/tree/main/plan/0014-content-addressed-fetches.md)) —
