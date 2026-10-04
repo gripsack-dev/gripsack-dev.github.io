@@ -59,7 +59,9 @@
   <p class="alt">already installed?
     <span data-pane="curl"><code>grip self-update</code></span><span data-pane="brew" hidden><code>brew upgrade --cask gripsack</code></span><span data-pane="cargo" hidden><code>cargo install gripsack</code></span><span data-pane="mise" hidden><code>mise up gripsack</code></span>
     · <a href="./docs/changelog.html">what's new</a></p>
-  <p class="alt">verify a tarball: <code>gh attestation verify gripsack-*.tar.gz -R gripsack-dev/gripsack</code> · audit the binary's embedded dependency tree: <code>cargo audit bin "$(which grip)"</code></p>
+  <p class="alt">check archive integrity: <code>sha256sum -c gripsack-*.tar.gz.sha256</code> · audit embedded dependencies: <code>cargo audit bin "$(which grip)"</code><br>
+    0.44.1 is a local Linux x86_64 release with no hosted build attestation.
+    <a href="https://github.com/gripsack-dev/gripsack/releases/tag/core-v0.44.1">Scope and verification evidence</a>; checksums do not replace provenance.</p>
   </div>
   <div class="cta">
     <a class="primary" href="https://github.com/gripsack-dev/gripsack">GitHub ↗</a>
