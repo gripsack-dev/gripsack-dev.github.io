@@ -372,16 +372,22 @@ rolled back to generation 0
         <a href="https://github.com/gripsack-dev/gripsack/releases">release binaries</a> ·
         the frontend is embedded in the binary — grip provisions its pinned,
         hash-verified Deno runtime automatically on first eval;
-        <code>npm i @gripsack/core</code> only to pin your own copy.<br>
+        install <code>@gripsack/core</code> only to deliberately pin a copy
+        matching your installed core version.<br>
         then: <code>grip init my-env</code> to start fresh, or
         <code>grip apply --repo git@github.com:you/myenv</code> and you're home.
       </p>
     </div>
     <div>
       <h3 class="osub">follow along</h3>
-      <p class="alt">shipped so far: fetchers for github releases, brew bottles, git, tarballs,
-      pixi — plus plugin fetchers over NDJSON, generations with rollback, and ownership
-      modes that never clobber. latest: constrained eval — the frontend runs sandboxed
+      <p class="alt">shipped so far: fetchers for github releases, brew bottles, git and tarballs;
+      workspace packages add coherent Conda environments and captured Pixi locks.
+      Linux recipes and images run through BuildKit; acquisition, the store, GC and
+      activation stay native. The Mac VM worker and full coherent Mac Conda runtime
+      remain unqualified. The 0.44.1 prebuilt core is Linux x86_64 first; the installer
+      keeps other platforms on their last available core. There are also plugin fetchers
+      over NDJSON, generations
+      with rollback, and ownership modes that never clobber. The frontend runs sandboxed
       under a pinned, hash-verified deno (no env vars, no network, no subprocesses),
       facts and probes arrive injected via ctx, and the first eval of an unfamiliar
       repo is an explicit trust decision. <code>grip self-update</code> — the

@@ -67,6 +67,6 @@
 
   <!-- in-tree strip -->
   <rect x="24" y="312" width="912" height="44" rx="10" fill="#1e1e2e" stroke="#585b70" stroke-width="1.5"/>
-  <text x="480" y="331" text-anchor="middle" font-size="11" font-weight="bold" fill="#cdd6f4">in-tree fetchers — <tspan font-weight="normal" fill="#a6adc8">file · tarball · git · github_release · brew · pixi</tspan></text>
+  <text x="480" y="331" text-anchor="middle" font-size="11" font-weight="bold" fill="#cdd6f4">in-tree fetchers — <tspan font-weight="normal" fill="#a6adc8">file · tarball · git · github_release · brew</tspan></text>
   <text x="480" y="347" text-anchor="middle" font-size="9.5" fill="#6c7086">the bespoke long tail — internal registries, mTLS, credentialed dances — is gripfetch-* territory</text>
 </svg>

@@ -15,7 +15,6 @@ verifies).
 | `git(url, rev?)` | live | shallow-fetched and pinned to the resolved commit. No rev follows the default branch at update; a named branch/tag is also frozen to its resolved commit for apply. An explicit commit ID remains fixed |
 | `githubRelease({ repo, asset, version?, base_url? })` | live | resolved release and verified asset hash, locked; `version` pins the tag. `base_url` accepts a bare GHE base URL (`/api/v3` is appended). Private/GHE assets use the API endpoint when a token is explicitly bound to its host; see authentication below |
 | `brew(...)` (bottles) | live | update resolves the current stable formula and pins its bottle URL, version and digest. A declared version is a tripwire against that resolution, not a range. Cold apply reuses the locked bottle without asking for today's stable version. Raw bottle layout remains: install paths look like `jq/{version}/bin/jq` |
-| `pixi(...)` (conda) | live | the installed primary-package version and the core-harvested payload tree are pinned together; conda bookkeeping is excluded. Update re-resolves; cold apply requests the pinned version and checks the same tree domain. Payloads may embed the machine's fixed private `PIXI_HOME`, so lockfiles remain per-host. Pixi inherits the artifact environment for proxy/CA configuration |
 
 `mise` is deliberately not a fetcher: its backends are mostly GitHub
 releases, which `github_release` already covers.
@@ -23,6 +22,30 @@ releases, which `github_release` already covers.
 A gzipped *single file* (`.gz` that isn't a tar) stages decompressed as
 one executable, named for the asset minus the suffix — alongside
 `.tar.gz`/`.tar.xz`/`.zip` archives and bare uncompressed binaries.
+
+## Coherent Conda and Pixi environments
+
+Since 0.44, workspace package providers use `conda.environment(...)` to solve a
+coherent environment, or `pixi.fromLock(...)` to import a selected environment
+from an explicitly captured Pixi manifest and lock. These are workspace sources,
+not single-package fetchers. The old callable `pixi(...)` SDK constructor is
+removed; retained legacy IR keeps its original meaning.
+
+The lock binds the complete selected closure, channel/platform policy and
+original archive URLs and digests. A cold frozen build acquires those exact
+archives without solving again. Native prefixes and image prefixes are
+materialized independently from the same locked records.
+
+See [workspace production](https://github.com/gripsack-dev/gripsack/blob/core-v0.44.1/README.md#workspace-production)
+and the [coherent environment example](https://github.com/gripsack-dev/example-env-typescript/tree/main/workspaces/conda).
+The BuildKit production backend and coherent Conda runtime are Linux-qualified.
+The Mac VM worker and full coherent Mac Conda journey remain unqualified; this
+does not remove ordinary native Mac core/file-profile support.
+
+The 0.44.1 prebuilt core is Linux x86_64 first. The installer selects the newest
+complete published artifact pair for its actual platform, so other targets keep
+their last available core. Keep that core's compatible SDK; a newer npm package
+does not upgrade the binary or qualify the deferred Mac runtime.
 
 ## Complete source pins
 
