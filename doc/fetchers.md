@@ -36,7 +36,7 @@ original archive URLs and digests. A cold frozen build acquires those exact
 archives without solving again. Native prefixes and image prefixes are
 materialized independently from the same locked records.
 
-See [workspace production](https://github.com/gripsack-dev/gripsack/blob/core-v0.44.0/README.md#workspace-production)
+See [workspace production](https://github.com/gripsack-dev/gripsack/blob/core-v0.44.1/README.md#workspace-production)
 and the [coherent environment example](https://github.com/gripsack-dev/example-env-typescript/tree/main/workspaces/conda).
 The BuildKit production backend and coherent Conda runtime are Linux-qualified.
 The Mac VM worker and full coherent Mac Conda journey remain unqualified; this
