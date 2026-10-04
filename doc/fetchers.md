@@ -42,6 +42,11 @@ The BuildKit production backend and coherent Conda runtime are Linux-qualified.
 The Mac VM worker and full coherent Mac Conda journey remain unqualified; this
 does not remove ordinary native Mac core/file-profile support.
 
+The 0.44.1 prebuilt core is Linux x86_64 first. The installer selects the newest
+complete published artifact pair for its actual platform, so other targets keep
+their last available core. Keep that core's compatible SDK; a newer npm package
+does not upgrade the binary or qualify the deferred Mac runtime.
+
 ## Complete source pins
 
 Since 0.37.0, `grip update` acquires and verifies sources, captures the selected

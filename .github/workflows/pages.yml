@@ -5,6 +5,11 @@ name: pages
 # repo is all it takes to update the site.
 on:
   workflow_dispatch:
+    inputs:
+      runner_label:
+        description: "Authorized runner label (use a unique ephemeral label for local publication)"
+        type: string
+        default: ubuntu-latest
   # The app repo's demo/release workflows ping us to redeploy (fresh
   # demo GIF + version chip) — needs SITE_REPO_TOKEN on their side.
   repository_dispatch:
@@ -32,7 +37,7 @@ jobs:
     # deliberately versioned published artifacts: the released grip
     # binary, the published npm package, and the tagged driver tree.
     # Bump GRIPSACK_VERSION deliberately with the docs' target release.
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.runner_label || 'ubuntu-latest' }}
     env:
       GRIPSACK_VERSION: 0.44.1
     steps:
@@ -74,7 +79,7 @@ jobs:
 
   deploy:
     needs: [check-examples]
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.runner_label || 'ubuntu-latest' }}
     environment:
       name: github-pages
       url: ${{ steps.deploy.outputs.page_url }}
