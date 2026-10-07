@@ -79,23 +79,28 @@ Semantics:
 - Evaluator runtime grants never overlap the repository or its
   exclusions, checked at approval and again at launch against the
   paths' original spelling before canonicalization.
-<!-- UNRESOLVED: the exact-file runtime read authority was still
-     landing (unverified) at documentation time — keep unpublished
-     until the confinement change's completion report. Landing shape
-     per its owner: native evaluators get exact file reads for the
-     selected executable, loader/ldd-derived libraries and
-     /etc/ld.so.cache (no recursive executable-parent, PATH, or
-     blanket tools grants); script wrappers get the exact selected
-     wrapper/interpreter/real-Deno files; selected Python
+<!-- UNRESOLVED (parent-gate-pending, keep unpublished until the
+     completion report clears): (a) exact-file runtime read
+     authority, landed at source level per its owner: native
+     evaluators get exact file reads for the selected executable,
+     loader/ldd-derived libraries and /etc/ld.so.cache (no recursive
+     executable-parent, PATH, or blanket tools grants); script
+     wrappers get the exact selected wrapper/interpreter/real-Deno
+     files; Python discovery runs `python -I` in a fresh empty
+     non-repository TempDir via bounded retained-image execution,
+     preserving the original interpreter/venv argv0; selected Python
      stdlib/purelib directories remain explicit
      interpreter-installation data with no sys.prefix-wide grant
      (pyvenv.cfg exact); grants are source-disjoint in original
-     spelling and rechecked at launch; resolved
-     wrapper/interpreter/engine executable digests plus exact paths
-     bind the existing native_configuration_sha256, so interpreter
-     upgrades/PATH-swaps require reapproval. Verify against shipped
-     0.45.0 behavior, then replace this comment with the real
-     bullet. -->
+     spelling and rechecked at launch; native/interpreter/engine
+     executable digests AND exact file/directory grants bind
+     native_configuration_sha256 (interpreter upgrades/PATH-swaps
+     require reapproval), and inspect JSON v2 exposes runtime_access.
+     (b) protected capture paths reportedly also include gripsack.lock
+     and all of locks/** (ASCII case variants refused) — the bullet
+     above lists the earlier verified set and stays non-exhaustive;
+     fold both in once the parent's gates pass. Replace this comment
+     with real bullets at that point. -->
 - This is repository-source selection, not a prohibition on
   explicitly declared native host effects.
 - `env.toml` itself must be a regular non-symlink file of at most
