@@ -79,11 +79,23 @@ Semantics:
 - Evaluator runtime grants never overlap the repository or its
   exclusions, checked at approval and again at launch against the
   paths' original spelling before canonicalization.
-<!-- UNRESOLVED: the final shape of the exact-file runtime read
-     authority (selected executable, interpreter, measured
-     dependencies — versus whole directories) was still in flight at
-     documentation time; verify against the shipped 0.45.0 behavior
-     before publishing that detail here. -->
+<!-- UNRESOLVED: the exact-file runtime read authority was still
+     landing (unverified) at documentation time — keep unpublished
+     until the confinement change's completion report. Landing shape
+     per its owner: native evaluators get exact file reads for the
+     selected executable, loader/ldd-derived libraries and
+     /etc/ld.so.cache (no recursive executable-parent, PATH, or
+     blanket tools grants); script wrappers get the exact selected
+     wrapper/interpreter/real-Deno files; selected Python
+     stdlib/purelib directories remain explicit
+     interpreter-installation data with no sys.prefix-wide grant
+     (pyvenv.cfg exact); grants are source-disjoint in original
+     spelling and rechecked at launch; resolved
+     wrapper/interpreter/engine executable digests plus exact paths
+     bind the existing native_configuration_sha256, so interpreter
+     upgrades/PATH-swaps require reapproval. Verify against shipped
+     0.45.0 behavior, then replace this comment with the real
+     bullet. -->
 - This is repository-source selection, not a prohibition on
   explicitly declared native host effects.
 - `env.toml` itself must be a regular non-symlink file of at most
