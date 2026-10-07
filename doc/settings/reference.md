@@ -57,7 +57,8 @@ Semantics:
   names**, case-sensitive. No globs, no `~`, no `..` traversal, no
   absolute paths, no backslashes, no control characters; duplicates
   and overlapping entries are refused.
-- `env.toml`, `gripsack.ts` and `hosts/**` cannot be excluded.
+- `env.toml`, `gripsack.ts`, `hosts/**`, `gripsack.lock` and
+  `locks/**` cannot be excluded (case-variant spellings are refused).
 - An exclusion's ancestors must be real directories: with a
   symlinked `node_modules` alias, exclude `node_modules` itself or
   use a real parent — not a descendant rule through the alias.
@@ -79,28 +80,19 @@ Semantics:
 - Evaluator runtime grants never overlap the repository or its
   exclusions, checked at approval and again at launch against the
   paths' original spelling before canonicalization.
-<!-- UNRESOLVED (parent-gate-pending, keep unpublished until the
-     completion report clears): (a) exact-file runtime read
-     authority, landed at source level per its owner: native
-     evaluators get exact file reads for the selected executable,
-     loader/ldd-derived libraries and /etc/ld.so.cache (no recursive
-     executable-parent, PATH, or blanket tools grants); script
-     wrappers get the exact selected wrapper/interpreter/real-Deno
-     files; Python discovery runs `python -I` in a fresh empty
-     non-repository TempDir via bounded retained-image execution,
-     preserving the original interpreter/venv argv0; selected Python
-     stdlib/purelib directories remain explicit
-     interpreter-installation data with no sys.prefix-wide grant
-     (pyvenv.cfg exact); grants are source-disjoint in original
-     spelling and rechecked at launch; native/interpreter/engine
-     executable digests AND exact file/directory grants bind
-     native_configuration_sha256 (interpreter upgrades/PATH-swaps
-     require reapproval), and inspect JSON v2 exposes runtime_access.
-     (b) protected capture paths reportedly also include gripsack.lock
-     and all of locks/** (ASCII case variants refused) — the bullet
-     above lists the earlier verified set and stays non-exhaustive;
-     fold both in once the parent's gates pass. Replace this comment
-     with real bullets at that point. -->
+- Evaluator runtimes receive **exact-file read authority**, never
+  whole directories: for native evaluators, the selected executable,
+  its loader/ldd-derived libraries and `/etc/ld.so.cache`; for script
+  wrappers, the exact selected wrapper/interpreter/runtime files;
+  selected Python stdlib/purelib directories remain explicit
+  interpreter-installation data (`pyvenv.cfg` exact, no sys.prefix-wide
+  grant), discovered via `python -I` in a fresh empty non-repository
+  temp directory with the original interpreter/venv argv0 preserved.
+  Resolved native/interpreter/engine executable digests and the exact
+  file/directory grants bind `native_configuration_sha256` — an
+  interpreter upgrade or PATH swap requires renewed approval — and
+  `grip trust inspect` (JSON v2) exposes the resulting
+  `runtime_access`.
 - This is repository-source selection, not a prohibition on
   explicitly declared native host effects.
 - `env.toml` itself must be a regular non-symlink file of at most
