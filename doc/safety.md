@@ -91,6 +91,52 @@ sandboxed (no env, no network, no subprocesses) and sees no
 credentials; fetching necessarily can. The lockfile is the sole
 source of pinning; a tampered pin fails the hash check at apply.
 
+## Unattended approval
+
+Approval binds the **exact captured source bundle and policy** — the
+digests, not the directory. A fresh ephemeral machine has no TTY and
+no interactive history, and that is fine: the decision moves
+out-of-band, the machine only compares digests.
+
+The workflow:
+
+1. **Keep the reviewed source immutable** — a commit, or an archive
+   you reviewed and kept. Review the inventory it captures: the
+   generated lockfile, captured untracked files,
+   [capture exclusions](settings/reference.md#capture-envtoml-only).
+2. **Record the expected digests out-of-band** — the `.bundle_digest`
+   and `.policy_digest` of exactly what you reviewed.
+3. **On the machine, compare before approving**:
+
+   ```sh
+   source=$(grip trust inspect --json)
+   [ "$(printf '%s' "$source" | jq -r .bundle_digest)" = "$expected_bundle" ] &&
+     [ "$(printf '%s' "$source" | jq -r .policy_digest)" = "$expected_policy" ] ||
+     { echo "captured source differs from review — NOT approving" >&2; exit 1; }
+   grip trust add \
+     --bundle "$(printf '%s' "$source" | jq -r .bundle_digest)" \
+     --policy "$(printf '%s' "$source" | jq -r .policy_digest)"
+   grip check
+   ```
+
+4. **Stop on mismatch.** A differing digest means the captured source
+   changed since review — re-review the changed inventory, then
+   approve the exact new digests. Never auto-approve whatever
+   `inspect` returns.
+
+Boundaries that hold everywhere:
+
+- Never `GRIPSACK_TRUST_ALL` — `=1` is refused outright since 0.45.0.
+- No repo-wide or floating approval exists. One approval at the repo
+  root covers nested directories, but changed captured content is a
+  new approval decision — including a lockfile write between updates.
+- Inspection and approval themselves evaluate nothing; a change
+  between inspect and approve fails approval rather than blessing
+  newer bytes.
+
+This is still a human decision per content change — "unattended"
+means no prompt, not unreviewed.
+
 ## The destination boundary
 
 gripsack enforces one hard boundary: nothing may deploy INTO the env

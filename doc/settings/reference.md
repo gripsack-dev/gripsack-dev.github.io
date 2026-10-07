@@ -32,6 +32,66 @@ no declaration — `hosts/*.ts` and `modules/*.ts` are it. A stale
 |---|---|---|---|
 | `env` | string map | `{}` | build-time environment injected into the apply process for the run's duration — build steps, fetchers, and plugins inherit it (`SSL_CERT_FILE` is the canonical case). The sandboxed eval sees none of it |
 
+
+## `[capture]` — env.toml only
+
+| key | type | default | what |
+|---|---|---|---|
+| `exclude` | string array | `[]` | literal repository-relative subtrees omitted from the captured source bundle |
+
+Source capture intentionally includes ignored and untracked files —
+Git ignore rules never decide what counts as source. The ordinary
+cases that broke evaluation before 0.45 are a virtualenv's
+`.venv/bin/python3 -> /usr/bin/python3` link and an editor-only
+`node_modules/@gripsack/core` link into the frontend cache. Both are
+declared, not ignored:
+
+```toml
+[capture]
+exclude = [".venv", "node_modules/@gripsack/core"]
+```
+
+Semantics:
+
+- Entries are **literal normalized repository-relative subtree
+  names**, case-sensitive. No globs, no `~`, no `..` traversal, no
+  absolute paths, no backslashes, no control characters; duplicates
+  and overlapping entries are refused.
+- `env.toml`, `gripsack.ts` and `hosts/**` cannot be excluded.
+- An exclusion's ancestors must be real directories: with a
+  symlinked `node_modules` alias, exclude `node_modules` itself or
+  use a real parent — not a descendant rule through the alias.
+- The captured `env.toml` binds the exclusion list to the approved
+  bundle — rules matching currently absent paths are recorded too.
+  Byte changes inside an excluded subtree do not change the bundle
+  digest; creating or removing an excluded root changes the
+  actual-unavailable inventory and thus the digest.
+- Escaping paths and excluded-alias accesses are errors that **name
+  the offending logical path**.
+- `grip trust inspect` (report version 2) lists `capture_exclusions`
+  — everything configured, including absent paths — separately from
+  `inventory.exclusions` (the actually unavailable nodes); its text
+  output names the embedded versus pinned SDK.
+- Excluding an editor SDK location disables that pin before it is
+  dereferenced; evaluation uses the embedded SDK. Selecting an
+  excluded path — including through an included directory alias —
+  returns `PermissionDenied`, never a live-tree fallback.
+- Evaluator runtime grants never overlap the repository or its
+  exclusions, checked at approval and again at launch against the
+  paths' original spelling before canonicalization.
+<!-- UNRESOLVED: the final shape of the exact-file runtime read
+     authority (selected executable, interpreter, measured
+     dependencies — versus whole directories) was still in flight at
+     documentation time; verify against the shipped 0.45.0 behavior
+     before publishing that detail here. -->
+- This is repository-source selection, not a prohibition on
+  explicitly declared native host effects.
+- `env.toml` itself must be a regular non-symlink file of at most
+  1 MiB; a config change during capture is refused before evaluation.
+
+See [unattended approval](safety.md#unattended-approval) for how
+exclusions interact with the approval digest.
+
 ## `[fetchers.<name>]` — env.toml or user config
 
 | key | type | default | what |
@@ -88,7 +148,7 @@ Exceeding a limit is an error, never silent truncation or partial publication.
 | `GRIPSACK_HOME` | base directory for store, generations, and the `current` symlink (default: `$XDG_DATA_HOME/gripsack` or `~/.local/share/gripsack`) |
 | `GRIPSACK_BIN` | path to the `grip` binary (used by the e2e harness) |
 | `GRIPSACK_DENO` | bring-your-own eval runtime: a deno binary — wins over a deno on `PATH` and the pinned provisioned download |
-| `GRIPSACK_TRUST_ALL` | `=1` skips the repo trust prompt before eval — the CI escape hatch |
+| `GRIPSACK_TRUST_ALL` | refused since 0.45.0: `=1` fails with migration guidance — inspect the captured bundle and approve exact digests ([unattended approval](safety.md#unattended-approval)) |
 | `SSL_CERT_FILE` | the corporate CA bundle — grip's rustls-based fetching honors it and the tools grip spawns inherit it, so TLS-intercepting proxies verify; set it before invoking grip |
 | `HTTPS_PROXY` / `NO_PROXY` | corporate proxy support; the system CA roots are trusted |
 | `XDG_DATA_HOME` | honored for the default `GRIPSACK_HOME` |
