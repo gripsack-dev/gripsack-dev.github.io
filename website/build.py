@@ -101,6 +101,8 @@ PAGES: dict[str, tuple[str, str]] = {
     "architecture": ("doc/architecture.md", "architecture"),
     "safety": ("doc/safety.md", "safety"),
     "modules": ("doc/modules.md", "modules"),
+    "environments": ("doc/environments.md", "environments"),
+    "workspace-migration": ("doc/workspace-migration.md", "workspace migration"),
     "settings": ("doc/settings.md", "settings"),
     "settings/reference": ("doc/settings/reference.md", "settings reference"),
     "runs": ("doc/runs.md", "run logs"),
@@ -271,7 +273,13 @@ def rewrite(body: str, slugs: set[str], root: str = "../") -> str:
     for name in DOC_ASSETS:
         body = body.replace(f'src="{name}"', f'src="{root}assets/{name}"')
     for slug in slugs:
-        body = body.replace(f'href="{slug}.md"', f'href="{root}docs/{slug}.html"')
+        # `slug.md` and `slug.md#anchor` both land on the built page;
+        # anchors previously survived un-rewritten and 404'd.
+        body = re.sub(
+            rf'href="{re.escape(slug)}\.md(#[^"]*)?"',
+            lambda m: f'href="{root}docs/{slug}.html{m.group(1) or ""}"',
+            body,
+        )
     for src, dst in GITHUB_LINKS.items():
         body = body.replace(f'href="{src}', f'href="{dst}')
     return body
