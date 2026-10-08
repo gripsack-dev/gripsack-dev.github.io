@@ -229,9 +229,9 @@ Restore the original stable core installation path, or reapply using
 the core at its new installed location to recreate the projection.
 Then use a fresh shell or explicitly source the managed profile again:
 an existing shell's `PATH` can still select the old generation's
-wrappers. This regeneration path is supported by the implementation;
-the documented public-0.45.0 launcher smoke did not exercise core
-relocation. Policy-free existing wrappers are unchanged.
+wrappers. Candidate0.46 qualification exercised this recovery on UBI8
+glibc2.28 under a WSL2 kernel, including stdin and exit-status preservation.
+Policy-free existing wrappers are unchanged.
 
 For the separate guarantee about temporary storage and cross-device
 store publication, see

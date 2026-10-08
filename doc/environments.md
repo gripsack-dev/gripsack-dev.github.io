@@ -442,11 +442,11 @@ and null values diagnose rather than silently using the host.
   the manifest before external lock generation, then import the
   reviewed manifest and lock with `pixi.fromLock`:
 
-  ```toml
-  [system-requirements]
-  libc = { family = "glibc", version = "2.28" }
-  linux = "4.18"
-  ```
+```toml
+[system-requirements]
+libc = { family = "glibc", version = "2.28" }
+linux = "4.18"
+```
 
 A baseline is not universal portability proof. The selected
 archives' actual dependencies/constraints, CPU requirements, explicit
