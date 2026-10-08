@@ -106,24 +106,23 @@ The workflow:
    [capture exclusions](settings/reference.md#capture-envtoml-only).
 2. **Record the expected digests out-of-band** — the `.bundle_digest`
    and `.policy_digest` of exactly what you reviewed.
-3. **On the machine, compare before approving**:
-
-   ```sh
-   set -eu
-   : "${expected_bundle:?load the separately reviewed bundle digest}"
-   : "${expected_policy:?load the separately reviewed policy digest}"
-   source=$(grip trust inspect --json)
-   [ "$(printf '%s' "$source" | jq -er .bundle_digest)" = "$expected_bundle" ] &&
-     [ "$(printf '%s' "$source" | jq -er .policy_digest)" = "$expected_policy" ] ||
-     { echo "captured source differs from review — NOT approving" >&2; exit 1; }
-   grip trust add --bundle "$expected_bundle" --policy "$expected_policy"
-   grip check
-   ```
-
+3. **On the machine, compare before approving**, using the recipe below.
 4. **Stop on mismatch.** A differing digest means the captured source
    changed since review — re-review the changed inventory, then
    approve the exact new digests. Never auto-approve whatever
    `inspect` returns.
+
+```sh
+set -eu
+: "${expected_bundle:?load the separately reviewed bundle digest}"
+: "${expected_policy:?load the separately reviewed policy digest}"
+source=$(grip trust inspect --json)
+[ "$(printf '%s' "$source" | jq -er .bundle_digest)" = "$expected_bundle" ] &&
+  [ "$(printf '%s' "$source" | jq -er .policy_digest)" = "$expected_policy" ] ||
+  { echo "captured source differs from review — NOT approving" >&2; exit 1; }
+grip trust add --bundle "$expected_bundle" --policy "$expected_policy"
+grip check
+```
 
 The shell recipe requires `jq`; the two expected values must arrive
 through your reviewed deployment configuration, **not** assignments
