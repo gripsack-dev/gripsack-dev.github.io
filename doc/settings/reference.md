@@ -157,7 +157,7 @@ Exceeding a limit is an error, never silent truncation or partial publication.
 | `GRIPSACK_HOME` | base directory for store, generations, and the `current` symlink (default: `$XDG_DATA_HOME/gripsack` or `~/.local/share/gripsack`) |
 | `GRIPSACK_BIN` | path to the `grip` binary (used by the e2e harness) |
 | `GRIPSACK_DENO` | bring-your-own eval runtime: a deno binary — wins over a deno on `PATH` and the pinned provisioned download |
-| `GRIPSACK_TRUST_ALL` | refused since 0.45.0: `=1` fails with migration guidance — inspect the captured bundle and approve exact digests ([unattended approval](safety.md#unattended-approval)) |
+| `GRIPSACK_TRUST_ALL` | refused: `=1` fails with migration guidance — inspect the captured bundle and approve exact digests ([unattended approval](safety.md#unattended-approval)) |
 | `SSL_CERT_FILE` | the corporate CA bundle — grip's rustls-based fetching honors it and the tools grip spawns inherit it, so TLS-intercepting proxies verify; set it before invoking grip |
 | `HTTPS_PROXY` / `NO_PROXY` | corporate proxy support; the system CA roots are trusted |
 | `XDG_DATA_HOME` | honored for the default `GRIPSACK_HOME` |

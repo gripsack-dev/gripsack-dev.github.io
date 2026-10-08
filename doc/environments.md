@@ -289,8 +289,8 @@ Where a solve grounds, and what a lock does and does not prove:
 
 ## Hooks and checks
 
-Since 0.45.0, profile hooks execute for real — no more
-passes-`check`-fails-`apply` gaps:
+Since 0.45.0, profile hooks execute on supported runtimes instead of
+unconditionally refusing with the unavailable-A2-capability error:
 
 | capability | status in 0.45.0 | notes |
 |---|---|---|
