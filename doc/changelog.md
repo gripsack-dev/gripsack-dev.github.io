@@ -3,6 +3,428 @@
 User-visible changes per release. Design archaeology lives in
 `plan/`; this file is for "what's new for me".
 
+## [0.45.0] — 2026-10-07
+
+### Fixed
+
+- `pixi.fromLock` frozen consumers no longer fail with `E301: declared source
+  differs from its lock`. The captured manifest/lock digests are resolution
+  evidence, not declaration fields; both inputs are still re-captured and
+  compared before any frozen use. A changed manifest or lock document remains
+  refused until an explicit `grip update` and renewed exact-digest approval.
+- Sealed GNU-dynamic execution admits the bound platform loader by measured
+  capability instead of a glibc >=2.33 version proxy. RHEL 8's glibc 2.28
+  loader — which backports `--argv0`, `--glibc-hwcaps-mask`, `--inhibit-cache`,
+  `--library-path` and `--inhibit-rpath` — now runs GNU commands with
+  unchanged argv[0], sealed executable identity and library-search
+  equivalence. A loader missing any required control still fails closed,
+  naming the missing controls.
+- Sealed-launch admission is stricter everywhere: ELF
+  `DT_AUDIT`/`DT_DEPAUDIT`/`DT_FILTER`/`DT_AUXILIARY` objects are refused,
+  populated or aliased legacy hwcap directories are refused, an active
+  `/etc/ld.so.preload` is refused, and declared `LD_*` inputs other than the
+  separately composed `LD_LIBRARY_PATH`, plus `GLIBC_TUNABLES`, are refused
+  for GNU-bound execution.
+- Source capture cannot be walked around through runtime grants or repository
+  aliases. Evaluator runtimes receive exact-file read authority for the
+  selected executable, interpreter and measured dependencies instead of whole
+  directories; operator PATH entries and runtime selections are admitted
+  against the repository's original spelling before canonicalization; grants
+  overlapping the repository or its exclusions are refused at approval and
+  again at launch. Workspace `fileFetch` classifies the admitted `--repo`
+  alias spelling — not only the canonical root — so an excluded subtree cannot
+  be fetched live through an alias.
+
+### Added
+
+- Workspace profile hooks execute for real: `post_link`, `post_activate` and
+  `on_remove` commands run through the existing durable activation ledger
+  with per-intent identity, crash/replay handling and no automatic rollback
+  after a post-activation failure. Task `checks` execute as ordered
+  postconditions after successful steps; recipe publication checks are
+  unchanged. Profile `file.checks` stage adapters, schedules and task
+  prerequisites remain explicitly unavailable capabilities.
+- `[capture] exclude` in `env.toml` declares literal repository-relative
+  subtrees omitted from captured source (`.venv`, an editor-only SDK link).
+  Ignored/untracked files stay captured unless excluded; the captured
+  configuration binds exclusion rules to the approved bundle; escaping and
+  excluded-alias errors name the offending path; `grip trust inspect` (report
+  version 2) lists configured `capture_exclusions` alongside actual inventory
+  exclusions and names the embedded versus pinned SDK.
+- Calling the removed `pixi(package)` constructor reports a structured
+  migration diagnostic naming `conda.environment`/`pixi.fromLock` and the
+  workspace migration guide instead of `TypeError: pixi is not a function`.
+
+### Compatibility
+
+- Activation plans, pending pointers and outcome records advance to version 2.
+  Version-1 records remain readable, and legacy actions keep byte-identical
+  serialization. Generation manifests carrying workspace hooks use an explicit
+  version-2 envelope that older binaries reject before effects; ordinary
+  manifests keep the historical shape. The IR contract and workspace lock
+  version are unchanged.
+- Measured downgrade behavior after a completed 0.44/0.45 apply: grip 0.42.0
+  still reads and operates on legacy and file-only workspace generations; it
+  refuses generations with structured environment records ("manifest is
+  corrupt — refusing") and rejects workspace-hook envelopes rather than
+  misreading either. Downgrade past those generation shapes is unsupported.
+
+### Distribution scope
+
+Linux-first distribution continues under the owner's `REL-REVIEW-0450`
+exception: fresh hosted CI and macOS qualification are waived for this patch,
+not marked successful; local container gates, real glibc 2.28 (RHEL 8.10) and
+modern-glibc execution, security negatives and published-consumer verification
+remain required. No hosted-build attestation is claimed for locally assembled
+payloads.
+
+## [0.44.1] — 2026-10-04
+
+### Fixed
+
+- Bridge distribution resolves its output directory before mounting it into
+  Docker. Relative `--dist dist` now binds the actual staging directory instead
+  of creating an empty named volume. Required CI runs the real four-platform,
+  two-clean-build pin check before tagging, not only during publication.
+- The installer selects a complete published archive/checksum pair for its
+  actual target, skipping unpublished or platform-incomplete tags. Transport,
+  authorization, server and checksum failures remain terminal; they cannot
+  silently downgrade or replace an existing binary.
+- Workspace example locks are explicitly migrated to the 0.44.1 captured
+  frontend through `grip update`. Changing SDK bytes does not bypass frozen
+  frontend admission; renewed source approval remains explicit.
+
+### Distribution scope
+
+The owner selected a Linux-first local release rather than moving either
+existing 0.44.0 tag: prebuilt core for Linux x86_64, measured Linux helpers and
+the matching SDK. Other unbuilt core targets and hosted-build attestations for
+locally assembled payloads are explicitly deferred. Checksums, native checks,
+SBOM and actual consumer verification remain required; fresh full hosted CI is
+owner-waived, not marked successful. The IR contract is unchanged.
+
+## [0.44.0] — 2026-10-04
+
+SDK published; core publication stopped in bridge packaging before any core
+build or upload. The workspace/core changes below are carried into 0.44.1.
+
+### Changed
+
+- Workspace publication includes `gripsack-conda` and orders the production
+  `gripsack-buildkit` crate after its fetch/process dependencies.
+- The source-built workspace tutorial uses the supported pinned BuildKit policy
+  and typed source/output paths; native build/run/task and post-GC reuse are
+  exercised rather than left as host-executor declarations.
+- Core publication can be dispatched explicitly against an existing version tag,
+  so a commit's CI-skip marker does not require moving that tag.
+
+- The workspace SDK exports `pixi.fromLock` for explicit captured-manifest/lock
+  imports and `conda.environment` for a coherent solve. The old single-package
+  `pixi(package)` constructor is removed; historical IR readers keep their
+  versioned meaning. Full all-platform qualification remains open.
+- Coherent Conda admission independently checks declared roots, channel order
+  and policy, canonical package uniqueness and transitive MatchSpecs before
+  archive acquisition. Frozen selections reject missing or unrelated packages;
+  native admission reevaluates ordinary and virtual conditional requirements
+  against physical capabilities. Imported missing solve facts cannot silently
+  disable conditional dependencies, while images report unresolved external
+  kernel/CPU/GPU requirements rather than treating them as image capabilities.
+- Frozen Conda builds in a fresh home acquire the exact archive URLs and hashes
+  already recorded in the lock. They never solve again or refresh repodata;
+  corrupt retained archives/prefix evidence still fail rather than being repaired.
+- Frontend/import definition pins bind the effective captured code permissions
+  (read-only plus executability), not incidental cache umask bits. Code bytes,
+  aliases and execution-bit changes remain identity-bearing; source approval
+  still records full original permissions. Earlier unreleased v6 definition
+  pins require an explicit `grip update` for this corrected derivation.
+- Native command admission measures Linux kernel/macOS product versions before
+  comparing declared OS floors. A future or incompatible floor is refused rather
+  than being accepted from a declaration or left permanently unmeasurable.
+- `grip build <output>` now realizes selected v6 recipes/packages without
+  creating a personal generation. Compatible Linux production and required
+  checks enter one independently checked BuildKit solve; acquisition, export
+  validation, retained artifacts and GC remain native. `grip builder
+  status|stop|cache-clean` acts only on the recorded owned worker. The bridge
+  helper no longer requires `--bridge`: on the first solve that needs it, the
+  pinned per-platform helper is downloaded, verified against the sha256
+  compiled into this release, and stored under
+  `$GRIPSACK_HOME/tools/buildkit-bridge-<version>/`; warm reuse is offline
+  and re-verified on every run, a corrupted cache entry is replaced, and
+  provisioning failures name the remedy. `--bridge <helper>` remains as an
+  explicit operator override, and `GRIPSACK_BRIDGE_MIRROR` redirects only the
+  download origin of the pinned artifact (the compiled-in hash still
+  authenticates it). Check, plan, preview, rollback and fully cached builds
+  download no builder components. The matching release artifacts have measured
+  per-platform pins; unpublished source builds can use a matching mirror or
+  operator override. Full platform qualification remains open.
+- `grip update` publishes portable v6 source/frontend/import pins. Its check
+  mode performs no source or lock publication; frozen native acquisition rejects
+  changed archive bytes and never silently repeats discovery. Provider packages
+  can be built and retained without starting a builder or creating a generation.
+- `cargoPackage` lowers a pinned, vendored Cargo source tree into the common
+  Linux producer/package model. Offline release tests gate installation of
+  declared binaries; dependency checksum failures prevent publication.
+- `grip build <image>` exports retained Linux packages through a checked BuildKit
+  OCI plan with explicit placement, numeric ownership and runtime configuration.
+  Native verification checks descriptors, compressed/uncompressed digests and
+  package contents before immutable publication. Cached images and native
+  commands survive worker-cache removal; image production creates no generation.
+- Profiles consume realized package environments and artifact files through the
+  existing journal/generation/rollback lifecycle, including cold production.
+  Generation environment records distinguish new literal/store-relative data
+  from retained legacy shell expressions; literal `$` and `{store}` text cannot
+  become code. Artifact trees expand to bounded per-file ownership rather than
+  claiming a whole directory, preserving unrelated children and drift.
+- Native project and profile commands preserve multicall selectors even when
+  exported under another name. Explicit task package commands keep their byte
+  pin and runtime search plan instead of becoming ambient executable paths.
+  Linux GNU dynamic commands use separately bound loader/main images; origin
+  translation rejects changed library selection and requires glibc >=2.33.
+  OCI admission checks image-local ELF/interpreter/library closure, including
+  RPATH versus RUNPATH, before publishing the archive.
+- Task-declared PATH directories cannot shadow the selected environment's
+  exported commands in nested child lookups. Long/spaced Conda relocation
+  refuses non-Python interpreter argument combinations that would become a
+  single invalid `env` token, instead of publishing an unlaunchable script.
+- Native artifacts statically link bundled XZ rather than inheriting a
+  Homebrew `liblzma` dependency from the macOS build host.
+- The standalone Conda helper also bundles bzip2 and has measured Linux x64,
+  Linux ARM64 and Mac ARM64 release pins. Native Mac VM and full coherent Conda
+  runtime qualification are temporarily deferred by the owner for Linux
+  integration: unavailable hosted VZ and a fail-closed `libgcc_s.1.1.dylib`
+  format refusal remain recorded, not counted as passing tests.
+- Abandoned builds retain their source roots and staging until an owned-worker
+  stop establishes a matching owner/epoch fence and inherited native leases have
+  drained. Recovery removes staging before retiring the root and lock records.
+- Workspace authoring emits the strict v6 contract: captured inputs, pure
+  mutation-lock references, ordered command/action steps, explicit Linux
+  toolchains and strict Bash options. Existing v3/v4/v5 readers remain separate.
+- Compiler utilities moved from the ordinary SDK root to
+  `@gripsack/core/advanced`; the driver selects both entry points from the
+  same deliberate package pin. Registry-reset utilities are internal.
+
+## [0.43.0] — 2026-09-29
+
+### Added
+
+- **Kernel-confined evaluation (Linux).** Every evaluator launch and its
+  descendants now run inside a Landlock filesystem boundary covering exactly
+  the approved captured source roots, the current round's input directory,
+  the evaluator's private cache/scratch (TMPDIR is redirected there), the
+  selected runtime's load roots and the operator's PATH executable space.
+  Reads and writes anywhere else are denied by the kernel — including the
+  ambient-ancestor `node_modules` loads stock Deno performs outside its own
+  permission flags. `EXECUTE` is granted only at the root: running a binary
+  never widens the read/write boundary. Assembly happens before fork; the
+  child applies only `PR_SET_NO_NEW_PRIVS` + `landlock_restrict_self`, and
+  any failure refuses evaluation rather than running it unconfined.
+- Captured local npm packages keep working; direct-ELF, `sh`-wrapper,
+  `/usr/bin/env` and python-virtualenv runtimes all run confined.
+- **Kernel-confined evaluation (macOS).** The same approved-root boundary
+  is assembled before fork and installed by the fixed platform launcher after
+  exec, before the admitted evaluator starts. A data-only argv bridge preserves
+  argv0 and empty/spaced arguments; sandbox parsing and allocation do not run
+  in `pre_exec`. If confinement cannot be installed, evaluation fails closed.
+  Native Mac ARM qualification remains required; unconfined execution is not
+  a supported or qualifying mode.
+
+- Source approval now binds the canonical repository, copied source digest and
+  actual runtime/grant policy. `trust inspect --json` exposes the bounded
+  inventory and changes; non-TTY `trust add` requires `--bundle` and `--policy`.
+  Old path-only trust must be renewed; `GRIPSACK_TRUST_ALL=1` is rejected.
+  Ignored/untracked files, dirty submodules and explicit SDK pins are captured;
+  all probe rounds use those copies and separate immutable input files.
+- Private versioned evaluation receipts expose source/policy/runtime identities,
+  round-input digests and process outcomes through `trust inspect --receipt`.
+  They contain no raw source/output or environment values. Frontend completion
+  is not a claim that downstream validation, build or deployment succeeded.
+- `adopt --resume` continues an approved generated module without rewriting the
+  repository. Generated bytes require renewed approval even with `--yes`;
+  preview and scoped apply consume the same evaluated snapshot.
+
+- Hook activation now has stable per-intent IDs, increasing interrupted-attempt
+  counters and durable success/failure/supersession outcomes. Cache coalescing
+  preserves contributing modules; identical custom declarations stay distinct.
+  `grip hooks list --json` inspects private pending and archived evidence.
+- `grip hooks test`, `--duplicate` and `--crash-after-start` run fixed harmless
+  actions in isolated state, including a loopback receiver that commits token
+  and effect together. They never select live hooks. Runnable local/remote
+  idempotency examples are in `examples/hooks/`.
+- Hook children use bounded native supervision, explicit environments and
+  descriptor hygiene. Receipts retain executable/script digests and structured
+  failures without argv or environment values. Diagnostic controls are escaped.
+  The native enforcement/byte-binding tier stays explicit, not a sandbox claim.
+- Current v5 workspace file profiles execute through the existing store,
+  ownership planner, journal, generations and rollback. Repository sources
+  are captured once per command; literal and rendered content compose with
+  symlink, tracked-copy and managed-block destinations. Content identity
+  excludes destination and owner; retained source/recipe/output bytes make
+  rollback independent of today's repository and template variables.
+- Distinct managed blocks can share a hosting file across profiles.
+  `why-owns` reports every owner; partial selection cannot hide a physical
+  destination collision. Package/artifact realization, environments, tasks,
+  schedules and workers still require their unavailable executor capabilities.
+- An inductive transaction safety pilot checks the existing single-destination,
+  one-recovery protocol under explicit domain and durability assumptions.
+  The `tlaps` Compose service pins the prover/backend bundle and joins the
+  required CI job. This does not claim generalized repeated recovery,
+  filesystem refinement or completion of plan/0048 M-V6.
+- Generalized protocol induction composes arbitrary finite destination sets,
+  repeated recovery without a crash cap, generation publication, exact
+  transaction identity, granular activation preparation and GC root protection.
+  The proof gate inventories every imported local proof and its named obligation
+  floor. Conditional completion experiments remain separate; no Rust/OS
+  refinement, hardware durability or remote exactly-once claim is made.
+- Managed-block scanning now uses a production state machine proved to emit
+  sorted, disjoint, in-bounds and UTF-8-aligned ranges satisfying the existing
+  splice contract. The marker grammar is unchanged and separately exercised
+  through real update/prune flows; no grammar or filesystem proof is claimed.
+- Deterministic journal-admission verification covers required versus nullable
+  fields, duplicate identities, retained v1/current v2 entries, truncation and
+  scalar boundaries. A calibrated missing-field mutant must fail actual
+  recovery-effect checks, not just an error-message snapshot. No serde theorem
+  or fuzz result is claimed.
+- GC history checks exercise retained payloads, transitive build inputs,
+  adopted priors and unfinished recovery through the real collector.
+  A deliberately omitted build-closure root must fail the filesystem oracle.
+- A real six-destination recovery campaign covers repeated process death and
+  sync failures, partial journal cleanup, preserved user edits and collection
+  refusal while recovery remains pending. It does not simulate power loss.
+
+### Fixed
+
+- Native macOS release binaries statically link bundled XZ rather than depending
+  on the builder's Homebrew installation. Artifact verification distinguishes
+  `otool` headers from actual dependencies and admits only explicit system paths.
+  Both platform checks locate that verifier from the artifact directory.
+- Release publication orders all workspace crates by their actual dependencies.
+  TypeScript publication can be dispatched against an existing version tag
+  without moving it; Linux publication uses the ARM runner pool.
+- macOS's confined launcher can open the root directory required for startup
+  without granting recursive reads; unrelated file contents remain denied.
+- Source captures finalize their private directory name before read-only sealing
+  on macOS. Canonical and declared root aliases select captured native bytes;
+  diagnostics retain the declared source spelling without exposing temp paths.
+
+- Evaluated repository aliases materialize their captured target objects into
+  native overlays, with matching preview/store identity, rather than retaining
+  dangling links or references to a mutable worktree. Takeover cannot replace a
+  directory entry named inside the original or captured source root.
+- Native diagnostics retain logical source paths and read snippets from the
+  evaluated snapshot, not a later edit of the worktree.
+
+- Journaled mutations now require a captured prior under the active transaction
+  and keep its pinned destination parent through execution. Current-pointer
+  publication consumes that run; only committed or reconciled state authorizes
+  cleanup. Effect errors retain the journal, and a nonempty run cannot be
+  discarded as an unchanged apply. File and namespace publication barriers
+  remain separate, checked stages rather than one assumed durable-write step.
+- Cached prior files are sealed along with their containing directory before
+  they authorize a deployment. Already-private permissions do not prove an
+  interrupted publication became durable; sync failure now leaves the
+  destination and current selection unchanged.
+- Recovery also seals retained prior bytes before using them for restoration;
+  failed file or directory sync retains the destination and journal evidence.
+- Namespace admission seals already-visible directory ancestors after an
+  interrupted creation attempt. Ambient file/link/tree publishers use the
+  admitted root rather than treating an existing path as a completed barrier.
+- GC seals generation pruning before collecting payloads whose roots it
+  removed. An empty prune list on retry still seals observed absence; failure
+  or process death preserves those payloads and the current generation.
+- Retained generations now acquire durability authority before apply, rollback,
+  recovery, activation or GC effects. Manifest/profile file sync and their
+  namespace barriers must succeed before mutation or journal cleanup; generation
+  listings and other inspection reads remain read-only.
+- GC preserves the highest retained generation in a durable high-water counter
+  before pruning legacy history. Missing or stale counters no longer allow a
+  later apply to reuse old allocation numbers; higher counters never decrease,
+  and exhausted counters still refuse new generations.
+- Resumed hook reports no longer manufacture a new generation in an otherwise
+  satisfied apply. Resuming prior work does not create fresh IDs and deliver the
+  same hooks again as if a new deployment had occurred.
+- Repeated rollback to the already-current generation now has a distinct
+  transaction identity. Interrupted rollback restores its priors instead of
+  treating the unchanged generation number as a completed commit. New markers
+  and current pointers bind that identity; ambiguous same-generation legacy
+  journals are retained and refused rather than guessed.
+- Recovery seals an absent or already-visible prior before discarding its
+  journal entry. Interrupted retries cannot mistake kernel-visible state for
+  completed durability. Observed committed pointers are synced before cleanup,
+  and missing/corrupt current-generation manifests retain recovery evidence.
+- GC pins its store, prior and generation directories for both inventory and
+  deletion. Substituted directory symlinks and invalid inventories fail before
+  generation pruning; orphan payload symlinks are unlinked without following
+  their targets, including during size accounting.
+- Generation identities and ordered inventories are distinct types. Pruning
+  keeps the existing oldest-excess-prefix rule, excluding current without
+  shifting deletion to newer generations. Exhausted generation IDs fail
+  before activation instead of overflowing.
+- Managed plugin cache hits require both the declared source and tag;
+  changing origin cannot reuse an unrelated installed binary. Capability
+  probing, rate admission and the fetch exchange share one deadline.
+- Rate budgets reject nonfinite or sub-token capacities instead of
+  panicking or waiting forever. Persisted token balances and timestamps
+  are bounded before use. Expired operation deadlines cannot be reset by
+  request serialization or a later frontend/protocol exchange.
+- Token buckets now use checked exact credits across the full admitted finite
+  rate range, including fractional/scientific declarations and rates larger
+  than `u64`. Saved balances retain their period and nanosecond timestamp;
+  legacy floating balances migrate without minting a fractional credit.
+  A backward wall clock cannot refill an already-accounted interval twice.
+- Throttle and HTTP cooldown mutex waits consume the original operation
+  deadline. Contention cannot grant expired work or start another timeout.
+  HTTP attempt order, cumulative waiting and terminal error precedence use
+  the verified transition kernel; a body consumer returning after its deadline
+  is no longer reported as a successful HTTP operation.
+- Process input, frame, stdout, stderr and retained-tail limits now have
+  distinct types. Verified transfer/framing/accounting states constrain the
+  actual supervisor, including one outstanding input write and signal/reap
+  ownership. Finishing cleanup cannot erase an expired operation deadline.
+- Process-group signal denials remain failures with their native errno;
+  they are no longer silently reported as successful cleanup. Darwin's
+  zombie-only-group exception requires complete, identity-stable observations
+  within the original deadline rather than treating every `EPERM` as benign.
+- Update reports now carry a complete, checked accounting of selected entries.
+  Invalid or partial accounting cannot become a successful survey; failures
+  dominate changes, and the CLI and executor share one lock-publication
+  decision. Check still leaves the lock and source cache untouched and does
+  not execute recipes, executable verifiers, deployment or hooks.
+- A panicking module completes the scheduler failure transition and wakes
+  idle workers instead of hanging a parallel apply. Loom now exercises the
+  production mutex/condition-variable coordinator with calibrated
+  notification and completion-loss mutants.
+- Persisted prior hashes and Unix modes are admitted before use. Restore
+  and GC pin the private prior directory; traversal identities, planted
+  symlinks and corrupted backup bytes cannot redirect restoration.
+- Journal/quarantine directories and records are owner-only (0700/0600),
+  including retained metadata encountered during recovery. Reads, moves and
+  cleanup use pinned directory capabilities. IO failures retain the record
+  for recovery; only decoded malformed records go to quarantine.
+- `update --check` and publishing updates compare complete lock entries.
+  An unchanged update preserves the existing lockfile bytes.
+- Verify/intent steps reject ignored resource declarations with E134;
+  place protected work on a producer step.
+- Verify actions receive the same E109/E115 path checks as other
+  verification declarations. E110 now checks normalized stepped repo
+  sources; real fetch/build producers may still create their payload later.
+- Invalid merge-splice UTF-8 propagates as an error instead of panicking.
+  The Verus gate requires named proof-family coverage and attributes each
+  negative to its intended function, diagnostic and source span.
+
+### Persisted-state compatibility
+
+- Journal v2 retains the run's original prior across repeated writes to one
+  destination and records the immediate pre-write state. Strict v1 entries
+  remain readable; v2 requires its new field. Do not downgrade across an
+  unfinished v2 transaction.
+- Existing generation ownership strings retain their meaning. Workspace
+  blocks use a disjoint object-shaped ownership value, so older readers
+  reject rather than reinterpret them as module-named blocks. Historical
+  v4 workspaces remain read-only.
+- Generation, journal-marker and pending-activation IDs remain numeric on disk.
+  Historical zero IDs remain readable; noncanonical or duplicate inventory
+  identities cannot enter pruning policy.
+
 ## [0.42.0] — 2026-09-10
 
 Verified merge, build-closure and scheduling foundations (0047): the

@@ -28,7 +28,7 @@ that is a release-blocking bug — please file it.
 | Failed apply or rollback | compensation is attempted immediately; if the filesystem prevents it, the durable journal blocks further mutation until recovery completes |
 | Tracked-copy drift | detected and **preserved by default**, in apply AND rollback |
 | External package-manager effects (brew/pixi/apt) | adapter-dependent, best effort — never auto-rolled-back |
-| Activation intents (caches, services, custom hooks) | durable pending record written **before** the flip — a kill can't skip them (model-checked, `specs/Activation.tla`); they may run **twice** across a crash, so hooks must be idempotent; a failed hook warns, never rolls back; rollback does not re-run them yet (roadmap) |
+| Activation intents (caches, services, custom hooks) | durable intent before the flip; ambiguous interrupted delivery may run again with the same identity, so hooks must be idempotent; durable terminal outcomes are not automatically retried; post-activation failure never rolls back. Explicit rollback is a new activation and may execute the retained generation's hooks |
 | Arbitrary `run` steps | not automatically reversible (plan output says so) |
 
 ## Journaled transitions
@@ -91,6 +91,73 @@ sandboxed (no env, no network, no subprocesses) and sees no
 credentials; fetching necessarily can. The lockfile is the sole
 source of pinning; a tampered pin fails the hash check at apply.
 
+## Unattended approval
+
+Approval binds the **exact captured source bundle and policy** — the
+digests, not the directory. A fresh ephemeral machine has no TTY and
+no interactive history, and that is fine: the decision moves
+out-of-band, the machine only compares digests.
+
+The workflow:
+
+1. **Keep the reviewed source immutable** — a commit, or an archive
+   you reviewed and kept. Review the inventory it captures: the
+   generated lockfile, captured untracked files,
+   [capture exclusions](settings/reference.md#capture-envtoml-only).
+2. **Record the expected digests out-of-band** — the `.bundle_digest`
+   and `.policy_digest` of exactly what you reviewed.
+3. **On the machine, compare before approving**:
+
+   ```sh
+   set -eu
+   : "${expected_bundle:?load the separately reviewed bundle digest}"
+   : "${expected_policy:?load the separately reviewed policy digest}"
+   source=$(grip trust inspect --json)
+   [ "$(printf '%s' "$source" | jq -er .bundle_digest)" = "$expected_bundle" ] &&
+     [ "$(printf '%s' "$source" | jq -er .policy_digest)" = "$expected_policy" ] ||
+     { echo "captured source differs from review — NOT approving" >&2; exit 1; }
+   grip trust add --bundle "$expected_bundle" --policy "$expected_policy"
+   grip check
+   ```
+
+4. **Stop on mismatch.** A differing digest means the captured source
+   changed since review — re-review the changed inventory, then
+   approve the exact new digests. Never auto-approve whatever
+   `inspect` returns.
+
+The shell recipe requires `jq`; the two expected values must arrive
+through your reviewed deployment configuration, **not** assignments
+from the `inspect` command in this script. Keep that configuration
+outside the captured checkout. Compare the policy as well as the
+bundle: frontend/runtime identity and capture policy are part of the
+approval decision. A reviewed source edit permits evaluation; it
+does not waive the separate frozen-input check. For example, after
+reviewing a changed Pixi manifest or lock, `grip check` still refuses
+its stale imported identity until an explicit `grip update`, review
+of the resulting `gripsack.lock`, and renewed exact-digest approval.
+
+Measured with the promoted 0.45.0 binary: a separately recorded
+reviewed pair matched and allowed `check`; byte changes to
+`gripsack.lock`, `pixi.lock`, or `[capture].exclude` stopped before
+`trust add` or evaluation. Trust records and evaluation receipts
+remained byte-identical on each mismatch. A wrong expected policy
+also stopped even when the expected bundle still matched. These are
+fixture-level observations, not blanket fleet-deployment
+qualification.
+
+Boundaries that hold everywhere:
+
+- Never `GRIPSACK_TRUST_ALL` — `=1` is refused, not an approval workflow.
+- No repo-wide or floating approval exists. One approval at the repo
+  root covers nested directories, but changed captured content is a
+  new approval decision — including a lockfile write between updates.
+- Inspection and approval themselves evaluate nothing; a change
+  between inspect and approve fails approval rather than blessing
+  newer bytes.
+
+This is still a human decision per content change — "unattended"
+means no prompt, not unreviewed.
+
 ## The destination boundary
 
 gripsack enforces one hard boundary: nothing may deploy INTO the env
@@ -102,6 +169,14 @@ RENAME_EXCHANGE` is Linux-only), so between a drift decision and the
 write there is a microsecond window — every journaled mutation
 re-validates the live object at that boundary and aborts retryably on
 mismatch rather than clobbering it.
+
+Putting a launcher in `/usr/local/bin` does not make its private
+package store a multi-user installation. The documented
+[environment launchers](environments.md#destinations-personal-and-shared)
+run as the same UID that owns and deploys the environment. Do not
+make all of `GRIPSACK_HOME` world-readable or writable to let another
+UID reach it: trust records, journals and retained generations remain
+private authoritative state.
 
 ## What gripsack is not
 

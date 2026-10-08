@@ -48,10 +48,11 @@ into grip, ~40MB, cached under `$GRIPSACK_HOME/tools/`;
 `GRIPSACK_DENO` overrides). And eval never runs unasked: the first
 eval of a repo grip doesn't trust prompts first — naming the path,
 the remote, and exactly what the sandbox allows — and `y` records it
-(`grip trust list/add/remove`; `GRIPSACK_TRUST_ALL=1` is the CI
-bypass). Same repo + same lockfile + same declared host now means the
-same graph, because nothing observable is left to the frontend's
-environment.
+(`grip trust list/add/remove`; `GRIPSACK_TRUST_ALL=1` is refused —
+approval binds exact captured digests, see
+[unattended approval](safety.md#unattended-approval)). Same repo +
+same lockfile + same declared host now means the same graph, because
+nothing observable is left to the frontend's environment.
 
 ## Modules and sources
 
