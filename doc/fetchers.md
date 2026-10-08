@@ -39,13 +39,14 @@ materialized independently from the same locked records.
 See [workspace production](https://github.com/gripsack-dev/gripsack/blob/core-v0.44.1/README.md#workspace-production)
 and the [coherent environment example](https://github.com/gripsack-dev/example-env-typescript/tree/main/workspaces/conda).
 The BuildKit production backend and coherent Conda runtime are Linux-qualified.
-The Mac VM worker and full coherent Mac Conda journey remain unqualified; this
-does not remove ordinary native Mac core/file-profile support.
+Current support is Linux, including WSL2's Linux environment, not native Windows.
+macOS, the Mac VM worker and the Mac Conda journey are outside support scope;
+they are not pending qualification blockers.
 
-The 0.44.1 prebuilt core is Linux x86_64 first. The installer selects the newest
-complete published artifact pair for its actual platform, so other targets keep
-their last available core. Keep that core's compatible SDK; a newer npm package
-does not upgrade the binary or qualify the deferred Mac runtime.
+The installer selects a complete published artifact pair for the supported Linux
+target and rejects macOS instead of installing historical Mac releases. Keep the
+SDK compatible with your installed core; a newer npm package does not upgrade
+the binary. Existing release history remains available, not a support promise.
 
 ## Complete source pins
 
