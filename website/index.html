@@ -4,9 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>gripsack — personal environment manager</title>
-<meta name="description" content="gripsack — personal environment manager. Keep your packages and dotfiles in one repo, reproduce them on another machine, and roll the entire setup back when something goes wrong.">
+<meta name="description" content="gripsack — personal environment manager for Linux and WSL. Keep your packages and dotfiles in one repo, reproduce them on another machine, and roll the entire setup back when something goes wrong.">
 <meta property="og:title" content="gripsack — personal environment manager">
-<meta property="og:description" content="Keep your packages and dotfiles in one repo, reproduce them on another machine, and roll the entire setup back when something goes wrong.">
+<meta property="og:description" content="For Linux and WSL: keep your packages and dotfiles in one repo, reproduce them on another machine, and roll the entire setup back when something goes wrong.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://gripsack.dev/">
 <meta name="twitter:card" content="summary">
@@ -47,21 +47,22 @@
   <div class="tabscope">
   <div class="installbox">
     <span class="tab-bar">
-      <button data-tab="curl" class="active" aria-current="true">curl</button><button data-tab="brew">brew</button><button data-tab="cargo">cargo</button><button data-tab="mise">mise</button>
+      <button data-tab="curl" class="active" aria-current="true">curl</button><button data-tab="cargo">cargo</button><button data-tab="mise">mise</button>
     </span>
     <span class="tab-pane ib-cmd" data-pane="curl" data-cmd="curl -fsSL https://gripsack.dev/install.sh | sh"><span class="p">$</span> curl -fsSL https://gripsack.dev/install.sh | sh</span>
-    <span class="tab-pane ib-cmd" data-pane="brew" data-cmd="brew install --cask gripsack-dev/tap/gripsack" hidden><span class="p">$</span> brew install --cask gripsack-dev/tap/gripsack</span>
     <span class="tab-pane ib-cmd" data-pane="cargo" data-cmd="cargo install gripsack" hidden><span class="p">$</span> cargo install gripsack</span>
     <span class="tab-pane ib-cmd" data-pane="mise" data-cmd="mise use cargo:gripsack" hidden><span class="p">$</span> mise use cargo:gripsack</span>
     <button class="copy" data-copy="curl -fsSL https://gripsack.dev/install.sh | sh">copy</button>
-    <span class="ib-os">linux · macOS</span>
+    <span class="ib-os">linux · WSL</span>
   </div>
   <p class="alt">already installed?
-    <span data-pane="curl"><code>grip self-update</code></span><span data-pane="brew" hidden><code>brew upgrade --cask gripsack</code></span><span data-pane="cargo" hidden><code>cargo install gripsack</code></span><span data-pane="mise" hidden><code>mise up gripsack</code></span>
+    <span data-pane="curl"><code>grip self-update</code></span><span data-pane="cargo" hidden><code>cargo install gripsack</code></span><span data-pane="mise" hidden><code>mise up gripsack</code></span>
     · <a href="./docs/changelog.html">what's new</a></p>
+  <p class="alt">Supported on Linux, including WSL2's Linux environment — not native Windows or macOS.
+    <a href="./docs/roadmap.html#supported-platforms">Platform scope</a>.</p>
   <p class="alt">check archive integrity: <code>sha256sum -c gripsack-*.tar.gz.sha256</code> · audit embedded dependencies: <code>cargo audit bin "$(which grip)"</code><br>
-    0.44.1 is a local Linux x86_64 release with no hosted build attestation.
-    <a href="https://github.com/gripsack-dev/gripsack/releases/tag/core-v0.44.1">Scope and verification evidence</a>; checksums do not replace provenance.</p>
+    0.45.0 is a local Linux x86_64 release with no hosted build attestation.
+    <a href="https://github.com/gripsack-dev/gripsack/releases/tag/core-v0.45.0">Scope and verification evidence</a>; checksums do not replace provenance.</p>
   </div>
   <div class="cta">
     <a class="primary" href="https://github.com/gripsack-dev/gripsack">GitHub ↗</a>
@@ -371,7 +372,7 @@ rolled back to generation 0
     <div>
       <h3 class="osub">install</h3>
       <p class="alt">
-        <a href="https://github.com/gripsack-dev/gripsack/releases">release binaries</a> ·
+        <a href="https://github.com/gripsack-dev/gripsack/releases">Linux release binaries</a> ·
         the frontend is embedded in the binary — grip provisions its pinned,
         hash-verified Deno runtime automatically on first eval;
         install <code>@gripsack/core</code> only to deliberately pin a copy
@@ -385,10 +386,10 @@ rolled back to generation 0
       <p class="alt">shipped so far: fetchers for github releases, brew bottles, git and tarballs;
       workspace packages add coherent Conda environments and captured Pixi locks.
       Linux recipes and images run through BuildKit; acquisition, the store, GC and
-      activation stay native. The Mac VM worker and full coherent Mac Conda runtime
-      remain unqualified. The 0.44.1 prebuilt core is Linux x86_64 first; the installer
-      keeps other platforms on their last available core. There are also plugin fetchers
-      over NDJSON, generations
+      activation stay native. Linux, including WSL2's Linux environment, is the
+      supported platform; macOS is outside the current scope, not a deferred
+      qualification requirement. The installer does not offer historical Mac
+      payloads. There are also plugin fetchers over NDJSON, generations
       with rollback, and ownership modes that never clobber. The frontend runs sandboxed
       under a pinned, hash-verified deno (no env vars, no network, no subprocesses),
       facts and probes arrive injected via ctx, and the first eval of an unfamiliar

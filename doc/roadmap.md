@@ -4,6 +4,20 @@ Where gripsack is going. The north star: *a misconfiguration in any
 file gripsack touches should produce the same quality of error as a
 typo in a module.*
 
+## Supported platforms
+
+Linux is the supported platform, including WSL2's Linux environment; this is
+not native Windows support. Linux x86_64 and aarch64 remain in scope.
+
+The owner decision `PLATFORM-LINUX-WSL-2026-10-08` retires macOS support,
+including the Mac VM worker and Mac Conda runtime, from the active roadmap.
+This is not a temporary test waiver or a passing Mac qualification. There is no
+scheduled Mac support commitment or Mac blocker on Linux delivery; revisiting
+Mac would require a new owner decision. The Linux source formula remains
+available, while the Mac cask is disabled and the installer rejects macOS.
+Historical release notes and artifacts remain available as history, not as
+recommended installation paths.
+
 ## Shipped
 
 - **Complete surveys and safe source boundaries** ([plan 0044](https://github.com/gripsack-dev/gripsack/blob/main/plan/0044-survey-paths-and-transport-feedback.md),
@@ -88,9 +102,8 @@ typo in a module.*
   that files freshness issues; see [linters](linters.md)
 - Corporate proxy support, trusting the system CA roots, `NO_PROXY`
   honored
-- Per-platform release matrix (linux + macOS, x86_64 + aarch64 — no
-  Windows; WSL is the story), a homebrew cask, and a multi-platform
-  install.sh, with a brew `version=` tripwire
+- Linux release targets (x86_64 + aarch64), a Linux-only Homebrew source
+  formula and install.sh. WSL uses the Linux environment, not native Windows.
 - Run logs with causal spans; the debug and adopt skills
 - `merge` + `template` ownership modes — a managed block inside
   foreign files (`.bashrc`), and payloads rendered from `{{ vars }}`
@@ -163,16 +176,17 @@ typo in a module.*
   quarantine, only `NotFound` means "absent", cross-filesystem store
   publication is atomic, journal cleanup is durable, and `grip plan`
   labels every mutation's reversibility.
-- **macOS behavioral CI + signed attestations** (plan/0020's two
-  queued items, 0.20.0): the full flow suite runs natively on a
+- **Historical macOS behavioral CI + signed attestations** (plan/0020's two
+  queued items, 0.20.0): at that release, the full flow suite ran natively on a
   macOS runner every push — its first runs found and fixed a real
   product bug (hostnames with dots broke `init` → `check`: the file
   name was sanitized, the lookup was not) plus two platform
-  assumptions in tests; every release tarball now carries GitHub
-  build provenance (`gh attestation verify`). The e2e harness was
-  rebuilt for cross-platform CI: timing tests are self-relative (no
-  wall-clock flakes), and failures print the grip run log — the
-  macOS findings were debugged entirely from that output.
+  assumptions in tests. That release added GitHub build provenance
+  (`gh attestation verify`). The e2e harness was rebuilt for cross-platform CI:
+  timing tests were self-relative (no wall-clock flakes), and failures printed
+  the grip run log — the macOS findings were debugged entirely from that
+  output. This history does not claim current Mac support or attestations for
+  later locally assembled releases.
 - **The machine-checked transaction model**
   ([plan 0028](https://github.com/gripsack-dev/gripsack/tree/main/plan/0028-machine-checked-model.md)) —
   and the guarantees now have their own page: [safety](safety.md) —

@@ -37,7 +37,8 @@ Eval runs sandboxed under a pinned Deno — no env vars, no network, no
 subprocesses — and the runtime provisions itself: the first eval
 downloads it once (sha256-verified, ~40MB, cached; 2.9.6 today),
 `grip doctor` checks it, and `GRIPSACK_DENO` points at your own. Eval
-platforms: glibc Linux and macOS — Deno ships no musl build.
+platforms: glibc Linux, including WSL2's Linux environment — Deno ships no musl
+build. macOS and native Windows are not supported.
 
 The repo's installed `node_modules/@gripsack/core` shadows the embedded
 frontend. `grip doctor` reads that installed package's version, not just the

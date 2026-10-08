@@ -218,6 +218,7 @@ def rail(active: str, toc: list[tuple[str, str]], root: str = "../") -> str:
   <span class="rail-head">menu</span>
   <nav>
 {links}    <a class="gh" href="{REPO}">github ↗</a>
+    <a href="{root}docs/roadmap.html#supported-platforms">Linux &amp; WSL support</a>
   </nav>
 {toc_block}  <span class="rail-head">theme</span>
   <div class="rail-palettes">
@@ -233,7 +234,7 @@ def page(title: str, body: str, active: str, toc: list[tuple[str, str]], root: s
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{title}</title>
-<meta name="description" content="gripsack — your whole environment in one bag. Packages from any source plus your dotfiles, with generations and rollback.">
+<meta name="description" content="gripsack for Linux and WSL — your whole environment in one bag. Packages from any source plus your dotfiles, with generations and rollback.">
 <link rel="icon" href="{root}assets/favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="{root}assets/site.css?v={asset_version()}">
 <script src="{root}assets/site.js?v={asset_version()}" defer></script>
