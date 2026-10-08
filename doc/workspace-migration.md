@@ -156,6 +156,27 @@ exact archives plus the solve's recorded assumptions. Identity is not
 portability — before reusing or re-solving a lock across hosts, read
 [solve baselines](environments.md#solve-baselines).
 
+### Upgrading the evaluated frontend
+
+Use matching core/SDK0.46 for the new declaration fields. Retained v6
+execution remains readable, but evaluating with changed frontend bytes can
+invalidate the captured frontend/import pins in an existing `gripsack.lock`.
+An E301 refusal after source approval is not permission to edit those pins.
+
+Review and approve the upgraded checkout/SDK, explicitly run `grip update`
+for the affected source, then inspect and review the generated Gripsack lock.
+Approve its exact new bundle/policy digests before `check`, `run` or `apply`.
+This is a deliberate update; native Conda sources may solve again, so review
+the selected baseline and archives.
+
+For `pixi.fromLock`, the reviewed `pixi.toml` and `pixi.lock` can stay
+byte-identical: import that frozen solve rather than regenerating it. Actual
+0.45→0.46 qualification observed the old Gripsack lock's frontend refusal,
+then refreshed only `gripsack.lock`; the upstream Pixi documents and all42
+archive identities stayed unchanged. Repeated frozen consumers subsequently
+ran on glibc2.41 and UBI8/glibc2.28 without a public-channel re-solve.
+
+
 ## Running both during migration
 
 Keep **separate entrypoint roots** while migrating: for example, a
