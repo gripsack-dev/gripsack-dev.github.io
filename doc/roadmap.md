@@ -7,7 +7,10 @@ typo in a module.*
 ## Supported platforms
 
 Linux is the supported platform, including WSL2's Linux environment; this is
-not native Windows support. Linux x86_64 and aarch64 remain in scope.
+not native Windows support. The owner selected **Linux x86_64/WSL first for
+0.46.0** while native ARM runners were unavailable. ARM artifacts and
+qualification are unavailable for this release. Linux aarch64 remains a
+future qualification target, not a passing current-release claim.
 
 The owner decision `PLATFORM-LINUX-WSL-2026-10-08` retires macOS support,
 including the Mac VM worker and Mac Conda runtime, from the active roadmap.
@@ -102,8 +105,9 @@ recommended installation paths.
   that files freshness issues; see [linters](linters.md)
 - Corporate proxy support, trusting the system CA roots, `NO_PROXY`
   honored
-- Linux release targets (x86_64 + aarch64), a Linux-only Homebrew source
-  formula and install.sh. WSL uses the Linux environment, not native Windows.
+- Linux x86_64 release artifacts, a Linux-only Homebrew source formula and
+  install.sh. WSL uses the Linux environment, not native Windows. Native ARM
+  release qualification is pending, not replaced with an emulated claim.
 - Run logs with causal spans; the debug and adopt skills
 - `merge` + `template` ownership modes — a managed block inside
   foreign files (`.bashrc`), and payloads rendered from `{{ vars }}`
