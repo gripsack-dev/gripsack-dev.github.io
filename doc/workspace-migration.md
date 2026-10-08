@@ -10,7 +10,7 @@ for moving a repo across — including what you should *not* move yet.
 
 | model | entrypoint | status |
 |---|---|---|
-| modules | `env.toml` + `hosts/<name>.ts` selecting `modules/*.ts` | legacy — fully supported: source readers, `grip apply`, hooks through the legacy activation ledger |
+| modules | `env.toml` + `hosts/<name>.ts` selecting `modules/*.ts` | legacy — retained readers and execution, including legacy activation hooks; removed constructors below are not restored |
 | workspace | one root `gripsack.ts` | the active development surface |
 
 `grip apply --help` labels the host/module model "legacy". That word
@@ -23,24 +23,24 @@ hooks, platform-keyed locks — lands as workspace outputs.
 
 | in the module repo | in the workspace |
 |---|---|
-| `hosts/<name>.ts` — one entrypoint per machine, `defineEnv((ctx) => …)` | one `gripsack.ts`; the same `ctx` facts gate outputs and falsy entries drop out |
-| per-host parameters (template vars computed from `ctx.facts`) | per-output `targetPlatform({ os, arch, abi })` plus values computed in the entrypoint |
-| per-host binary destinations in module `install` | profile file destinations — `symlinkTo` / `trackedCopyTo` / `managedBlock` |
-| `locks/<host>.lock` — one lockfile per host | one platform-keyed `gripsack.lock` |
+| `hosts/<name>.ts` — one entrypoint per machine, `defineEnv((ctx) => …)` | one root `gripsack.ts`; workspace outputs replace host entrypoint selection |
+| per-host parameters (template vars computed from `ctx.facts`) | values computed in the entrypoint; `targetPlatform({ os, arch, abi })` describes command compatibility, not a machine identity |
+| per-host binary destinations in module `install` | profile file destinations — `symlinkTo` / `trackedCopyTo` / `managedBlock`; toolchain launchers use the retained environment wrappers |
+| `locks/<host>.lock` — one lockfile per host | one `gripsack.lock`, keyed by platform rather than hostname |
 | ownership modes `symlink` / `trackedCopy` / `merge` / `template` | `symlinkTo` / `trackedCopyTo` / `managedBlock` / `templateText` — semantics unchanged |
 | `pixi(package)` provider | `conda.environment(...)` or `pixi.fromLock(...)` — below |
 
 Config ownership is unchanged between the models: store-owned
 symlinks, drift-preserving tracked copies, delimited managed blocks,
 rendered templates — the same table as
-[ownership modes](modules.md#ownership-modes). What changes is the
-declaring file, not the contract, so an adoption decision made once
-carries over.
+[ownership modes](modules.md#ownership-modes). The contract is the
+same, but changing entrypoint/state roots is a deliberate ownership
+cutover, not automatic transfer of another store's history.
 
 ## Removed: `pixi(package)`
 
 The old callable `pixi("name", { … })` constructor was removed in
-0.44. Calling the public `pixi` binding now throws a structured E130
+0.44. Calling the public `pixi` binding now reports an E130 migration
 diagnostic — not a bare `TypeError` — naming the removal, the
 replacements and this page:
 
@@ -108,6 +108,43 @@ updates as well. To pin a cross-host libc baseline, declare it in the
 manifest (`[system-requirements]`) — see
 [solve baselines](environments.md#solve-baselines).
 
+There are two separate decisions: approve the source bytes for
+evaluation, then explicitly refresh the imported frozen identity.
+For a deliberately reviewed manifest or lock edit:
+
+```sh
+set -eu
+grip trust inspect --json
+# Load this edit's exact reviewed values from your review, not inspect.
+: "${reviewed_bundle:?review the changed inputs first}"
+: "${reviewed_policy:?review the changed policy first}"
+grip trust add --bundle "$reviewed_bundle" --policy "$reviewed_policy"
+if result=$(grip check 2>&1); then
+  echo "expected a stale frozen-input refusal" >&2
+  exit 1
+fi
+printf '%s\n' "$result"
+case "$result" in
+  *'Pixi input '*'differs from its frozen identity'*) ;;
+  *) echo "unexpected failure — stop and investigate" >&2; exit 1 ;;
+esac
+grip update
+```
+
+Read the failure: the expected refusal is E301, naming the changed
+Pixi input and its frozen identity; an unrelated error is not proof.
+After `update`, inspect the capture and resulting `gripsack.lock`
+again. Use the [unattended comparison](safety.md#unattended-approval)
+with newly reviewed expected digests, then `grip check` and apply the
+profile. Do not keep using the pre-update approval.
+
+Measured with the promoted 0.45.0 binary on modern Linux and UBI 8:
+adding a comment to **each of `pixi.toml` and `pixi.lock` separately**
+still failed `check` after the changed source had been approved.
+Each explicit `update` followed by review/reapproval made `check`
+succeed. The imported 42-archive closure stayed identical: refreshing
+the document identity was not a re-solve or an integrity bypass.
+
 ## Lockfiles
 
 Legacy resolution pins one `locks/<host>.lock` per host: N machines,
@@ -119,33 +156,45 @@ portability — before reusing or re-solving a lock across hosts, read
 
 ## Running both during migration
 
-Nothing forces a flag day:
+Keep **separate entrypoint roots** while migrating: for example, a
+`legacy-env/` checkout containing `env.toml`, `hosts/` and `modules/`,
+and a sibling `workspace-env/` checkout containing its own `env.toml`
+and `gripsack.ts`. Run commands from the appropriate checkout.
+Adding a root `gripsack.ts` to the legacy checkout **shadows the
+`hosts/*.ts` entrypoints**; `--host` is not a switch back to the module
+model or a workspace selector.
 
-- Module entrypoints keep working — module repos remain supported
-  (readers, `grip apply`, hooks through the legacy activation ledger).
-- Add `gripsack.ts` at the repo root; the workspace path reads it
-  without a host shim.
-- Move host by host, tool by tool. The module examples and the
-  workspace coexist while you migrate.
-- Ownership decisions carry over unchanged — no per-file re-decision.
+Use distinct private `GRIPSACK_HOME` directories and disjoint
+destinations while comparing the two deployments. For a destination
+cutover, deliberately remove its old declaration/deployment before
+the new one takes ownership; do not let two stores manage the same
+path. The ownership semantics are unchanged, but separate state roots
+do not automatically share ownership history. Keep the legacy
+checkout available until the workspace meets your needs.
+
+Platform-keyed locking does not mean host-specific configuration
+disappears: two machines with the same OS/architecture/ABI share a
+platform key, not a hostname or a guarantee of identical runtime
+capabilities. Review output selection and the recorded solve baseline
+separately.
 
 ## Downgrade boundary
 
-Measured 2026-10-06 with real binaries and completed applies (all
-transactions finished): grip 0.44.1 applied, then grip 0.42.0 against
-the finished state.
+**Newer-format state is not generally downgrade-supported.** Keep the
+newer binary to operate on it; do not point an old binary at it to
+apply, roll back, recover or collect it. Older released binaries were
+not retroactively patched.
 
-| completed state left by a 0.44/0.45 apply | grip 0.42.0 `gc` | grip 0.42.0 `rollback` |
-|---|---|---|
-| legacy module-repo generation | collected | restored generation 1 exactly; destination bytes correct |
-| workspace profile, files only | collected | restored |
-| workspace profile with a structured environment contribution | refused: "manifest is corrupt — refusing to collect: unknown field `kind` …" | nothing to roll back (exit 1) |
-| generation manifest in the 0.45 workspace-hook v2 envelope | rejected by old readers before effects, by design | — |
+Limited observations with completed transactions on 2026-10-06:
+0.42.0 collected and rolled back a simple legacy generation and a
+file-only workspace fixture left by 0.44.1. Those cases do **not**
+establish general downgrade safety. With a structured environment
+generation, 0.42.0 `gc` refused the unknown `kind` field, while bare
+`rollback` returned no readable rollback target (exit 1). That is not
+a successful rollback. `status` was not available in 0.42.0.
 
-`grip status` does not exist in 0.42.0 (exit 2). Every refusal above
-fails closed — nothing is misread, no wrong effects run. In short:
-after a completed 0.44/0.45 apply, 0.42.0 can still operate on legacy
-and file-only generations; it cannot operate on generations with
-structured environment records or workspace hooks. Downgrading past
-those generation shapes is unsupported — upgrade back or keep the
-newer binary.
+Workspace-hook generation manifests use the 0.45 version-2 envelope,
+which old readers reject. The new binary retains readers for older
+formats; that forward-upgrade compatibility is not a promise that an
+old binary understands new journals, activation records or generation
+manifests. Preserve backups and use the newer binary for recovery.

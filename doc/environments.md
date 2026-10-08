@@ -42,9 +42,11 @@ turns it into named commands over a materialized prefix;
 no personal profile by itself; `profile` ties the environment (plus
 optional config files) into the generation transaction.
 
-Verified end-to-end on 0.44.1 (Ubuntu 24.04 laptop): solve, apply,
-activation and re-apply. Not verified: the full tool set across both
-review hosts.
+The promoted 0.45.0 Linux binary was also exercised with real Node
+26.10.0 and pyright 1.1.414: personal-bin activation on glibc 2.39,
+and `/usr/local/bin` activation inside disposable UBI 8 userspace
+(glibc 2.28), including a second generation and actual rollback.
+Both used the same reviewed frozen Pixi closure described below.
 
 ## Activation: profile.sh
 
@@ -66,6 +68,18 @@ The contract is deliberately boring:
 - **second apply is satisfied** — a repeat `grip apply` reports
   already satisfied without re-solving.
 
+gripsack does not edit shell startup files automatically. A login-shell
+profile may source this file explicitly; noninteractive `/bin/sh` does
+not read `~/.profile`, so use an explicit source command or the launcher
+below. `grip run --env tools …` and `grip shell tools` are process-scoped
+alternatives, not changes to an already running parent shell.
+
+Apply and rollback change `current`, not the environment of existing
+processes. Use a fresh shell/environment afterward. Re-sourcing prepends
+the selected paths and sets declared variables; it does not remove old
+PATH entries or unset variables omitted by the restored generation.
+The launchers below source the current selection afresh on every call.
+
 ## Destinations: personal and shared
 
 Profile files declare destinations with the same ownership semantics
@@ -78,19 +92,124 @@ and the rule is enforced at authoring time, mirroring the core's
 runtime admission, so an escaping path fails in your editor rather
 than mid-apply.
 
-Personal destinations under `~` are the common case. Absolute shared
-destinations (a team-wide `/usr/local/bin`) are your paths at your
-privileges — the
-[destination boundary](safety.md#the-destination-boundary) applies
-unchanged. End-to-end shared-destination deployment on an ephemeral
-host is not something we have verified: read `grip plan` before a
-first shared apply.
-<!-- UNRESOLVED: the external review asked for verified noninteractive
-     shared /usr/local/bin integration (initialization and rollback
-     included). Only destination-grammar admission is verified here
-     (SDK asDestinationPath: absolute or ~/ with normalized segments;
-     kinds symlink/tracked_copy/managed_block). Do not claim verified
-     shared-destination behavior until it is actually run. -->
+These are **file destination rules**, not permission to project files
+from an arbitrary Conda prefix. For a persistent toolchain, use the
+generated `current/env/profile.sh`: it selects the retained
+generation's command wrappers. Do not hard-code a store hash or
+symlink directly to the prefix's `bin/node`.
+
+### Initialize and approve
+
+For a new personal workspace, run as the UID that will run the tools:
+
+```sh
+set -eu
+umask 077
+export GRIPSACK_HOME="$HOME/.local/share/gripsack"
+mkdir -p "$GRIPSACK_HOME"
+grip init "$HOME/node-workspace"
+cd "$HOME/node-workspace"
+```
+
+Save the complete `gripsack.ts` above at this root. It supersedes the
+generated legacy host entrypoint; you do not need a host shim. Before
+the first solve, inspect and review the capture, then use the exact
+values from that review (not an automatic assignment from `inspect`):
+
+```sh
+grip trust inspect --json
+# After review, load reviewed_bundle and reviewed_policy out-of-band.
+: "${reviewed_bundle:?review the initial source first}"
+: "${reviewed_policy:?review the initial policy first}"
+grip trust add --bundle "$reviewed_bundle" --policy "$reviewed_policy"
+grip update
+```
+
+The lock write changes the captured bundle. Review the resulting
+`gripsack.lock` and inventory, then use the
+[expected-digest comparison](safety.md#unattended-approval) with the
+**new** reviewed values before `grip apply with-node`. On a machine
+receiving an already frozen, reviewed checkout, skip `grip update`:
+compare, approve and apply without re-solving.
+
+### Personal command
+
+After `grip apply with-node`, install a small launcher outside the
+checkout. The distinct name avoids overwriting an unrelated `node`.
+This launcher is an operator-installed front door, not a
+gripsack-managed profile file; rollback changes its selected
+environment, not the launcher itself.
+
+```sh
+set -eu
+launcher="$HOME/.local/bin/gripsack-node"
+mkdir -p "$HOME/.local/bin"
+test ! -e "$launcher"
+test ! -L "$launcher"
+printf '#!/bin/sh\nset -eu\n. "%s/current/env/profile.sh"\nexec node "$@"\n' \
+  "$GRIPSACK_HOME" > "$launcher"
+chmod 755 "$launcher"
+env -i PATH=/usr/bin:/bin /bin/sh -c 'cd / && "$1" --version' sh "$launcher"
+```
+
+The pre-existing-destination checks stop installation rather than
+overwrite another tool. The absolute state path embedded in the
+launcher must remain stable. It works without a login shell, a
+working-directory assumption or an inherited `HOME`.
+
+### Noninteractive service command
+
+For `/usr/local/bin/gripsack-node`, do this **inside a disposable
+container** to try it, not in the host's system directories. Use one
+deployment/runtime UID with permission to create the launcher. The
+measured UBI 8 case used UID 0 for both, a private mode-0700
+`GRIPSACK_HOME`, and no user HOME or credentials mounted into it.
+In production, choose and provision the service's paths deliberately.
+
+Use the same initialization/approval/apply sequence under that UID,
+with its private state outside the checkout, then replace the
+personal installation block with:
+
+```sh
+set -eu
+launcher=/usr/local/bin/gripsack-node
+test ! -e "$launcher"
+test ! -L "$launcher"
+printf '#!/bin/sh\nset -eu\n. "%s/current/env/profile.sh"\nexec node "$@"\n' \
+  "$GRIPSACK_HOME" > "$launcher"
+chmod 755 "$launcher"
+env -i PATH=/usr/bin:/bin /bin/sh -c \
+  'cd / && /usr/local/bin/gripsack-node --version'
+```
+
+An absolute launcher location does **not** provide multi-user access
+to a private store. Do not widen permissions on `GRIPSACK_HOME`.
+The [destination boundary](safety.md#the-destination-boundary) still
+applies to profile-managed files.
+
+### Rollback through the same launcher
+
+To make a second generation observable, import `lit` in the complete
+workspace above and add `env: { MIGRATION_REVISION: lit("second") }`
+to `environment("tools", …)`. Review/approve the changed source, run
+`grip update`, review any changed lock and approve its exact capture,
+then:
+
+```sh
+grip apply with-node
+env -i PATH=/usr/bin:/bin /bin/sh -c \
+  'cd / && "$1" -p "process.env.MIGRATION_REVISION || '\''initial'\''"' sh "$launcher"
+grip rollback
+env -i PATH=/usr/bin:/bin /bin/sh -c \
+  'cd / && "$1" -p "process.env.MIGRATION_REVISION || '\''initial'\''"' sh "$launcher"
+```
+
+The two invocations print `second`, then `initial`; `--version`
+continues to print `v26.10.0`. This was observed through both the
+personal and container system launcher with plain `/bin/sh`, cwd
+`/`, initial `PATH=/usr/bin:/bin`, and no inherited shell activation.
+The retained environment wrappers and prior generation remain the
+authority; the launcher is unchanged.
 
 ## Complete closures
 
@@ -105,11 +224,37 @@ Conda prefix requires "libX11.so.6" outside the explicit OS runtime; include tha
 That is fail-closed missing-library detection working, not a pyright
 verdict. The fix is to declare the missing runtime library as an
 explicit package — for libX11 the conda-forge `xorg-libx11` family —
-so the frozen closure is complete, e.g. `packages: { nodejs:
-"=26.10.0", "xorg-libx11": "*" }`.
+so the frozen closure is complete. The exercised Pixi manifest used:
 
-Pyright validation on the glibc 2.28 target remains pending: the
-guidance above is the direction, not a verified outcome.
+```toml
+[workspace]
+name = "gripsack-pixi-gate"
+channels = ["conda-forge"]
+platforms = ["linux-64"]
+
+[system-requirements]
+libc = { family = "glibc", version = "2.28" }
+
+[dependencies]
+pyright = "*"
+"xorg-libx11" = "*"
+```
+
+The reviewed Pixi v7 lock, not the wildcard, fixes the deployed
+versions: it selected nodejs 26.10.0, pyright 1.1.414, xorg-libx11
+1.8.13 and the transitive X11 libraries. It was imported with
+`pixi.fromLock`, explicit `abi: "gnu"`, commands `node: "bin/node"`
+and `pyright: "bin/pyright"`, a materialized-prefix package, an
+environment selecting it, and a profile selecting that environment.
+
+On 2026-10-08 the **same 42 exact archives** ran real `node --version`
+and `pyright --version` on modern Linux (glibc 2.39) and in UBI 8
+userspace (glibc 2.28). The UBI run had networking disabled and reused
+the verified archive cache, not an updater's fresh solve. It recorded
+`__glibc=2.28` and `__linux=4.18` in the frozen assumptions. Both
+runtimes shared the available WSL2 6.18 kernel: this is not testing
+the external reviewer's el9 5.14 kernel or private repository, and
+does not qualify all possible packages.
 
 ## Solve baselines
 
