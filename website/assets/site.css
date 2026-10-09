@@ -388,6 +388,7 @@ article.md h3 {
 }
 article.md p { color: var(--dim); margin: 12px 0; }
 article.md p code, article.md li code { color: var(--peach); border: none; padding: 0 2px; }
+article.md :not(pre) > code { white-space: normal; overflow-wrap: anywhere; }
 article.md ul, article.md ol { color: var(--dim); padding-left: 26px; margin: 12px 0; }
 article.md li { margin: 4px 0; }
 article.md img {

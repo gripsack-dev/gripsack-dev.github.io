@@ -177,6 +177,66 @@ make all of `GRIPSACK_HOME` world-readable or writable to let another
 UID reach it: trust records, journals and retained generations remain
 private authoritative state.
 
+Recorded destination ownership does not migrate merely because a new
+workspace wants the same path. `--take-over` does not transfer that
+recorded ownership across identities. Follow the
+[separately applied legacy prune](workspace-migration.md#apply-the-legacy-prune-before-switching)
+before switching entrypoints; review and approve each source/lock
+change, and allow for the deliberate interval without the pruned
+deployment. Do not edit journals or delete managed files to force it.
+
+## Explicit host-runtime dependence
+
+A Linux GNU package may explicitly declare
+`hostRuntime: { libraryDirectories: ["/opt/bb/lib64"] }` in `pkg(...)`.
+This is a **package-scoped trust decision**, not a global filesystem
+grant and not permission for evaluator code to read those directories.
+A package closure with no such declaration retains the closed default,
+including refusal of an undeclared absolute ELF RUNPATH.
+
+Review both the package bytes and who controls the named host
+directories. Roots compose only over the selected package's explicit
+runtime-package dependency closure, in deterministic traversal and
+declaration order. For example, a retained dependency library may use
+its own declared host root; an unrelated package selected for the
+same invocation cannot lend its policy to this closure. Directories
+must be existing normalized absolute paths; canonical duplicate aliases
+are refused. A dependency symlink may not escape its declared root.
+Transitive ELF dependencies, ABI and search paths still undergo
+admission. The existing narrow glibc SONAME allowance remains separate;
+arbitrary `ld.so.cache`, `PATH` and ambient `LD_*` fallback are not
+enabled. This is not an unsealed-execution switch or a substitute for
+the [complete Conda closure](environments.md#complete-closures).
+
+The fetched artifact's identity and the package's runtime-policy
+identity remain distinct. Host libraries are host prerequisites, not
+retained portable artifact content: declaring them does not copy them
+into an OCI closure or authorize mounting them into BuildKit. Packages
+with this policy are refused for portable image placement.
+
+Persistent environment/profile wrappers for a package closure using
+`hostRuntime` route through the core's managed runner. Each invocation
+validates the retained package/descendant receipts and repeats native
+admission against the current host libraries before sealed execution;
+it does not persist a raw loader command as permanent authority.
+Task/check execution and retained hook replay also repeat admission.
+This does not make mutable host libraries immutable.
+
+These wrappers retain the **absolute core executable location** and
+the original private state path. Keep both installed and available.
+Moving or removing the core or state makes the wrapper fail closed.
+Restore the original stable core installation path, or reapply using
+the core at its new installed location to recreate the projection.
+Then use a fresh shell or explicitly source the managed profile again:
+an existing shell's `PATH` can still select the old generation's
+wrappers. Candidate0.46 qualification exercised this recovery on UBI8
+glibc2.28 under a WSL2 kernel, including stdin and exit-status preservation.
+Policy-free existing wrappers are unchanged.
+
+For the separate guarantee about temporary storage and cross-device
+store publication, see
+[temporary files](settings.md#temporary-files-and-store-publication).
+
 ## What gripsack is not
 
 gripsack is alpha software with a journaled transaction core, not a

@@ -104,9 +104,11 @@ const pyrightSource = provider(pixi.fromLock({
 
 A changed manifest or lock document is refused until an explicit
 `grip update` and renewed exact-digest source approval — between
-updates as well. To pin a cross-host libc baseline, declare it in the
-manifest (`[system-requirements]`) — see
-[solve baselines](environments.md#solve-baselines).
+updates as well. For a cross-host libc/kernel solve baseline, declare
+`systemRequirements` in native `conda.environment`, or
+`[system-requirements]` in the manifest used for a Pixi import — see
+[solve baselines](environments.md#solve-baselines). Neither replaces
+actual archive/CPU/runtime admission on the receiving host.
 
 There are two separate decisions: approve the source bytes for
 evaluation, then explicitly refresh the imported frozen identity.
@@ -154,6 +156,27 @@ exact archives plus the solve's recorded assumptions. Identity is not
 portability — before reusing or re-solving a lock across hosts, read
 [solve baselines](environments.md#solve-baselines).
 
+### Upgrading the evaluated frontend
+
+Use matching core/SDK0.46 for the new declaration fields. Retained v6
+execution remains readable, but evaluating with changed frontend bytes can
+invalidate the captured frontend/import pins in an existing `gripsack.lock`.
+An E301 refusal after source approval is not permission to edit those pins.
+
+Review and approve the upgraded checkout/SDK, explicitly run `grip update`
+for the affected source, then inspect and review the generated Gripsack lock.
+Approve its exact new bundle/policy digests before `check`, `run` or `apply`.
+This is a deliberate update; native Conda sources may solve again, so review
+the selected baseline and archives.
+
+For `pixi.fromLock`, the reviewed `pixi.toml` and `pixi.lock` can stay
+byte-identical: import that frozen solve rather than regenerating it. Actual
+0.45→0.46 qualification observed the old Gripsack lock's frontend refusal,
+then refreshed only `gripsack.lock`; the upstream Pixi documents and all42
+archive identities stayed unchanged. Repeated frozen consumers subsequently
+ran on glibc2.41 and UBI8/glibc2.28 without a public-channel re-solve.
+
+
 ## Running both during migration
 
 Keep **separate entrypoint roots** while migrating: for example, a
@@ -165,12 +188,53 @@ Adding a root `gripsack.ts` to the legacy checkout **shadows the
 model or a workspace selector.
 
 Use distinct private `GRIPSACK_HOME` directories and disjoint
-destinations while comparing the two deployments. For a destination
-cutover, deliberately remove its old declaration/deployment before
-the new one takes ownership; do not let two stores manage the same
-path. The ownership semantics are unchanged, but separate state roots
-do not automatically share ownership history. Keep the legacy
-checkout available until the workspace meets your needs.
+destinations while comparing deployments. Separate state roots and
+workspace identities do **not** share recorded ownership.
+`--take-over` is not an ownership migration command: it does not
+transfer a legacy generation's ownership to a workspace.
+
+### Apply the legacy prune before switching
+
+For paths that both configurations would manage, perform two separate
+applies. Keep the old checkout, host entrypoint and its original
+private state available throughout the cutover:
+
+1. **Stay on the legacy entrypoint.** Do not add `gripsack.ts` yet.
+   Remove the shared module declarations from `hosts/<old-host>.ts`
+   (or remove just their shared destinations). Preserve unrelated
+   modules. Removing declarations alone releases nothing.
+2. Review the edited legacy capture and approve its exact bundle and
+   policy digests using [unattended approval](safety.md#unattended-approval).
+   From the legacy checkout, with the **original** `GRIPSACK_HOME`,
+   run `grip plan --host old-host` and review the prune list. Then run
+   `grip apply --host old-host` **without a module selector**, so the
+   full legacy host commits the prune generation.
+3. Confirm that this apply succeeded and the shared paths were
+   released. Ordinary tracked-copy drift remains preserved, not
+   silently removed: a preserved destination is not a successful
+   clean cutover. Stop and resolve it through the normal ownership
+   workflow rather than deleting files or editing journals.
+4. **Only now switch entrypoints.** Add the root `gripsack.ts`, or
+   move to the separate workspace checkout and its deliberately
+   chosen private state. Review/approve that source, run `grip update`,
+   review the resulting `gripsack.lock` and captured inventory, then
+   approve the new exact digests again. Review `grip plan` and apply
+   the intended profile, for example `grip apply personal`.
+
+There is a deliberate interval between steps 2 and 4 during which
+pruned tools/configuration are **absent**. Schedule the cutover
+accordingly; this is not an atomic transfer across identities.
+If a prior unmanaged file was retained for restoration, pruning can
+restore it instead of leaving an absent path: inspect the result
+before the new profile claims it. Do not roll an old legacy
+generation back over paths now owned by the workspace.
+
+Positive fixture evidence with public 0.45.0 on Linux/WSL: a legacy
+symlink was deployed in generation 1, an independently reviewed
+empty legacy host pruned it in generation 2, then a reviewed root
+workspace update/reapproval/apply deployed a tracked copy at the same
+destination in generation 3. No `--take-over`, manual destination
+deletion or state editing was used.
 
 Platform-keyed locking does not mean host-specific configuration
 disappears: two machines with the same OS/architecture/ABI share a

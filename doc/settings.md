@@ -96,6 +96,48 @@ disk spools, not payload-sized RAM buffers. The positive integer settings
 `archive_entry_limit` and `decoder_memory_bytes` are listed in the
 [settings reference](settings/reference.md#settings-envtoml-or-user-config).
 
+## Temporary files and store publication
+
+`TMPDIR` selects ordinary temporary storage; when it is unset,
+Linux normally uses `/tmp`. **The temporary directory need not be on
+the same filesystem as `GRIPSACK_HOME`.** This is the core-owned
+publication contract, not a requirement to put all scratch under the
+store:
+
+| operation | staging and final publication |
+|---|---|
+| GitHub releases and other built-in archive fetches | private download/unpack staging; checked payload published into the store |
+| native `conda.environment` | helper solve scratch, archive spools/extraction and prefix staging use temporary storage; the core validates the frozen result before store publication |
+| `pixi.fromLock` | parses captured manifest/lock files without running a `pixi` subprocess, then uses the same frozen archive/materialization path as native Conda |
+
+The publisher seals and syncs staged content, then renames it. When
+that rename crosses filesystems (`EXDEV`), it streams a copy into a
+fresh sibling **on the destination filesystem**, preserves file
+modes and symlinks, syncs the copied files/directories, then atomically
+renames the completed sibling to the final name and syncs its parent.
+It never exposes the partially copied tree under the final store name.
+Conda's Rattler helper uses copy-only linking and patches for the final
+prefix; it does not require hard links from `/tmp` into the store.
+
+Provision sufficient space on **both** filesystems for staging and
+publication. Setting `TMPDIR` to suitable private scratch is a
+capacity/performance choice, not an ownership or integrity bypass.
+External `pixi lock` generation, custom fetcher plugins, and arbitrary
+user commands retain their own scratch/publication rules; this
+guarantee does not repair their cross-device rename assumptions.
+
+Measured with public 0.45.0 in an isolated Linux container: native
+Conda and Pixi import each published 42 real frozen archives with
+`TMPDIR`, `TMP` and `TEMP` unset, `/tmp` on tmpfs and the private
+state/store on a different filesystem. Both apply and retained
+reapply succeeded; retained store bytes, modes and directory/file
+identity remained unchanged. Acquisition used local fixture HTTPS,
+not external network access; materialization and retained reuse made
+no requests. No `pixi` executable was on `PATH`. The external
+reviewer's archive/GitHub separate-filesystem success is separate
+reviewer evidence. These observations do not qualify arbitrary
+filesystems or third-party commands.
+
 ## Machine-local config
 
 `~/.config/gripsack/config.toml` accepts `[settings]` and `[fetchers.*]`
