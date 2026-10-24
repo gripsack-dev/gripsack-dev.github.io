@@ -36,12 +36,13 @@ original archive URLs and digests. A cold frozen build acquires those exact
 archives without solving again. Native prefixes and image prefixes are
 materialized independently from the same locked records.
 
-See [workspace production](https://github.com/gripsack-dev/gripsack/blob/core-v0.44.1/README.md#workspace-production)
+See [workspace production](https://github.com/gripsack-dev/gripsack/blob/{release_source}/README.md#workspace-production)
 and the [coherent environment example](https://github.com/gripsack-dev/example-env-typescript/tree/main/workspaces/conda).
-The BuildKit production backend and coherent Conda runtime are Linux-qualified.
-Current support is Linux, including WSL2's Linux environment, not native Windows.
-macOS, the Mac VM worker and the Mac Conda journey are outside support scope;
-they are not pending qualification blockers.
+Current release support is Linux x86_64, including WSL2's Linux environment,
+not native Windows. Earlier Linux qualification of the BuildKit production
+backend and coherent Conda runtime is not qualification of every package or
+deployment host. ARM, macOS, the Mac VM worker and the Mac Conda journey are
+outside active support scope; they are not pending release blockers.
 
 The installer selects a complete published artifact pair for the supported Linux
 target and rejects macOS instead of installing historical Mac releases. Keep the

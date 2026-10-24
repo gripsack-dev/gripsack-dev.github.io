@@ -5,10 +5,22 @@ or Pixi packages, command wrappers, config files — through the same
 generation/rollback transaction module repos use, and expose it to any
 shell through one plain file.
 
+For core/SDK 0.47.0 (IR8), profile-managed launchers can replace handwritten
+activation/PATH wrappers: select `environment`, `launchers.directory` and
+`launchers.commands` explicitly. Captured `repoTree`, `templateFile` and package
+`archiveRoot` remove tree manifests, duplicate template bodies and versioned
+selector plumbing.
+Use the [matching SDK guide](https://github.com/gripsack-dev/gripsack/blob/{release_source}/typescript/README.md#managed-profile-launchers)
+and the [upgrade procedure](workspace-migration.md#upgrading-the-evaluated-frontend).
+The complete examples below retain supported explicit file/activation APIs;
+handwritten wrappers are an alternative, not a requirement for new profiles.
+
 ## A profile with a real toolchain
 
-This complete declaration targets core/SDK 0.46: node 26.10.0 from
-conda-forge, with an explicit Linux/glibc solve baseline and a `node` command.
+This complete declaration uses APIs supported by core/SDK 0.47.0: node
+26.10.0 from conda-forge, with an explicit Linux/glibc solve baseline and a
+`node` command. Historical runtime observations below are labeled separately;
+they are not qualification of the current release on every host.
 
 <div class="window">
   <div class="titlebar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="wtitle">gripsack.ts</span></div>
@@ -151,10 +163,12 @@ compare, approve and apply without re-solving.
 
 ### Profile-managed personal command
 
-A launcher is already expressible as an ordinary profile file; no
-dedicated launcher helper is required. Its **source file's executable
-bit** supplies executability. `file(...)` has no `mode` option, and
-origin-free `literalText(...)` does not supply an executable bit.
+For new profiles, prefer the
+[managed launcher API](https://github.com/gripsack-dev/gripsack/blob/{release_source}/typescript/README.md#managed-profile-launchers).
+The explicit-file alternative below remains supported and demonstrates the
+ownership and activation mechanics. Its **source file's executable bit**
+supplies executability. `file(...)` has no `mode` option, and origin-free
+`literalText(...)` does not supply an executable bit.
 
 From the initialized workspace, create this reviewed repository
 source **before** source approval:
@@ -175,8 +189,8 @@ version control. The example initialization uses an absolute state
 path; keep that path stable. The launcher does not need an inherited
 `HOME`, a login shell or a particular working directory.
 
-This complete workspace replaces the first card and adds the managed
-launcher to the same profile:
+This complete workspace replaces the first card and adds the explicit
+launcher file to the same profile (it does not use `profile.launchers`):
 
 <div class="window">
   <div class="titlebar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="wtitle">gripsack.ts — managed launcher</span></div>
@@ -264,13 +278,14 @@ env -i PATH=/usr/bin:/bin /bin/sh -c \
 ```
 
 The two invocations print `second`, then `initial`; `--version`
-continues to print `v26.10.0`. The profile-managed launcher was
+continues to print `v26.10.0`. This explicit-file launcher was
 exercised with public 0.45.0 and the already reviewed frozen Pixi
 Node/pyright closure below, reusing its verified archives without
 re-solving. It ran from `/` with only `PATH=/usr/bin:/bin`, no `HOME`
 and no inherited activation. The second apply and actual rollback
-changed the selected environment through the same managed launcher.
-This proves the launcher mechanism, not every future Conda solve.
+changed the selected environment through the same launcher.
+That evidence covers the explicit-file mechanism, not the newer
+`profile.launchers` API or every future Conda solve.
 
 ## Release trees that locate their siblings
 
@@ -288,6 +303,18 @@ file then physically occupies its declared relative location. Include
 the runtime data/libraries as well as the executable; copied files
 remain individually owned and drift-protected, not an exclusively
 owned directory.
+
+`hostRuntime` authorizes reviewed host libraries; it does not repair an
+application's self-location logic. LuaLS 3.19.2 still fails its sealed bootstrap
+when it looks for `/main.lua`. A complete tracked-copy tree with a captured
+executable template and an explicit deployed-host check passed an isolated
+development-core smoke; this is not a sealed-bootstrap fix. Neovim 0.12.5
+resource/parser loading and tree-sitter 0.27.1 version/help passed sealed
+smokes with explicitly reviewed `/usr/lib/x86_64-linux-gnu` authority.
+None of those observations qualifies a private deployment host.
+See the [canonical SDK migration guide](https://github.com/gripsack-dev/gripsack/blob/{release_source}/typescript/README.md#reviewer-migration-delete-plumbing-keep-verification)
+for current captured-template/tree, tracked-copy and profile-selection guidance;
+keep deployed-host verification explicit.
 
 This complete local example demonstrates the supported layout
 without downloading an unreviewed release. In a fresh workspace,
@@ -468,20 +495,27 @@ claim to exercise the new native `systemRequirements` field.
 Since 0.45.0, profile hooks execute on supported runtimes instead of
 unconditionally refusing with the unavailable-A2-capability error:
 
-| capability | status in 0.45.0 | notes |
+| capability | status | notes |
 |---|---|---|
 | profile hooks `post_link`, `post_activate`, `on_remove` | **execute**, through the durable activation ledger | per-intent identity, durable terminal outcomes, ambiguous-crash replay handling, **no automatic rollback** after a post-activation failure |
 | hook commands | literal `exec`, explicit `packageCommand`/`runBash`, artifact/input arguments, declared `env` and `cwd` | hooks do **not** implicitly source the newly activated `profile.sh`; default cwd follows the legacy hook temp-directory convention |
 | task `checks` | ordered postconditions after successful task steps | once per invocation, stopping at the first failure; `sourcePath` resolves against the immutable check subject |
 | recipe publication checks | unchanged | as before |
 
-Still explicitly unavailable — each refused with a diagnostic, never a
-silent no-op: profile `file.checks` stage adapters, schedules
-(registration), task prerequisites.
+In 0.47.0, attached profile file checks and manual task prerequisites are
+supported. Profile hooks have executed since 0.45.0; the task-check row above
+describes the current contract, not a claim about 0.45.0. See the
+[current file-check and task contract](https://github.com/gripsack-dev/gripsack/blob/{release_source}/typescript/README.md#file-checks-and-manual-tasks).
+Use `grip task list`, `grip task plan NAME`, `grip task run NAME --closed-stdin`,
+then `grip task status INVOCATION_ID` and `grip task log INVOCATION_ID`.
+`deps` are unordered prerequisites, `steps` ordered, and `checks` invocation
+postconditions. Declare live mutation paths and shared locks explicitly.
+Schedules remain declaration-only: no registration or executing timers.
 
-`grip check` and `grip plan` stay read-only: "running a check" means
-recipe publication validation or task postconditions, never side
-effects from a preview.
+`grip check` and `grip plan` stay read-only: declared executable checks run
+at their explicit execution boundary (for example, recipe publication,
+attached profile-file validation or manual-task postconditions), never as
+side effects of a preview.
 
 <div class="window">
   <div class="titlebar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="wtitle">gripsack.ts — a profile hook</span></div>

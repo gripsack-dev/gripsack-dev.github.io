@@ -1,17 +1,19 @@
 name: pages
 
-# gripsack.dev — assembled by website/build.py: the landing page from
-# website/, docs pages converted from doc/*.md. Editing a doc in the
-# repo is all it takes to update the site.
+# Render an authenticated published release; product/examples qualification is
+# local and source-bound, not a duplicate hosted compilation lane.
 on:
   workflow_dispatch:
     inputs:
-      runner_label:
-        description: "Authorized runner label (use a unique ephemeral label for local publication)"
+      release_tag:
+        description: "Published core tag (all three selectors, or all blank to rebuild deployed selection)"
         type: string
-        default: ubuntu-latest
-  # The app repo's demo/release workflows ping us to redeploy (fresh
-  # demo GIF + version chip) — needs SITE_REPO_TOKEN on their side.
+      manifest_sha256:
+        description: "Exact published manifest SHA256"
+        type: string
+      run_id:
+        description: "Core signing/publishing run ID (not the Pages run)"
+        type: string
   repository_dispatch:
     types: [rebuild]
   push:
@@ -23,79 +25,65 @@ on:
 
 permissions:
   contents: read
-  pages: write
-  id-token: write
 
 concurrency:
   group: pages
-  cancel-in-progress: true
+  cancel-in-progress: false
+
 jobs:
-  check-examples:
-    # 0042 §E executable docs: the TypeScript examples published in
-    # doc/ are extracted and evaluated for real — the SAME checker
-    # core CI runs (core repo scripts/check_examples.py), here against
-    # deliberately versioned published artifacts: the released grip
-    # binary, the published npm package, and the tagged driver tree.
-    # Bump GRIPSACK_VERSION deliberately with the docs' target release.
-    runs-on: ${{ inputs.runner_label || 'ubuntu-latest' }}
-    env:
-      GRIPSACK_VERSION: 0.46.0
+  build:
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
-      - uses: actions/checkout@v7
         with:
-          repository: gripsack-dev/gripsack
-          ref: core-v${{ env.GRIPSACK_VERSION }}
-          path: core
-      - name: Fetch the released grip (versioned artifact)
+          persist-credentials: false
+      - name: Provision reviewed attestation verifier
+        shell: bash
         run: |
-          V="$GRIPSACK_VERSION"
-          PKG="gripsack-$V-x86_64-unknown-linux-musl"
-          BASE="https://github.com/gripsack-dev/gripsack/releases/download/core-v$V"
-          curl -fsSL "$BASE/$PKG.tar.gz" -o "/tmp/$PKG.tar.gz"
-          curl -fsSL "$BASE/$PKG.tar.gz.sha256" -o "/tmp/$PKG.tar.gz.sha256"
-          (cd /tmp && sha256sum -c "$PKG.tar.gz.sha256")
-          mkdir -p /tmp/grip-bin && tar -xzf "/tmp/$PKG.tar.gz" -C /tmp/grip-bin
-          echo "GRIP=$(find /tmp/grip-bin -type f -name grip)" >> "$GITHUB_ENV"
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
-        with:
-          node-version: 22.23.2
-      - name: Fetch the published npm package (versioned artifact)
-        # the same artifact shape the registry serves, pinned to the
-        # docs' target release; the checker also verifies the tarball
-        # version matches the tagged driver tree
-        run: |
-          cd /tmp
-          SDK="$(npm pack "@gripsack/core@$GRIPSACK_VERSION" --silent)"
-          echo "SDK=/tmp/$SDK" >> "$GITHUB_ENV"
-      - uses: denoland/setup-deno@v2
-        with:
-          # the version the pinned core release provisions
-          deno-version: v2.9.6
-      - name: Check the published examples
-        run: >
-          python3 core/scripts/check_examples.py --site . --core-repo core
-          --grip "$GRIP" --deno "$(which deno)" --sdk "$SDK" --selfcheck
-
-  deploy:
-    needs: [check-examples]
-    runs-on: ${{ inputs.runner_label || 'ubuntu-latest' }}
-    environment:
-      name: github-pages
-      url: ${{ steps.deploy.outputs.page_url }}
-    steps:
-      - uses: actions/checkout@v7
-
+          set -euo pipefail
+          # cli/cli official Linux amd64 asset 599854672. Authenticate archive
+          # bytes BEFORE extracting/executing; the release is not a trust root.
+          ARCHIVE="$RUNNER_TEMP/gh_2.102.0_linux_amd64.tar.gz"
+          curl --fail --silent --show-error --location --proto '=https' --proto-redir '=https' \
+            --max-time 300 --max-filesize 100000000 \
+            https://github.com/cli/cli/releases/download/v2.102.0/gh_2.102.0_linux_amd64.tar.gz -o "$ARCHIVE"
+          printf '%s  %s\n' bb766f710eef8ede859c18578c72c327597cd4c8a85b06001b1f3843c6019386 "$ARCHIVE" | sha256sum --check --strict
+          mkdir -p "$RUNNER_TEMP/site-gh"
+          tar -xzf "$ARCHIVE" -C "$RUNNER_TEMP/site-gh" gh_2.102.0_linux_amd64/bin/gh
+          echo "$RUNNER_TEMP/site-gh/gh_2.102.0_linux_amd64/bin" >> "$GITHUB_PATH"
       - uses: astral-sh/setup-uv@v5
-
-      - name: Build site
-        run: uv run --with markdown python website/build.py
-
-      - uses: actions/configure-pages@v5
-
+      - name: Admit selected release and render
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ inputs.release_tag || github.event.client_payload.release_tag }}
+          MANIFEST_SHA256: ${{ inputs.manifest_sha256 || github.event.client_payload.manifest_sha256 }}
+          SIGNING_RUN_ID: ${{ inputs.run_id || github.event.client_payload.run_id }}
+          EVENT_NAME: ${{ github.event_name }}
+        run: |
+          set -euo pipefail
+          args=()
+          if [[ "$EVENT_NAME" == repository_dispatch || -n "$RELEASE_TAG$MANIFEST_SHA256$SIGNING_RUN_ID" ]]; then
+            args=(--release-tag "$RELEASE_TAG" --manifest-sha256 "$MANIFEST_SHA256" --run-id "$SIGNING_RUN_ID")
+          fi
+          # No inputs on push/manual: re-admit https://gripsack.dev/release.json.
+          # Missing/invalid selectors or signature stop before artifact upload;
+          # the existing 0.46 deployment is retained until genuine promotion.
+          uv run --with markdown python website/build.py "${args[@]}"
       - uses: actions/upload-pages-artifact@v3
         with:
           path: public
 
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - uses: actions/configure-pages@v5
       - id: deploy
         uses: actions/deploy-pages@v4

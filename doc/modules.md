@@ -67,6 +67,13 @@ export const lua = langServer("lua-ls", "LuaLS/lua-language-server");
 export const zed = langServer("zed", "zed-industries/zed");</code></pre>
 </div>
 
+This factory illustrates TypeScript reuse, not a qualified LuaLS or Zed
+installer: it assumes every upstream publishes `${name}-{version}.tar.gz`
+with `bin/${name}` inside. Review each upstream's actual asset and complete
+runtime tree before using it. In particular, LuaLS 3.19.2's sealed bootstrap
+self-location failure is not fixed by granting host libraries; see
+[physical release layouts](environments.md#release-trees-that-locate-their-siblings).
+
 ## Ownership modes
 
 | mode | behavior | use for |

@@ -7,7 +7,8 @@ the repo is all it takes to update the site (pages.yml redeploys).
 Every docs page shares one chrome: a left rail (brand, site nav,
 on-this-page TOC) and a content column.
 
-    uv run --with markdown python website/build.py    # → public/
+    uv run --with markdown python website/build.py --release-tag "$TAG" \
+      --manifest-sha256 "$MANIFEST_SHA256" --run-id "$SIGNING_RUN_ID"
 """
 
 from __future__ import annotations
@@ -15,10 +16,11 @@ from __future__ import annotations
 import hashlib
 import re
 import shutil
-import urllib.request
+import json
 from pathlib import Path
 
 import markdown
+import release
 
 ROOT = Path(__file__).resolve().parent.parent
 OUT = ROOT / "public"
@@ -46,43 +48,11 @@ REPO = "https://github.com/gripsack-dev/gripsack"
 _ASSET_VERSION: str | None = None
 
 
-def latest_release() -> str:
-    """The current CORE release tag, fetched at build time; stale-safe
-    fallback. /releases/latest returns whichever tag published most
-    recently — with two tag namespaces (core-v*, ts-v*) that is not
-    necessarily the binary."""
-    try:
-        with urllib.request.urlopen(
-            "https://api.github.com/repos/gripsack-dev/gripsack/releases?per_page=20"
-        ) as r:
-            import json
-
-            def parse(tag: str) -> tuple[int, ...] | None:
-                version = tag.removeprefix("core-v")
-                parts = version.split(".")
-                if not parts or not all(p.isdigit() for p in parts):
-                    return None
-                return tuple(int(p) for p in parts)
-
-            # the list is creation-ordered, and a ts-v* tag created
-            # alongside reorders it — the newest CORE release is the
-            # semver max, never the first core-v row
-            versions = [
-                v for r in json.load(r) if (v := parse(r["tag_name"])) is not None
-            ]
-            return ".".join(map(str, max(versions))) if versions else "0.8.0"
-    except Exception:
-        return "0.8.0"
-
-_SITE_VERSION: str | None = None
 
 
 def site_version() -> str:
-    """latest_release(), fetched once per build (docs footers reuse it)."""
-    global _SITE_VERSION
-    if _SITE_VERSION is None:
-        _SITE_VERSION = latest_release()
-    return _SITE_VERSION
+    """All rendered current-version data comes from the admitted release."""
+    return RELEASE["version"]
 
 
 def asset_version() -> str:
@@ -286,21 +256,6 @@ def rewrite(body: str, slugs: set[str], root: str = "../") -> str:
     return body
 
 
-def fetch_changelog(fallback: Path) -> str:
-    """The app repo's CHANGELOG.md, fetched fresh; the committed copy
-    is the offline fallback. The site deploy is dispatched by releases,
-    so this is current within seconds of a tag."""
-    try:
-        with urllib.request.urlopen(
-            "https://raw.githubusercontent.com/gripsack-dev/gripsack/main/CHANGELOG.md"
-        ) as r:
-            text = r.read().decode()
-        fallback.write_text(text)  # keep the fallback current
-        return text
-    except Exception:
-        if fallback.exists():
-            return fallback.read_text()
-        return "# Changelog\n\n(temporarily unavailable — see the repo)\n"
 
 
 def build_docs() -> None:
@@ -309,9 +264,10 @@ def build_docs() -> None:
         root = "../" * (1 + slug.count("/"))
         path = ROOT / src
         if slug == "changelog":
-            text = fetch_changelog(path)
+            text = RELEASE_FILES["CHANGELOG.md"].decode("utf-8")
         else:
             text = path.read_text()
+        text = text.replace("{release_source}", RELEASE["source"]["commit"])
         body = markdown.markdown(
             text, extensions=["fenced_code", "tables", "toc", "sane_lists"]
         )
@@ -396,12 +352,9 @@ def assemble() -> None:
             f'<meta http-equiv="refresh" content="0; url=./{nested}.html">'
             f'<link rel="canonical" href="./{nested}.html">'
         )
-    # The installer, served at gripsack.dev/install.sh (source of truth:
-    # the gripsack repo).
-    installer = urllib.request.urlopen(
-        "https://raw.githubusercontent.com/gripsack-dev/gripsack/main/install.sh"
-    ).read()
-    (OUT / "install.sh").write_bytes(installer)
+    # Exact Git blob bytes from the authenticated source, not mutable main.
+    (OUT / "install.sh").write_bytes(RELEASE_FILES["install.sh"])
+    (OUT / "release.json").write_text(json.dumps(RELEASE, sort_keys=True) + "\n")
     (OUT / "assets").mkdir(exist_ok=True)
     for name in ("icon.svg", "favicon.svg", "site.css", "site.js"):
         shutil.copy(ROOT / "website" / "assets" / name, OUT / "assets" / name)
@@ -423,5 +376,7 @@ def assemble() -> None:
 
 
 if __name__ == "__main__":
+    # Complete admission and source downloads BEFORE touching existing output.
+    RELEASE, RELEASE_FILES = release.admit(*release.selected_inputs(release.arguments()))
     assemble()
     build_docs()

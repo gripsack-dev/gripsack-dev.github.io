@@ -25,9 +25,9 @@ hooks, platform-keyed locks — lands as workspace outputs.
 |---|---|
 | `hosts/<name>.ts` — one entrypoint per machine, `defineEnv((ctx) => …)` | one root `gripsack.ts`; workspace outputs replace host entrypoint selection |
 | per-host parameters (template vars computed from `ctx.facts`) | values computed in the entrypoint; `targetPlatform({ os, arch, abi })` describes command compatibility, not a machine identity |
-| per-host binary destinations in module `install` | profile file destinations — `symlinkTo` / `trackedCopyTo` / `managedBlock`; toolchain launchers use the retained environment wrappers |
+| per-host binary destinations in module `install` | profile file destinations — `symlinkTo` / `trackedCopyTo` / `managedBlock`; `profile.launchers` exposes explicitly selected environment commands |
 | `locks/<host>.lock` — one lockfile per host | one `gripsack.lock`, keyed by platform rather than hostname |
-| ownership modes `symlink` / `trackedCopy` / `merge` / `template` | `symlinkTo` / `trackedCopyTo` / `managedBlock` / `templateText` — semantics unchanged |
+| ownership modes `symlink` / `trackedCopy` / `merge` / `template` | `symlinkTo` / `trackedCopyTo` / `managedBlock` / `templateText` or captured `templateFile` — ownership semantics unchanged |
 | `pixi(package)` provider | `conda.environment(...)` or `pixi.fromLock(...)` — below |
 
 Config ownership is unchanged between the models: store-owned
@@ -158,10 +158,18 @@ portability — before reusing or re-solving a lock across hosts, read
 
 ### Upgrading the evaluated frontend
 
-Use matching core/SDK0.46 for the new declaration fields. Retained v6
-execution remains readable, but evaluating with changed frontend bytes can
-invalidate the captured frontend/import pins in an existing `gripsack.lock`.
-An E301 refusal after source approval is not permission to edit those pins.
+Use matching core/SDK 0.47.0 for current declarations (IR8); retained v3–v7
+execution keeps its original versioned semantics. Evaluating with changed
+frontend bytes can invalidate the captured frontend/import pins in an existing
+`gripsack.lock`. An E301 refusal after source approval is not permission to edit
+those pins.
+
+The [release-specific migration examples](https://github.com/gripsack-dev/gripsack/blob/{release_source}/typescript/README.md#reviewer-migration-delete-plumbing-keep-verification)
+replace generated tree manifests with captured `repoTree`, duplicate inline
+templates with `templateFile`, handwritten wrappers with profile-managed
+launchers, and versioned archive selectors with explicit `archiveRoot`.
+Keep source capture exclusions, destination ownership, lock review and
+exact-digest approval; shorter declarations do not waive those boundaries.
 
 Review and approve the upgraded checkout/SDK, explicitly run `grip update`
 for the affected source, then inspect and review the generated Gripsack lock.

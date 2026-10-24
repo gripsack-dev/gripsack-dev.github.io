@@ -49,20 +49,22 @@
     <span class="tab-bar">
       <button data-tab="curl" class="active" aria-current="true">curl</button><button data-tab="cargo">cargo</button><button data-tab="mise">mise</button>
     </span>
-    <span class="tab-pane ib-cmd" data-pane="curl" data-cmd="curl -fsSL https://gripsack.dev/install.sh | sh"><span class="p">$</span> curl -fsSL https://gripsack.dev/install.sh | sh</span>
-    <span class="tab-pane ib-cmd" data-pane="cargo" data-cmd="cargo install gripsack" hidden><span class="p">$</span> cargo install gripsack</span>
-    <span class="tab-pane ib-cmd" data-pane="mise" data-cmd="mise use cargo:gripsack" hidden><span class="p">$</span> mise use cargo:gripsack</span>
-    <button class="copy" data-copy="curl -fsSL https://gripsack.dev/install.sh | sh">copy</button>
+    <span class="tab-pane ib-cmd" data-pane="curl" data-cmd="curl -fsSL https://gripsack.dev/install.sh | sh -s -- --version {version}"><span class="p">$</span> curl -fsSL https://gripsack.dev/install.sh | sh -s -- --version {version}</span>
+    <span class="tab-pane ib-cmd" data-pane="cargo" data-cmd="cargo install gripsack --version {version} --locked" hidden><span class="p">$</span> cargo install gripsack --version {version} --locked</span>
+    <span class="tab-pane ib-cmd" data-pane="mise" data-cmd="mise use cargo:gripsack@{version}" hidden><span class="p">$</span> mise use cargo:gripsack@{version}</span>
+    <button class="copy" data-copy="curl -fsSL https://gripsack.dev/install.sh | sh -s -- --version {version}">copy</button>
     <span class="ib-os">linux · WSL</span>
   </div>
-  <p class="alt">already installed?
-    <span data-pane="curl"><code>grip self-update</code></span><span data-pane="cargo" hidden><code>cargo install gripsack</code></span><span data-pane="mise" hidden><code>mise up gripsack</code></span>
+  <p class="alt">Re-run the versioned install command to select this release.
+    <code>grip self-update</code> independently selects the latest signed release.
     · <a href="./docs/changelog.html">what's new</a></p>
   <p class="alt">Supported on Linux, including WSL2's Linux environment — not native Windows or macOS.
     <a href="./docs/roadmap.html#supported-platforms">Platform scope</a>.</p>
-  <p class="alt">check archive integrity: <code>sha256sum -c gripsack-*.tar.gz.sha256</code> · audit embedded dependencies: <code>cargo audit bin "$(which grip)"</code><br>
-    0.46.0 is a locally qualified Linux x86_64/WSL release with no hosted build attestation.
-    <a href="https://github.com/gripsack-dev/gripsack/releases/tag/core-v0.46.0">Scope and verification evidence</a>; other targets are outside scope, and checksums do not replace provenance.</p>
+  <p class="alt">The binary installer requires Python 3.11+ and independently provisioned GitHub CLI 2.102.0+.
+    It verifies the signed local-qualification manifest before installation; cargo/mise compile from registry source instead.<br>
+    {version} is locally qualified for Linux x86_64/WSL; GitHub signs and publishes, it does not compile the product.
+    <a href="https://github.com/gripsack-dev/gripsack/releases/tag/core-v{version}">Release and verification scope</a>
+    · <a href="./release.json">authenticated site release binding</a>. Other targets remain outside scope.</p>
   </div>
   <div class="cta">
     <a class="primary" href="https://github.com/gripsack-dev/gripsack">GitHub ↗</a>
@@ -113,7 +115,7 @@
       </div>
     </div>
   </div>
-  <p class="note">re-rendered by CI from real demo runs — always the current CLI, in your palette.</p>
+  <p class="note">recorded demonstrations, in your palette — not evidence that these recordings were regenerated for the selected release.</p>
 
   <details class="transcript">
     <summary>prefer text? the same adopt run, as a transcript</summary>
