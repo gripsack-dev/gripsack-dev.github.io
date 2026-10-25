@@ -36,7 +36,7 @@ original archive URLs and digests. A cold frozen build acquires those exact
 archives without solving again. Native prefixes and image prefixes are
 materialized independently from the same locked records.
 
-See [workspace production](https://github.com/gripsack-dev/gripsack/blob/{release_source}/README.md#workspace-production)
+See the [workspace SDK reference](https://github.com/gripsack-dev/gripsack/blob/core-v0.47.0/typescript/README.md#a-workspace-is-a-function-ir-v8)
 and the [coherent environment example](https://github.com/gripsack-dev/example-env-typescript/tree/main/workspaces/conda).
 Current release support is Linux x86_64, including WSL2's Linux environment,
 not native Windows. Earlier Linux qualification of the BuildKit production

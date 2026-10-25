@@ -11,6 +11,9 @@
 }
 * { box-sizing: border-box; }
 html { scroll-behavior: smooth; }
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+}
 body {
   margin: 0; color: var(--text);
   background: linear-gradient(180deg, color-mix(in srgb, var(--card) 45%, var(--bg)) 0%, var(--bg) 320px), var(--bg);
@@ -92,7 +95,7 @@ footer .fversion {
   filter: drop-shadow(0 14px 34px color-mix(in srgb, var(--deep) 55%, transparent));
 }
 .hero .logo svg * { transition: fill 0.25s ease, stroke 0.25s ease; }
-.hero p.tagline { font-size: 24px; color: var(--text); margin: 8px 0 4px; }
+.hero .tagline { font-size: 24px; color: var(--text); margin: 8px 0 4px; }
 .hero p.kicker { font-size: 12px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--accent); margin: 0 0 6px; }
 .hero p.sub { font-size: 15px; color: var(--faint); margin: 0 0 24px; }
 .cta { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
@@ -394,6 +397,7 @@ article.md table {
   width: 100%; border-collapse: collapse; margin: 16px 0;
   font-size: 14px; display: block; overflow-x: auto;
 }
+article.md table code { white-space: nowrap; overflow-wrap: normal; }
 article.md th {
   font-family: var(--mono); font-size: 12px; text-align: left;
   color: var(--faint); letter-spacing: 0.5px;
@@ -627,21 +631,12 @@ body.home .hero::before {
 }
 body.home .hero .logo { width: min(300px, 68vw); }
 body.home .hero p.kicker { margin: 18px 0 8px; }
-body.home .hero p.tagline {
+body.home .hero .tagline {
   font-size: clamp(27px, 4.4vw, 40px); font-weight: 700;
   line-height: 1.12; letter-spacing: -0.012em;
   margin: 0 0 10px;
 }
-body.home .hero p.tagline .accent { color: var(--blue); }
-body.home .hero p.tagline .caret {
-  display: inline-block; width: 0.45em; height: 0.88em;
-  background: var(--green); margin-left: 12px;
-  vertical-align: baseline; transform: translateY(0.1em);
-  animation: blink 1.5s steps(2) infinite;
-}
-@media (prefers-reduced-motion: reduce) {
-  body.home .hero p.tagline .caret { animation: none; }
-}
+body.home .hero .tagline .accent { color: var(--blue); }
 body.home .hero p.sub {
   font-size: 16px; max-width: 58ch; margin: 0 auto 30px;
 }
@@ -686,19 +681,6 @@ body.home .osub {
 body.home .osub::before { content: "\276F  "; color: var(--blue); }
 body.home .outro p.alt { text-align: left; margin: 0; max-width: none; }
 
-/* scroll-in: sections breathe once, on entry — never under
-   prefers-reduced-motion, and never without JS (the class is
-   added by site.js, so the page is fully painted either way) */
-body.home .content > section.reveal {
-  opacity: 0; transform: translateY(22px);
-  transition: opacity 0.6s ease-out, transform 0.6s cubic-bezier(0.25, 1, 0.5, 1);
-}
-body.home .content > section.reveal.revealed { opacity: 1; transform: none; }
-@media (prefers-reduced-motion: reduce) {
-  body.home .content > section.reveal {
-    opacity: 1; transform: none; transition: none;
-  }
-}
 
 @media (max-width: 880px) {
   body.home h2.section { margin-bottom: 20px; }

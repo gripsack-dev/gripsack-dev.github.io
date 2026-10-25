@@ -23,23 +23,33 @@ recommended installation paths.
 
 ## Release qualification
 
-Releases are qualified locally and then signed for publication; GitHub
+Signed releases are qualified locally and then signed for publication; GitHub
 signs and publishes, it does not compile the product. The binary
 installer (`install.sh`) requires Python 3.11+ and an independently
 provisioned GitHub CLI 2.102.0+, and verifies the release's signed
 local-qualification manifest — exact archive and checksum bytes —
-before installing anything; `cargo install` and `mise` build the same
-version from registry source instead. `grip self-update` independently
-selects the latest signed release.
+before installing anything. `grip self-update` independently selects the
+latest signed release. Registry publication is a separate event, not implied
+by a GitHub release.
 
 This site follows the same rule: deployment admits exactly one
 authenticated release ([release.json](https://gripsack.dev/release.json))
-and stamps its version into the install commands it shows, so the pages
-can never advertise a release that was not verified.
+and stamps its version into the signed install command. Explicitly labeled
+unsigned reviewer links are separate from that authenticated selection.
 
-## Shipped
+## Reviewer prerelease and development
 
-- **Workspace ergonomics at IR8** (core/SDK 0.47.0, [notes](changelog.md)) —
+**0.47.0 is an unsigned, unverified reviewer prerelease**, published with
+[manual installation instructions and matching SDK assets](https://github.com/gripsack-dev/gripsack/releases/tag/core-v0.47.0).
+Asset readback and manual install/SDK smoke checks passed; full qualification
+and npm/crates publication are not claimed.
+
+**Capture-glob exclusions and the `--focus` view require core/SDK 0.48.**
+They are not in the 0.47 prerelease. Check the
+[release records](https://github.com/gripsack-dev/gripsack/releases) for available
+artifacts and qualification evidence; a source version does not establish either.
+
+- **Workspace ergonomics at IR8** (core/SDK 0.47.0 reviewer prerelease) —
   captured `repoTree` replaces generated tree manifests, `templateFile`
   renders an approved repo file without a duplicated inline body,
   `archiveRoot: { kind: "single_directory" }` selects one unambiguous
@@ -49,8 +59,12 @@ can never advertise a release that was not verified.
   per-invocation deduplication, ordered checks, shared mutation locks and
   retained status/logs; profile file checks distinguish captured, rendered
   and deployed subjects; `apply`/`plan --migrate-from N` adopts exact
-  current owned links. Recursive capture-glob exclusions and mutable
-  overlays are deliberately not part of this release.
+  current owned links. Recursive capture-glob exclusions are not in 0.47.
+  Locked mutable overlays are not implemented: copy intended deployed-tree
+  changes back into repository source, exclude caches, review and approve the
+  new captured source, then apply. Locks never capture live destination state.
+
+## Shipped
 
 - **Linux/WSL runtime boundaries** (0.46.0, [notes](changelog.md)) —
   `hostRuntime: { libraryDirectories }` admits reviewed host libraries for

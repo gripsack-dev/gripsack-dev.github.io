@@ -3,273 +3,78 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>gripsack — personal environment manager</title>
-<meta name="description" content="gripsack — personal environment manager for Linux and WSL. Keep your packages and dotfiles in one repo, reproduce them on another machine, and roll the entire setup back when something goes wrong.">
-<meta property="og:title" content="gripsack — personal environment manager">
-<meta property="og:description" content="For Linux and WSL: keep your packages and dotfiles in one repo, reproduce them on another machine, and roll the entire setup back when something goes wrong.">
+<title>gripsack — your environment, in one workspace</title>
+<meta name="description" content="Typed workspaces for packages, development environments and personal profiles. Linux and WSL2, with reviewed inputs, generations and rollback.">
+<meta property="og:title" content="gripsack — your environment, in one workspace">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://gripsack.dev/">
-<meta name="twitter:card" content="summary">
 <link rel="icon" href="./assets/favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="./assets/site.css">
 <script src="./assets/site.js" defer></script>
 </head>
 <body class="home">
-
 <header class="topbar">
-  <a class="brand" href="./index.html">
-    <img src="./assets/icon.svg" alt="gripsack icon"><span class="wordmark">gripsack</span>
-  </a>
-  <nav>
-    <a href="./docs/adopting.html">docs</a>
-    <a href="./docs/changelog.html">what's new</a>
-    <a href="https://github.com/gripsack-dev/gripsack">github ↗</a>
-  </nav>
+  <a class="brand" href="./index.html"><img src="./assets/icon.svg" alt=""><span class="wordmark">gripsack</span></a>
+  <nav aria-label="Primary"><a href="#start">start</a><a href="#install">install</a><a href="#docs">docs</a><a href="https://github.com/gripsack-dev/gripsack">github ↗</a></nav>
 </header>
-
 <main class="content">
-
 <section class="hero">
-  <div class="logo" role="img" aria-label="gripsack — a traveler's bag with a config file and a terminal chip peeking out"><!--LOGO--></div>
-  <p class="kicker">gripsack — personal environment manager</p>
-  <h1 class="tagline">your whole environment, in <span class="accent">one bag</span>.<span class="caret" aria-hidden="true"></span></h1>
-  <p class="sub">set up a new machine from one repo — packages, dotfiles and
-  machine-specific config, with generations and rollback.</p>
-  <div class="chips">
-    <a class="chip version" href="./docs/changelog.html">v<!--VERSION--></a>
-    <span class="chip">typed typescript</span>
-    <span class="chip">rust core</span>
-    <span class="chip">generations &amp; rollback</span>
-    <span class="chip">sandboxed eval</span>
-    <span class="chip">no daemon · root · /nix</span>
-    <span class="chip status">alpha</span>
-  </div>
-  <div class="tabscope">
-  <div class="installbox">
-    <span class="tab-bar">
-      <button data-tab="curl" class="active" aria-current="true">curl</button><button data-tab="cargo">cargo</button><button data-tab="mise">mise</button>
-    </span>
-    <span class="tab-pane ib-cmd" data-pane="curl" data-cmd="curl -fsSL https://gripsack.dev/install.sh | sh -s -- --version {version}"><span class="p">$</span> curl -fsSL https://gripsack.dev/install.sh | sh -s -- --version {version}</span>
-    <span class="tab-pane ib-cmd" data-pane="cargo" data-cmd="cargo install gripsack --version {version} --locked" hidden><span class="p">$</span> cargo install gripsack --version {version} --locked</span>
-    <span class="tab-pane ib-cmd" data-pane="mise" data-cmd="mise use cargo:gripsack@{version}" hidden><span class="p">$</span> mise use cargo:gripsack@{version}</span>
-    <button class="copy" data-copy="curl -fsSL https://gripsack.dev/install.sh | sh -s -- --version {version}">copy</button>
-    <span class="ib-os">linux · WSL</span>
-  </div>
-  <p class="alt">Re-run the versioned install command to select this release.
-    <code>grip self-update</code> independently selects the latest signed release.
-    · <a href="./docs/changelog.html">what's new</a></p>
-  <p class="alt">Supported on Linux, including WSL2's Linux environment — not native Windows or macOS.
-    <a href="./docs/roadmap.html#supported-platforms">Platform scope</a>.</p>
-  <p class="alt">The installer verifies the release's signed local-qualification
-    manifest before touching your machine — GitHub signs and publishes, it does
-    not compile the product.
-    <a href="https://github.com/gripsack-dev/gripsack/releases/tag/core-v{version}">Release and verification scope</a> ·
-    <a href="./docs/roadmap.html#release-qualification">requirements and site binding</a>.</p>
-  </div>
-  <div class="cta">
-    <a class="primary" href="https://github.com/gripsack-dev/gripsack">GitHub ↗</a>
-    <a href="./docs/adopting.html">adopt one dotfile →</a>
-  </div>
+  <div class="logo" role="img" aria-label="gripsack"><!--LOGO--></div>
+  <p class="kicker">personal environment manager · alpha</p>
+  <h1 class="tagline">your environment,<br>in <span class="accent">one workspace</span>.</h1>
+  <p class="sub">Describe packages, development environments and personal profiles in typed TypeScript. Review the inputs, plan the change, and keep generations you can roll back to.</p>
+  <p class="alt">Linux x86_64 and WSL2. No native Windows, macOS or ARM support.</p>
+  <div class="cta"><a class="primary" href="#start">one small example →</a><a href="./docs/workspace-migration.html">workspace guide</a></div>
 </section>
-
 <section id="start">
-  <h2 class="section">start with one dotfile</h2>
-  <p class="lede">you don't have to rebuild your life. gripsack manages
-  user-space tools and your configuration — it does not replace your OS package manager;
-  brew or apt keep handling binaries, and package fetching is adopted later, tool by tool.
-  the ownership question is the whole game:</p>
-
-  <h3 class="sub">see it happen</h3>
-  <div class="demo-slider">
-    <span class="tab-bar">
-      <button data-tab="adopt" class="active" aria-current="true">adopt</button><button data-tab="apply">apply</button><button data-tab="init">first run</button><button data-tab="check">lint errors</button><button data-tab="rollback">rollback</button>
-    </span>
-    <div class="tab-pane" data-pane="adopt">
-      <div class="window demo">
-        <div class="titlebar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="wtitle">grip adopt — the ownership question, then a rollback that restores your files</span></div>
-        <img src="./img/demo-adopt.gif" data-demo-img data-demo-base="./img/demo-adopt" data-demo-variants="" width="1800" height="1120" decoding="async" alt="grip adopt on an existing ~/.config/helix: it asks how to own the files, records prior state, applies, and grip rollback restores the original files byte-for-byte">
-      </div>
-    </div>
-    <div class="tab-pane" data-pane="apply" hidden>
-      <div class="window demo">
-        <div class="titlebar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="wtitle">grip apply — a fixture env, end to end</span></div>
-        <img src="./img/demo.gif" data-demo-img data-demo-base="./img/demo" data-demo-variants="" width="1800" height="1120" decoding="async" loading="lazy" alt="grip apply on a fixture environment: modules resolve and fetch into the store, configs deploy per ownership mode, and the current symlink flips to the new generation — a second apply is a satisfied no-op">
-      </div>
-    </div>
-    <div class="tab-pane" data-pane="init" hidden>
-      <div class="window demo">
-        <div class="titlebar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="wtitle">grip init my-env — scaffold, then the first apply</span></div>
-        <img src="./img/demo-init.gif" data-demo-img data-demo-base="./img/demo-init" data-demo-variants="" width="1800" height="1120" decoding="async" loading="lazy" alt="grip init my-env scaffolds an env repo — modules, env.toml, hosts — and the first grip apply fetches, builds, and deploys it into generation 1">
-      </div>
-    </div>
-    <div class="tab-pane" data-pane="check" hidden>
-      <div class="window demo">
-        <div class="titlebar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="wtitle">grip check — a typo'd key, caught at eval</span></div>
-        <img src="./img/demo-check.gif" data-demo-img data-demo-base="./img/demo-check" data-demo-variants="" width="1800" height="1120" decoding="async" loading="lazy" alt="grip check catching a typo'd config key at eval: the linter diagnostic renders with a source span and a did-you-mean, and nothing ever stages">
-      </div>
-    </div>
-    <div class="tab-pane" data-pane="rollback" hidden>
-      <div class="window demo">
-        <div class="titlebar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="wtitle">grip rollback — the same journaled transaction, back</span></div>
-        <img src="./img/demo-rollback.gif" data-demo-img data-demo-base="./img/demo-rollback" data-demo-variants="" width="1800" height="1120" decoding="async" loading="lazy" alt="grip generations lists the history, then grip rollback flips the current symlink to a previous generation — destinations restore through the same crash-safe journal, then current flips back">
-      </div>
-    </div>
-  </div>
-  <p class="note">recorded demonstrations, in your palette — not evidence that these recordings were regenerated for the selected release.</p>
-
-  <p class="note">adoption asks the ownership question — <b>owned</b> symlinks for
-  disciplined tools, <b>tracked_copy</b> for apps that rewrite their own config,
-  <b>merge</b> blocks in shared files, <b>template</b> rendered per host — and
-  records prior state, so <code>grip rollback</code> restores your original
-  files, not deletes them.
-  <a href="./docs/adopting.html">the full adopting guide</a>.</p>
-</section>
-
-<section>
-  <h2 class="section">treat your computer like code</h2>
-  <div class="steps">
-    <div class="step"><b>[01]</b><h3>describe</h3><p>modules are typed TypeScript in your repo: sources, config files, ownership.</p></div>
-    <div class="step"><b>[02]</b><h3>check</h3><p>eval + semantic passes + 23 config linters, with spans pointing at the exact line. nothing stages on a red check.</p></div>
-    <div class="step"><b>[03]</b><h3>plan</h3><p>review the diff against the live generation before anything moves.</p></div>
-    <div class="step"><b>[04]</b><h3>apply</h3><p>journaled destination updates (verified per file), committed by one atomic generation flip — a failed apply restores the previous managed state.</p></div>
-    <div class="step"><b>[05]</b><h3>roll back</h3><p>the same journaled transaction in reverse — crash-safe in both directions, committed by one flip.</p></div>
-  </div>
-  <p class="note">changing your machine should feel like changing code: typecheck it,
-  inspect the plan, apply it atomically, roll it back.</p>
-</section>
-
-<section>
-  <h2 class="section">a module</h2>
+  <h2 class="section">one workspace, named outputs</h2>
+  <p class="lede">A workspace exports the things you use. Packages and environments serve development commands; profiles deploy your personal files through the generation transaction. Start with a single managed block:</p>
   <div class="window">
-    <div class="titlebar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="wtitle">a module is a typed value — a host is a function that selects them</span></div>
-<pre><span class="c">// modules/helix.ts — a module is a pure exported value</span>
-<span class="k">import</span> { module, githubRelease, symlink, trackedCopy } <span class="k">from</span> <span class="s">"@gripsack/core"</span>;
+    <div class="titlebar"><span class="wtitle">gripsack.ts</span></div>
+<pre><code class="language-typescript">import {
+  defineWorkspace, file, literalText, managedBlock, profile, workspace,
+} from "@gripsack/core";
 
-<span class="k">export const</span> helix = module(<span class="s">"helix"</span>, {
-  fetch: githubRelease({
-    repo: <span class="s">"helix-editor/helix"</span>,
-    asset: <span class="s">"helix-&#123;version}-&#123;system}.tar.xz"</span>,  <span class="gutter">// &#123;version} + &#123;system} — tag and host platform, expanded by the core</span>
-  }),
-  install: { <span class="s">"bin/hx"</span>: symlink(<span class="s">"~/.local/bin/hx"</span>) },
-  config: { <span class="s">"config.toml"</span>: trackedCopy(<span class="s">"~/.config/helix/config.toml"</span>) },
+const dotfiles = profile("dotfiles", {
+  files: [file({
+    content: literalText("export EDITOR=vi\n"),
+    destination: managedBlock("~/.profile", "gripsack-editor"),
+  })],
 });
 
-<span class="c">// hosts/laptop.ts — a host is a function of ctx (facts, probes);</span>
-<span class="c">// it selects modules per machine. eval is sandboxed and emits IR —</span>
-<span class="c">// the Rust core never runs your code.</span></pre>
+export default defineWorkspace(() =&gt; workspace({ outputs: [dotfiles] }));</code></pre>
   </div>
-  <p class="note">a module is just typed code — autocomplete, inline errors, plain
-  imports. <a href="./docs/modules.html">the module guide</a> ·
-  <a href="./docs/architecture.html">how eval and execution are split</a>.</p>
+  <p>Save as <code>gripsack.ts</code> in a repository. Use matching core and SDK bytes; review the source and policy when prompted.</p>
+<pre>grip check
+grip plan dotfiles
+grip apply dotfiles</pre>
+  <p class="note">Review the plan before applying. <code>grip generations</code> lists retained generations; <code>grip rollback</code> restores a previous managed state. <a href="./docs/safety.html">Read the ownership and recovery boundaries</a>.</p>
 </section>
-
-<section>
-  <h2 class="section">what it does</h2>
-  <div class="features">
-    <div class="feature">
-      <span class="fnum">01</span>
-      <div class="fbody">
-        <h3>dotfiles that don't fight their applications</h3>
-        <p>your config files, managed per file: read-only links for
-        disciplined tools, copies that never overwrite your edits, managed
-        blocks in shared files. per-host variants pick files by machine
-        facts — no templating language.</p>
-      </div>
-      <div class="fchips"><span class="fchip">tracked_copy(…)</span></div>
-    </div>
-    <div class="feature">
-      <span class="fnum">02</span>
-      <div class="fbody">
-        <h3>any source</h3>
-        <p>install tools from anywhere: github releases, brew bottles, git,
-        tarballs, conda — and anything with a weirder download dance as a
-        small plugin. every byte is hash-checked.
-        <a href="./docs/fetchers.html">the fetchers</a>.</p>
-      </div>
-      <div class="fchips"><span class="fchip">github_release(…)</span><span class="fchip">brew(…)</span></div>
-    </div>
-    <div class="feature">
-      <span class="fnum">03</span>
-      <div class="fbody">
-        <h3>generations</h3>
-        <p>every apply is a complete new generation; switching is one atomic
-        flip, and a failed apply rolls its partial deploys back. roll back by
-        flipping to any previous one. a no-op apply creates nothing.</p>
-      </div>
-      <div class="fchips"><span class="fchip">grip rollback</span></div>
-    </div>
-    <div class="feature">
-      <span class="fnum">04</span>
-      <div class="fbody">
-        <h3>lockfiles, not sandboxes</h3>
-        <p>inputs pinned by URL and content hash, per host. reproducible
-        inputs, without requiring hermetic builds.</p>
-      </div>
-      <div class="fchips"><span class="fchip">grip update</span></div>
-    </div>
-  </div>
+<section id="install">
+  <h2 class="section">install deliberately</h2>
+  <p>The signed release selected for this site is <a href="https://github.com/gripsack-dev/gripsack/releases/tag/core-v{version}">v<!--VERSION--></a>. Its installer checks the signed local-qualification manifest before installation.</p>
+<pre>curl -fsSL https://gripsack.dev/install.sh | sh -s -- --version {version}</pre>
+  <p class="note"><code>grip self-update</code> independently selects the latest signed release. <a href="./docs/roadmap.html#release-qualification">Qualification and site binding</a>.</p>
+  <p><strong>Reviewer prerelease:</strong> <a href="https://github.com/gripsack-dev/gripsack/releases/tag/core-v0.47.0">0.47.0 is unsigned and unverified</a>. Use its manual installation instructions and matching SDK archive to try the workspace APIs shown here. It is not the authenticated installer selection; npm/crates publication is not implied.</p>
+  <p class="note">Capture-glob exclusions and the <code>--focus</code> view require core/SDK 0.48; they are not in 0.47. Check the <a href="https://github.com/gripsack-dev/gripsack/releases">release records</a> for available artifacts and qualification evidence.</p>
 </section>
-
-<section class="outro">
-  <div class="outro-grid">
-    <div>
-      <h3 class="osub">start here</h3>
-      <p class="alt">
-        <a href="./docs/adopting.html">adopt your first dotfile</a> ·
-        <a href="./docs/modules.html">write a module</a> ·
-        <a href="./docs/environments.html">persistent environments</a> ·
-        <a href="./docs/compare.html">how it compares</a><br>
-        then: <code>grip init my-env</code> to start fresh, or
-        <code>grip apply --repo git@github.com:you/myenv</code> and you're home.
-      </p>
-    </div>
-    <div>
-      <h3 class="osub">the rest of the docs</h3>
-      <p class="alt">
-        <a href="./docs/architecture.html">architecture</a> ·
-        <a href="./docs/fetchers.html">fetchers</a> ·
-        <a href="./docs/linters.html">linters</a> ·
-        <a href="./docs/safety.html">safety</a> ·
-        <a href="./docs/workspace-migration.html">workspace migration</a> ·
-        <a href="./docs/settings.html">settings</a> ·
-        <a href="./docs/runs.html">run logs</a> ·
-        <a href="./docs/skills.html">skills</a><br>
-        <a href="./docs/roadmap.html">roadmap</a> ·
-        <a href="./docs/changelog.html">what's new</a> ·
-        <a href="https://github.com/gripsack-dev/gripsack/releases">release binaries</a> —
-        star the <a href="https://github.com/gripsack-dev/gripsack">repo</a> if this is
-        the package manager you also wish existed.</p>
-    </div>
-  </div>
+<section id="docs">
+  <h2 class="section">go deeper when you need to</h2>
+  <ul>
+    <li><a href="./docs/workspace-migration.html">Workspace and profile migration</a> — move from legacy modules without losing ownership.</li>
+    <li><a href="./docs/adopting.html">Adopt existing dotfiles</a> — choose links, tracked copies or managed blocks.</li>
+    <li><a href="./docs/environments.html">Packages and development environments</a> — build, run and launch tools.</li>
+    <li><a href="./docs/safety.html">Safety and recovery</a> — review source, preserve drift and recover interrupted changes.</li>
+    <li><a href="https://github.com/gripsack-dev/gripsack/blob/{release_source}/typescript/README.md">SDK reference on GitHub</a> — complete declarations and advanced contracts at the signed release source.</li>
+    <li><a href="./docs/roadmap.html">Release scope and roadmap</a> · <a href="./docs/changelog.html">changelog</a>.</li>
+  </ul>
+  <p>Mutable tools use reviewed source re-capture, not locked mutable overlays: deploy a repository tree with <code>trackedCopyTo</code>, let the tool edit its copy, then copy intended changes back to the repository, exclude caches, review and approve the source, and apply. The lockfile never snapshots a live destination.</p>
 </section>
-
-<section class="palettes">
-  <h2 class="section">pick a palette</h2>
-  <div class="palette-bar">
-    <button data-set-palette="catppuccin-mocha" class="active"><span class="sw" style="--sw:#89b4fa"></span>catppuccin-mocha</button>
-    <button data-set-palette="tokyo-night"><span class="sw" style="--sw:#7aa2f7"></span>tokyo-night</button>
-    <button data-set-palette="gruvbox-dark"><span class="sw" style="--sw:#83a598"></span>gruvbox-dark</button>
-    <button data-set-palette="nord"><span class="sw" style="--sw:#88c0d0"></span>nord</button>
-    <button data-set-palette="dracula"><span class="sw" style="--sw:#bd93f9"></span>dracula</button>
-    <button data-set-palette="one-dark"><span class="sw" style="--sw:#61afef"></span>one-dark</button>
-    <button data-set-palette="solarized-dark"><span class="sw" style="--sw:#268bd2"></span>solarized-dark</button>
-    <button data-set-palette="catppuccin-latte"><span class="sw" style="--sw:#1e66f5"></span>catppuccin-latte</button>
-    <button data-set-palette="github-light"><span class="sw" style="--sw:#0969da"></span>github-light</button>
-    <button data-set-palette="one-light"><span class="sw" style="--sw:#4078f2"></span>one-light</button>
-    <button data-set-palette="solarized-light"><span class="sw" style="--sw:#268bd2"></span>solarized-light</button>
-  </div>
-  <p class="note">pure CSS variables — the logo re-tints too. your pick persists per browser.</p>
+<section id="compare">
+  <h2 class="section">where it fits</h2>
+  <p>Keep your OS package manager. Gripsack manages user-space tools and personal configuration with explicit ownership and rollback. <a href="./docs/compare.html">Compare the trade-offs →</a></p>
 </section>
-
-<footer>
-  <span><span class="blink"></span> © 2026 <a href="https://github.com/tknawara">Tarek Nawara</a></span>
-  <span>MIT license</span>
-  <a href="https://github.com/gripsack-dev">gripsack-dev</a>
-  <a href="https://github.com/gripsack-dev/gripsack">source</a>
-  <a href="./docs/adopting.html">docs</a>
-  <span style="margin-left:auto"><span class="fversion">v<!--VERSION--></span> · eleven palettes</span>
-</footer>
-
+<footer><span>MIT licensed · <a href="https://github.com/gripsack-dev/gripsack">source</a></span><a href="./docs/architecture.html">architecture</a></footer>
 </main>
 </body>
 </html>

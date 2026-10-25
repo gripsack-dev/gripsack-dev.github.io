@@ -64,7 +64,7 @@ dependencies form a [build closure](modules.md#dependencies): they are
 published to the store and supplied to build steps through PATH and
 `GRIP_DEP_*`, never deployed merely to serve a compile. Retained
 generations pin their store paths; rollback restores files without
-rebuilding. Current core/SDK 0.47 emits **IR8**, including the legacy
+rebuilding. The unsigned reviewer core/SDK 0.47 prerelease emits **IR8**, including the legacy
 modules-compatibility envelope. Retained v3–v7 readers keep their historical
 meanings; new fields are not silently added to older declarations.
 `Dependency.for` remains, while inert retry fields are rejected. Both module
@@ -73,7 +73,7 @@ order whole modules without changing deployment purposes.
 
 Low-level compiler APIs (`emitIr`, `emitWorkspaceIr`, `IR_VERSION` and compiler
 DTOs) are exported by `@gripsack/core/advanced`, not the ordinary authoring root.
-See the [SDK reference for this release](https://github.com/gripsack-dev/gripsack/blob/{release_source}/typescript/README.md).
+See the [0.47 reviewer SDK reference](https://github.com/gripsack-dev/gripsack/blob/core-v0.47.0/typescript/README.md).
 
 When a source is unusual — your company's internal registry — the
 sourcing ladder keeps the core small:

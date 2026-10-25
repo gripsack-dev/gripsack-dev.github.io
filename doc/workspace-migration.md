@@ -158,13 +158,13 @@ portability — before reusing or re-solving a lock across hosts, read
 
 ### Upgrading the evaluated frontend
 
-Use matching core/SDK 0.47.0 for current declarations (IR8); retained v3–v7
+Use matching core/SDK 0.47.0 reviewer-prerelease assets for these declarations (IR8); retained v3–v7
 execution keeps its original versioned semantics. Evaluating with changed
 frontend bytes can invalidate the captured frontend/import pins in an existing
 `gripsack.lock`. An E301 refusal after source approval is not permission to edit
 those pins.
 
-The [release-specific migration examples](https://github.com/gripsack-dev/gripsack/blob/{release_source}/typescript/README.md#reviewer-migration-delete-plumbing-keep-verification)
+The [0.47 reviewer migration examples](https://github.com/gripsack-dev/gripsack/blob/core-v0.47.0/typescript/README.md#reviewer-migration-delete-plumbing-keep-verification)
 replace generated tree manifests with captured `repoTree`, duplicate inline
 templates with `templateFile`, handwritten wrappers with profile-managed
 launchers, and versioned archive selectors with explicit `archiveRoot`.

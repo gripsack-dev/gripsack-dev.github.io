@@ -82,8 +82,7 @@ PAGES: dict[str, tuple[str, str]] = {
     "linters": ("doc/linters.md", "linters"),
     "skills": ("doc/skills.md", "skills"),
     "roadmap": ("doc/roadmap.md", "roadmap"),
-    # fetched from the app repo at build time — the changelog lives with
-    # the code (fetch failure falls back to the last committed copy)
+    # Exact changelog bytes from the authenticated core source; no fallback.
     "changelog": ("doc/changelog.md", "what's new"),
 }
 
@@ -215,6 +214,10 @@ def page(title: str, body: str, active: str, toc: list[tuple[str, str]], root: s
 {rail(active, toc, root)}
 <main class="content">
 <article class="md">
+<p class="note"><strong>Release scope:</strong> use matching core and SDK bytes.
+<a href="https://github.com/gripsack-dev/gripsack/releases/tag/core-v0.47.0">0.47 is an unsigned, unverified reviewer prerelease</a>;
+capture-glob exclusions and <code>--focus</code> require 0.48.
+<a href="{root}docs/roadmap.html#reviewer-prerelease-and-development">Availability and qualification</a>.</p>
 {body}
 </article>
 <footer>
@@ -261,8 +264,11 @@ def rewrite(body: str, slugs: set[str], root: str = "../") -> str:
 
 def build_docs() -> None:
     slugs = set(PAGES)
-    for slug, (src, _) in PAGES.items():
-        root = "../" * (1 + slug.count("/"))
+    destinations = {slug: slug for slug in PAGES}
+    destinations.update({"apt": "fetchers/apt", "settings-reference": "settings/reference"})
+    for destination, slug in destinations.items():
+        src, _ = PAGES[slug]
+        root = "../" * (1 + destination.count("/"))
         path = ROOT / src
         if slug == "changelog":
             text = RELEASE_FILES["CHANGELOG.md"].decode("utf-8")
@@ -292,12 +298,21 @@ def build_docs() -> None:
                 )
         title = re.match(r"# (.+)", text).group(1).strip()
         toc = extract_toc(body)
-        dst = OUT / "docs" / f"{slug}.html"
+        dst = OUT / "docs" / f"{destination}.html"
         dst.parent.mkdir(parents=True, exist_ok=True)
-        dst.write_text(
-            page(f"gripsack — {title.lower()}", body, f"docs/{slug}.html", toc, root)
-        )
-        print(f"built docs/{slug}.html from {src} ({len(toc)} toc entries)")
+        rendered = page(f"gripsack — {title.lower()}", body, f"docs/{slug}.html", toc, root)
+        if destination != slug:
+            # Meta refresh drops fragments. Keep the full page usable without
+            # JavaScript; normal navigation preserves queries and deep links.
+            canonical = f"{root}docs/{slug}.html"
+            redirect = (
+                f'<link rel="canonical" href="{canonical}">'
+                f'<script>location.replace({json.dumps(canonical)}'
+                '+location.search+location.hash)</script>'
+            )
+            rendered = rendered.replace("</head>", redirect + "</head>")
+        dst.write_text(rendered)
+        print(f"built docs/{destination}.html from {src} ({len(toc)} toc entries)")
 
 
 def assemble() -> None:
@@ -310,6 +325,7 @@ def assemble() -> None:
     index = index.replace("<!--LOGO-->", themed_logo())
     index = index.replace("<!--VERSION-->", site_version())
     index = index.replace("{version}", site_version())
+    index = index.replace("{release_source}", RELEASE["source"]["commit"])
     index = index.replace("./assets/site.css", f"./assets/site.css?v={asset_version()}")
     index = index.replace("./assets/site.js", f"./assets/site.js?v={asset_version()}")
     # Stamp the demo variants that actually shipped into every demo img, so
@@ -343,16 +359,6 @@ def assemble() -> None:
     (OUT / "index.html").write_text(index)
     # Custom domain — GitHub Pages reads this from the deployed artifact.
     (OUT / "CNAME").write_text("gripsack.dev\n")
-    # flat URLs that moved into folders — redirect stubs
-    for flat, nested in (
-        ("apt", "fetchers/apt"),
-        ("settings-reference", "settings/reference"),
-    ):
-        (OUT / "docs" / f"{flat}.html").write_text(
-            '<!DOCTYPE html><meta charset="utf-8">'
-            f'<meta http-equiv="refresh" content="0; url=./{nested}.html">'
-            f'<link rel="canonical" href="./{nested}.html">'
-        )
     # Exact Git blob bytes from the authenticated source, not mutable main.
     (OUT / "install.sh").write_bytes(RELEASE_FILES["install.sh"])
     (OUT / "release.json").write_text(json.dumps(RELEASE, sort_keys=True) + "\n")
