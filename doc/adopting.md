@@ -8,7 +8,10 @@ deliberately refuses to be magic.
 A config-only repo needs nothing but `grip` itself: the frontend
 source rides inside the binary, and the only provisioning is the eval
 runtime — the first `grip check`/`apply` downloads a pinned,
-sha256-verified Deno once (~40MB, cached). And before a repo's code
+sha256-verified Deno once (~40MB, cached). Install the
+`@gripsack/core` npm package only to deliberately pin a copy of the
+authoring library matching your installed core version — ordinary
+repos never need it. And before a repo's code
 runs at all, grip asks once: an unfamiliar repo gets a trust prompt
 naming exactly what the sandbox allows. `y`, and you're in business.
 

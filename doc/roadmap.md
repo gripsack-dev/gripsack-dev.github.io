@@ -21,7 +21,62 @@ available, while the Mac cask is disabled and the installer rejects macOS.
 Historical release notes and artifacts remain available as history, not as
 recommended installation paths.
 
+## Release qualification
+
+Releases are qualified locally and then signed for publication; GitHub
+signs and publishes, it does not compile the product. The binary
+installer (`install.sh`) requires Python 3.11+ and an independently
+provisioned GitHub CLI 2.102.0+, and verifies the release's signed
+local-qualification manifest — exact archive and checksum bytes —
+before installing anything; `cargo install` and `mise` build the same
+version from registry source instead. `grip self-update` independently
+selects the latest signed release.
+
+This site follows the same rule: deployment admits exactly one
+authenticated release ([release.json](https://gripsack.dev/release.json))
+and stamps its version into the install commands it shows, so the pages
+can never advertise a release that was not verified.
+
 ## Shipped
+
+- **Workspace ergonomics at IR8** (core/SDK 0.47.0, [notes](changelog.md)) —
+  captured `repoTree` replaces generated tree manifests, `templateFile`
+  renders an approved repo file without a duplicated inline body,
+  `archiveRoot: { kind: "single_directory" }` selects one unambiguous
+  package root, and profiles can declare managed `launchers`
+  (`directory` + `commands`) instead of handwritten PATH wrappers. Manual
+  tasks (`grip task run NAME`) gained prerequisite graphs,
+  per-invocation deduplication, ordered checks, shared mutation locks and
+  retained status/logs; profile file checks distinguish captured, rendered
+  and deployed subjects; `apply`/`plan --migrate-from N` adopts exact
+  current owned links. Recursive capture-glob exclusions and mutable
+  overlays are deliberately not part of this release.
+
+- **Linux/WSL runtime boundaries** (0.46.0, [notes](changelog.md)) —
+  `hostRuntime: { libraryDirectories }` admits reviewed host libraries for
+  GNU packages; `conda.environment` `systemRequirements` (glibc family and
+  Linux baseline) are bound into the frozen lock; persistent wrappers
+  re-admit the retained package/receipt graph and host libraries on every
+  invocation. 0.46 ships Linux x86_64/WSL first; the installer refuses ARM
+  rather than silently installing an older release.
+
+- **Workspace profiles that execute** (0.44–0.45, [notes](changelog.md)) —
+  profile hooks (`post_link`, `post_activate`, `on_remove`) run through the
+  durable activation ledger with crash/replay handling; `[capture] exclude`
+  in `env.toml` names literal repo subtrees omitted from captured source,
+  and `grip trust inspect` lists them; sealed GNU execution admits the
+  bound platform loader by measured capability (RHEL 8's glibc 2.28 runs);
+  `pixi.fromLock` imports the external lock unchanged. Workspace
+  publication ships the Conda helper and the BuildKit client crate.
+
+- **Kernel-confined evaluation and bounded source approval** (0.43.0,
+  [notes](changelog.md)) — every evaluator launch and its descendants run
+  inside a Landlock boundary covering exactly the approved captured source
+  roots, the runtime's load roots and the operator's PATH executable
+  space; reads and writes anywhere else are denied by the kernel. Source
+  approval binds the canonical repository, the copied source digest and
+  the runtime/grant policy; `trust inspect --json` exposes the bounded
+  inventory, and legacy path-only trust must be renewed.
 
 - **Complete surveys and safe source boundaries** ([plan 0044](https://github.com/gripsack-dev/gripsack/blob/main/plan/0044-survey-paths-and-transport-feedback.md),
   core/SDK 0.39.0) — lossless merge inspection prevents unowned-tail deletion;

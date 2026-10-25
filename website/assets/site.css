@@ -194,18 +194,6 @@ p.alt code { border: none; padding: 0 2px; }
 .card p { margin: 0; color: var(--dim); font-size: 14px; }
 .card code { border: none; padding: 0 2px; }
 
-/* ---- compare ---- */
-.table-wrap { overflow-x: auto; }
-table.compare { width: 100%; border-collapse: collapse; font-size: 14px; }
-table.compare th, table.compare td { border-bottom: 1px solid var(--border); padding: 8px 10px; }
-table.compare th { font-family: var(--mono); font-size: 13px; color: var(--blue); text-align: center; }
-table.compare th:first-child { color: var(--faint); font-weight: 400; text-align: left; }
-table.compare td { color: var(--dim); text-align: center; }
-table.compare td:first-child { color: var(--text); text-align: left; white-space: nowrap; }
-table.compare .yes { color: var(--green); }
-table.compare .no { color: var(--faint); }
-table.compare .part { color: var(--yellow); font-size: 13px; }
-
 /* ---- module sketch window ---- */
 .window {
   border: 1px solid var(--border); border-radius: 12px;
@@ -510,14 +498,6 @@ article.md blockquote {
 .tab-pane[hidden] { display: none; }
 pre .err { color: var(--red); font-weight: bold; }
 pre .bad { background: color-mix(in srgb, var(--red) 18%, transparent); }
-.err-scenario {
-  color: var(--dim); font-size: 14px; margin: 0;
-  /* align with the window's pre padding (18px 22px) — the caption is
-     inside the window chrome, not beside it */
-  padding: 6px 22px 14px;
-  border-bottom: 1px dashed var(--border);
-}
-.err-scenario code { font-size: 13px; }
 .tab-pane .titlebar { border-top: 1px solid var(--border); }
 .tab-pane .titlebar:first-of-type { border-top: none; }
 pre .loc { color: var(--blue); }
@@ -528,21 +508,21 @@ pre .hlp { color: var(--teal); }
 /* the rail and the page itself get the same treatment — a default
    chunky scrollbar next to the nav is the first thing the eye lands
    on, and not in a good way */
-pre, .table-wrap, .rail, html {
+pre, .rail, html {
   scrollbar-width: thin;
   scrollbar-color: var(--border) transparent;
 }
-pre::-webkit-scrollbar, .table-wrap::-webkit-scrollbar,
+pre::-webkit-scrollbar,
 .rail::-webkit-scrollbar, html::-webkit-scrollbar { height: 6px; width: 6px; }
-pre::-webkit-scrollbar-thumb, .table-wrap::-webkit-scrollbar-thumb,
+pre::-webkit-scrollbar-thumb,
 .rail::-webkit-scrollbar-thumb, html::-webkit-scrollbar-thumb {
   background: var(--border); border-radius: 3px;
 }
-pre::-webkit-scrollbar-thumb:hover, .table-wrap::-webkit-scrollbar-thumb:hover,
+pre::-webkit-scrollbar-thumb:hover,
 .rail::-webkit-scrollbar-thumb:hover, html::-webkit-scrollbar-thumb:hover {
   background: var(--border-strong);
 }
-pre::-webkit-scrollbar-track, .table-wrap::-webkit-scrollbar-track,
+pre::-webkit-scrollbar-track,
 .rail::-webkit-scrollbar-track, html::-webkit-scrollbar-track { background: transparent; }
 
 /* version chip stands out a touch */
@@ -688,39 +668,11 @@ body.home .demo-slider .window:hover {
 }
 body.home .demo-slider .tab-bar { margin: 0 0 14px; }
 
-/* the adopt transcript: progressive disclosure, closed by default */
-body.home details.transcript { margin-top: 30px; }
-body.home details.transcript > summary {
-  cursor: pointer; list-style: none; user-select: none;
-  display: inline-flex; align-items: center; gap: 10px;
-  font-family: var(--mono); font-size: 13px; color: var(--dim);
-  border: 1px dashed var(--border); border-radius: 999px;
-  padding: 6px 16px;
-  transition: border-color 0.15s ease, color 0.15s ease;
-}
-body.home details.transcript > summary::-webkit-details-marker { display: none; }
-body.home details.transcript > summary::before {
-  content: "\25B8"; color: var(--blue);
-  transition: transform 0.2s ease;
-}
-body.home details.transcript[open] > summary::before { transform: rotate(90deg); }
-body.home details.transcript > summary:hover { border-color: var(--blue); color: var(--text); }
-body.home details.transcript[open] > summary { border-style: solid; }
-body.home details.transcript[open] { margin-bottom: 6px; }
-body.home details.transcript .window { margin-top: 18px; }
-
 /* steps: tiles get a hover of their own */
 body.home .step { transition: background 0.15s ease; }
 body.home .step:hover { background: color-mix(in srgb, var(--deep) 55%, transparent); }
 body.home .step:hover b { color: var(--blue); }
 body.home .step b { transition: color 0.15s ease; }
-
-/* compare: the gripsack column carries a quiet tint */
-body.home table.compare th, body.home table.compare td { padding: 10px 12px; }
-body.home table.compare th:nth-child(2), body.home table.compare td:nth-child(2) {
-  background: color-mix(in srgb, var(--blue) 6%, transparent);
-}
-body.home table.compare td:nth-child(2) { color: var(--text); }
 
 /* outro: install + follow along, side by side under one hairline */
 body.home .outro-grid {

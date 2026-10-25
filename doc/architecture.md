@@ -157,8 +157,11 @@ and plan-time naming is what keeps `grip plan` a complete diff.
 ## Errors that point at your code
 
 Every IR node carries a span — file, line, column of the module code
-that emitted it (the same trick React uses for JSX error stacks). The
-core's compiler passes collect structured diagnostics with stable codes:
+that emitted it (the same trick React uses for JSX error stacks). Every
+layer speaks the same diagnostic — eval, placeholders, paths, config
+[linters](linters.md), execution — with stable codes, spans pointing at
+the exact line, and suggestions, never a bare `error:` line. The
+core's compiler passes collect structured diagnostics:
 
 ```diag
 error[E101]: module "helix" depends on unknown module "git"
