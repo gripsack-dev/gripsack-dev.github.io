@@ -1,37 +1,36 @@
 # Linters
 
-Config linters check your config files against the tool's own schema
-before anything is staged. A typo'd key in `yazi.toml` deploys cleanly
-and fails at tool runtime, in a different terminal, an hour later —
-linters close that gap at check time, where the error points at the
-offending line.
+New IR8 workspaces use named `check` outputs attached to profile files,
+and task `checks` for invocation postconditions. See the
+[0.48 SDK check reference](https://github.com/gripsack-dev/gripsack/blob/core-v0.48.0/typescript/README.md#file-checks-and-manual-tasks).
+Those are explicit command checks, not an automatic invocation of the
+embedded packs described below.
+
+The `lint` field on this page belongs to the **supported legacy
+host/module API**. It checks config shape before deployment; it is not
+a workspace `file` option or a complete schema validator for every tool.
 
 Linters are **data**: every shipped linter is a versioned data pack
 embedded in grip (`crates/griplint/packs`, key tables as TOML) checked
 by the in-crate engine **in-process** — no venv, no provisioning, no
-plugin lifecycle, and the golden corpus replays byte-exact against the
-reference implementation. `lint = "name"` travels in the IR; `grip
-check` and `grip apply` run the linter, so linting works anywhere the
-binary runs — CI included — with no runtime to provision for the
-embedded packs. A new structured-format linter is a data PR, not a
-package. External `griplint-*` executables keep the protocol path
-for exotic formats.
+plugin lifecycle. `lint: "name"` travels in legacy module IR;
+`grip check` and `grip apply` run the linter with no additional runtime
+for embedded packs. External `griplint-*` executables retain the
+protocol path for formats not covered by the data engine.
 
-Status: the engine is shipped and every pack below runs in-process —
-the set is what exists today and what's queued, sorted by github stars.
+The 0.48 source contains the 23 embedded packs below. A pack covers its
+recorded versions and rules, not every upstream setting or future version.
 
 ## Coverage
 
 <div class="lint-stats">
   <span><b>23</b> available</span>
-  <span><b>29</b> planned</span>
-  <span><b>∞</b> the long tail</span>
 </div>
 
-<p class="lint-legend"><span class="lg lg-a"></span>available on main<span class="lg lg-p"></span>planned</p>
+<p class="lint-legend"><span class="lg lg-a"></span>included in core 0.48</p>
 
 <div class="lint-grid">
-  <a class="lint-tool lt-reference" style="--lt:var(--green)" href="https://github.com/gripsack-dev/gripsack/tree/main/crates/griplint/packs"><span class="lt-name">helix</span><span class="lt-status">reference</span></a>
+  <a class="lint-tool lt-reference" style="--lt:var(--green)" href="https://github.com/gripsack-dev/gripsack/tree/core-v0.48.0/crates/griplint/packs"><span class="lt-name">helix</span><span class="lt-status">reference</span></a>
   <span class="lint-tool lt-available" style="--lt:var(--blue)"><span class="lt-name">alacritty</span></span>
   <span class="lint-tool lt-available" style="--lt:var(--peach)"><span class="lt-name">starship</span></span>
   <span class="lint-tool lt-available" style="--lt:var(--yellow)"><span class="lt-name">yazi</span></span>
@@ -54,59 +53,31 @@ the set is what exists today and what's queued, sorted by github stars.
   <span class="lint-tool lt-available" style="--lt:var(--peach)"><span class="lt-name">zed</span></span>
   <span class="lint-tool lt-available" style="--lt:var(--yellow)"><span class="lt-name">gh-dash</span></span>
   <span class="lint-tool lt-available" style="--lt:var(--mauve)"><span class="lt-name">tuicr</span></span>
-  <span class="lint-tool"><span class="lt-name">deno</span></span>
-  <span class="lint-tool"><span class="lt-name">lazygit</span></span>
-  <span class="lint-tool"><span class="lt-name">ghostty</span></span>
-  <span class="lint-tool"><span class="lt-name">lazydocker</span></span>
-  <span class="lint-tool"><span class="lt-name">Hyprland</span></span>
-  <span class="lint-tool"><span class="lt-name">zellij</span></span>
-  <span class="lint-tool"><span class="lt-name">kitty</span></span>
-  <span class="lint-tool"><span class="lt-name">k9s</span></span>
-  <span class="lint-tool"><span class="lt-name">btop</span></span>
-  <span class="lint-tool"><span class="lt-name">glances</span></span>
-  <span class="lint-tool"><span class="lt-name">delta</span></span>
-  <span class="lint-tool"><span class="lt-name">niri</span></span>
-  <span class="lint-tool"><span class="lt-name">biome</span></span>
-  <span class="lint-tool"><span class="lt-name">fastfetch</span></span>
-  <span class="lint-tool"><span class="lt-name">oh-my-posh</span></span>
-  <span class="lint-tool"><span class="lt-name">gitui</span></span>
-  <span class="lint-tool"><span class="lt-name">rofi</span></span>
-  <span class="lint-tool"><span class="lt-name">lsd</span></span>
-  <span class="lint-tool"><span class="lt-name">pre-commit</span></span>
-  <span class="lint-tool"><span class="lt-name">tmuxinator</span></span>
-  <span class="lint-tool"><span class="lt-name">posting</span></span>
-  <span class="lint-tool"><span class="lt-name">eza</span></span>
-  <span class="lint-tool"><span class="lt-name">waybar</span></span>
-  <span class="lint-tool"><span class="lt-name">lf</span></span>
-  <span class="lint-tool"><span class="lt-name">taskwarrior</span></span>
-  <span class="lint-tool"><span class="lt-name">dunst</span></span>
-  <span class="lint-tool"><span class="lt-name">newsboat</span></span>
-  <span class="lint-tool"><span class="lt-name">editorconfig</span></span>
-  <span class="lint-tool"><span class="lt-name">zathura</span></span>
 </div>
 
-Available means a data pack on main in
-[crates/griplint/packs](https://github.com/gripsack-dev/gripsack/tree/main/crates/griplint/packs).
-Every planned tool has an open tracking issue; a pack is a versioned
-key table reviewed against upstream docs, with a weekly freshness
-watch.
+Available means a data pack in the
+[0.48 source](https://github.com/gripsack-dev/gripsack/tree/core-v0.48.0/crates/griplint/packs),
+not a promise of complete config validation.
 
 ## Using a linter
 
-For first-party packs: nothing to register — `lint = "helix"` runs the
-embedded pack. External plugins register in `env.toml`; opt in from the
-module either way.
+For legacy modules, first-party packs need no registration:
+`lint: "helix"` selects the embedded pack. External plugins register
+in `env.toml`; opt in from the module either way.
 
 ```toml
-[linters.yazi]
-package = "owner/griplint-yazi@1.2.0"   # plugin-store ref — provisioned, sha256-verified
-
+# Only needed for an external linter:
 [linters.internal]
 path = "/opt/bin/griplint-internal"     # explicit executable — the out-of-tree form
 ```
 
 ```typescript
-export default module("yazi", { /* … */ lint: "yazi" });
+import { module, symlink } from "@gripsack/core";
+
+export default module("yazi", {
+  config: { "configs/yazi/yazi.toml": symlink("~/.config/yazi/yazi.toml") },
+  lint: "yazi",
+});
 ```
 
 - `package` is a plugin-store ref `"owner/repo@tag"`: grip downloads
@@ -125,28 +96,29 @@ export default module("yazi", { /* … */ lint: "yazi" });
 
 ## The command surface
 
-The core lints after eval and sema, so every command that evaluates
-gets diagnostics for free:
+For legacy modules, the core runs linting after evaluation and semantic
+admission. These commands do not have identical side effects:
 
 | command | behavior |
 |---|---|
-| `grip check` | eval + IR sema + linters, then stop: render every diagnostic, exit code = validity, zero side effects — the tight config-editing loop and the CI gate for your dotfiles repo |
-| `grip plan` | check + lockfile + diff vs the current generation — "what would change" includes "and by the way, this is broken" |
+| `grip check` | eval + IR sema + linters; no destination deployment or payload build, but source capture, private evaluation receipts and external-plugin provisioning can occur |
+| `grip plan` | validates frozen inputs and reports the diff against the current generation; use explicit `grip update` to refresh pins |
 | `grip apply` | an error-severity lint diagnostic fails eval before anything stages |
 
-Linters are **static shape** (does this key exist in yazi 25.x);
-`verify` contracts are **runtime smoke** (does the deployed thing
-work). A mode that shells out to the tool itself belongs to the verify
-side — the two stay apart.
+Linters check **static shape**. Legacy `verify` contracts and workspace
+named checks execute commands at their declared lifecycle stages.
+`grip check` is not a blanket execution of all named workspace checks.
+
 ## The lint flow
 
-![the lint flow: module lint= opt-in → core registry lookup and provisioning → NDJSON request to griplint-yazi → span diagnostics → the core renders](linters-flow.svg)
+Embedded packs run in-process. External linters use the protocol below;
+both return diagnostics rendered by the core.
 
 a typo'd key fails `grip check` with a span — before anything is
 staged, before the tool ever runs:
 
 <div class="window">
-  <div class="titlebar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="wtitle">grip check — eval + sema + linters, zero side effects</span></div>
+  <div class="titlebar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="wtitle">grip check — legacy eval + sema + linters</span></div>
 <pre><span class="err">error[griplint-helix/A01]</span>: unknown key [editor] <span class="s">'scrollof'</span>
   <span class="loc">--&gt;</span> <span class="loc">/home/you/env/configs/helix/config.toml:4:1</span>
    <span class="gutter">|</span>
@@ -165,8 +137,8 @@ request per module–linter pair:
  "tool_version": "25.5.31"}
 ```
 
-- `paths` is the module's config source set, post-`tree()` expansion;
-  repo files are linted in place.
+- `paths` is the legacy module's prepared config source set, post-`tree()`
+  expansion, read from the captured source bundle.
 - `tool_version` comes from the host lockfile pin — the lock that pins
   the binary also pins the config schema. Unpinned, the linter uses
   its latest schema and warns.
@@ -189,15 +161,8 @@ prose.
 ## Where linters live
 
 In the gripsack repo as data:
-[`crates/griplint/packs`](https://github.com/gripsack-dev/gripsack/tree/main/crates/griplint/packs)
-— one TOML pack per tool, keyed by tool version, with the golden
-fixture corpus beside it, read by the in-crate engine (plan/0012);
-exotic formats (RON, KDL, custom) stay external
-`griplint-*` executables over the protocol above, forever. The tables
-are community-maintained, and the north star is DefinitelyTyped: the
-tool's owners eventually own their linter, and gripsack just provides
-the envelope and the renderer.
-
-Full design: [plan/0010](https://github.com/gripsack-dev/gripsack/blob/main/plan/0010-plugin-provisioning.md),
-[plan/0011](https://github.com/gripsack-dev/gripsack/blob/main/plan/0011-validation-plugins.md),
-and [plan/0012](https://github.com/gripsack-dev/gripsack/blob/main/plan/0012-linters-in-core.md).
+[`crates/griplint/packs`](https://github.com/gripsack-dev/gripsack/tree/core-v0.48.0/crates/griplint/packs)
+— TOML packs keyed by tool version, read by the in-crate engine.
+External executables use the protocol above and run as trusted native
+code, not inside the TypeScript evaluator sandbox. A successful lint
+does not establish runtime safety or complete upstream compatibility.

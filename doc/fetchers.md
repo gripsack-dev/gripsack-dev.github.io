@@ -16,8 +16,8 @@ verifies).
 | `githubRelease({ repo, asset, version?, base_url? })` | live | resolved release and verified asset hash, locked; `version` pins the tag. `base_url` accepts a bare GHE base URL (`/api/v3` is appended). Private/GHE assets use the API endpoint when a token is explicitly bound to its host; see authentication below |
 | `brew(...)` (bottles) | live | update resolves the current stable formula and pins its bottle URL, version and digest. A declared version is a tripwire against that resolution, not a range. Cold apply reuses the locked bottle without asking for today's stable version. Raw bottle layout remains: install paths look like `jq/{version}/bin/jq` |
 
-`mise` is deliberately not a fetcher: its backends are mostly GitHub
-releases, which `github_release` already covers.
+`mise` is deliberately not a fetcher: its GitHub-backed releases can use
+`githubRelease` directly.
 
 A gzipped *single file* (`.gz` that isn't a tar) stages decompressed as
 one executable, named for the asset minus the suffix — alongside
@@ -36,7 +36,17 @@ original archive URLs and digests. A cold frozen build acquires those exact
 archives without solving again. Native prefixes and image prefixes are
 materialized independently from the same locked records.
 
-See the [workspace SDK reference](https://github.com/gripsack-dev/gripsack/blob/core-v0.47.0/typescript/README.md#a-workspace-is-a-function-ir-v8)
+Native `packages` values use Conda matchspec syntax: for example,
+`"==25.07.1"` pins a version; bare `"25.07.1"` is not a supported range.
+`pixi.fromLock` imports the external solve without upgrading its packages.
+Update that lock with its solver when an upgrade is intended.
+
+Source update preflights exact Conda archives for unsupported package lifecycle
+scripts before prefix materialization. Refused scripts must not be deleted or
+bypassed. Workspace hooks are a separate, supported lifecycle; they do not grant
+permission to execute package scripts.
+
+See the [workspace SDK reference](https://github.com/gripsack-dev/gripsack/blob/core-v0.48.0/typescript/README.md#a-workspace-is-a-function-ir-v8)
 and the [coherent environment example](https://github.com/gripsack-dev/example-env-typescript/tree/main/workspaces/conda).
 Current release support is Linux x86_64, including WSL2's Linux environment,
 not native Windows. Earlier Linux qualification of the BuildKit production
@@ -44,10 +54,10 @@ backend and coherent Conda runtime is not qualification of every package or
 deployment host. ARM, macOS, the Mac VM worker and the Mac Conda journey are
 outside active support scope; they are not pending release blockers.
 
-The installer selects a complete published artifact pair for the supported Linux
-target and rejects macOS instead of installing historical Mac releases. Keep the
-SDK compatible with your installed core; a newer npm package does not upgrade
-the binary. Existing release history remains available, not a support promise.
+Use the [current release's installation instructions](https://github.com/gripsack-dev/gripsack/releases/tag/core-v0.48.0):
+0.48 ships unsigned archives, not a new signed-installer or npm registry release.
+Keep the SDK compatible with the core; installing an SDK does not upgrade the
+binary. Historical artifacts are not a current platform-support promise.
 
 ## Complete source pins
 
@@ -129,9 +139,15 @@ downloads have no built-in domain bucket. User `[throttle]` overrides still win.
 
 ## Placeholders
 
-GitHub asset patterns and payload install/config/verify paths accept the version
-tokens below. Direct tarball URLs support platform tokens, not a version they
-have not resolved. The placeholder set is explicit, not a path-guessing engine:
+GitHub **asset patterns** accept the tokens below. Legacy module
+install/config/verify paths also interpolate version tokens; **workspace
+command and artifact selectors remain literal**. For versioned archive directory
+names, select `archiveRoot: { kind: "single_directory" }` on a relocatable
+package, then use root-relative selectors. The root must be one unambiguous real
+directory; see the [SDK contract](https://github.com/gripsack-dev/gripsack/blob/core-v0.48.0/typescript/README.md#captured-files-trees-and-stable-package-roots).
+
+Direct tarball URLs support platform tokens, not a version they have not
+resolved. This is an explicit placeholder set, not path guessing:
 
 | placeholder | expands to | example |
 |---|---|---|
@@ -149,10 +165,10 @@ For tag `v0.12.1`, `{version}` in a payload path means `v0.12.1`, while
 exact spelling; it never adds `v` back. Missing/empty required versions and
 unsafe expanded paths are errors. Lockfiles still record the raw tag.
 
-Use `{version.bare}` in both the asset pattern and payload key when upstream
-v-prefixes its tags but not its archive names/directories. This requires core
-0.39.0 or newer; IR remains v3. Unknown tokens are E114 errors, including in
-explicit steps.
+In legacy modules, use `{version.bare}` in the asset pattern and payload key when
+upstream v-prefixes tags but not archive names/directories. That behavior was
+introduced in 0.39; current IR8 retains the versioned legacy contract. Unknown
+tokens are E114 errors, including in explicit steps.
 
 ## Out-of-tree (plugins)
 

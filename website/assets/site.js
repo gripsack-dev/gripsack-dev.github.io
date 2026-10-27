@@ -1,4 +1,4 @@
-/* gripsack site behavior: palette picker + copy buttons.
+/* gripsack site behavior: palette picker and local syntax highlighting.
    Palettes are pure CSS (html[data-palette] blocks in site.css); this
    script only sets the attribute and persists the choice. No deps. */
 (function () {
@@ -23,30 +23,6 @@
     for (var j = 0; j < labels.length; j++) {
       labels[j].textContent = name || DEFAULT;
     }
-    /* theme-reactive demo: one GIF per palette (rendered by the app
-       repo's demo workflow); unknown/missing variants fall back to the
-       default render */
-    /* every demo slide is palette-reactive, with its own base/variants */
-    var demos = document.querySelectorAll("[data-demo-img]");
-    for (var d = 0; d < demos.length; d++) {
-      var demo = demos[d];
-      var base = demo.getAttribute("data-demo-base") || "./img/demo";
-      /* variants that actually shipped, stamped at build time */
-      var variants = (demo.getAttribute("data-demo-variants") || "").split(",");
-      var src =
-        name && name !== DEFAULT && variants.indexOf(name) !== -1
-          ? base + "-" + name + ".gif"
-          : base + ".gif";
-      if (demo.getAttribute("src") !== src) {
-        demo.onerror = (function (el, b) {
-          return function () {
-            el.onerror = null;
-            el.src = b + ".gif";
-          };
-        })(demo, base);
-        demo.src = src;
-      }
-    }
   }
 
   var stored = null;
@@ -62,48 +38,12 @@
       try { localStorage.setItem(KEY, name === DEFAULT ? "" : name); } catch (e) {}
       return;
     }
-    var copy = target.closest ? target.closest("[data-copy]") : null;
-    if (copy) {
-      var text = copy.getAttribute("data-copy");
-      var done = function () {
-        var label = copy.textContent;
-        copy.textContent = "copied";
-        copy.classList.add("ok");
-        setTimeout(function () {
-          copy.textContent = label;
-          copy.classList.remove("ok");
-        }, 1200);
-      };
-      var legacyCopy = function () {
-        var ta = document.createElement("textarea");
-        ta.value = text;
-        document.body.appendChild(ta);
-        ta.select();
-        var ok = false;
-        try { ok = document.execCommand("copy"); } catch (e) {}
-        ta.remove();
-        if (ok) { done(); } else { failed(); }
-      };
-      var failed = function () {
-        copy.textContent = "copy failed";
-        setTimeout(function () { copy.textContent = "copy"; }, 1200);
-      };
-      if (navigator.clipboard && navigator.clipboard.writeText) {
-        // a rejected write (permissions, focus) falls back — never
-        // report success for a copy that did not happen
-        navigator.clipboard.writeText(text).then(done, legacyCopy);
-      } else {
-        legacyCopy();
-      }
-    }
   });
 })();
 
 /* syntax highlighting: a tiny tokenizer for the handful of languages the
-   site shows — no library, no CDN. Runs over pre > code.language-* (the
-   docs pages' fenced blocks; home-page snippets are hand-spanned and have
-   no <code>, so they're untouched). Token colors are the pre .k/.s/.f/.n/.c
-   rules in site.css, so highlighting re-themes with the palette picker. */
+   site shows — no library, no CDN. Runs over pre > code.language-* on
+   documentation pages and the homepage. Token colors follow the palette. */
 (function () {
   var DEFS = {
     python: [
@@ -177,28 +117,4 @@
 
   document.querySelectorAll("pre > code").forEach(highlight);
 })();
-
-/* code tabs: [data-tab] toggles the sibling [data-pane] panels */
-document.addEventListener("click", function (ev) {
-  var btn = ev.target.closest ? ev.target.closest("[data-tab]") : null;
-  if (!btn) return;
-  var bar = btn.parentElement;
-  var win = bar.closest(".window, .tabscope") || bar.parentElement;
-  var name = btn.getAttribute("data-tab");
-  bar.querySelectorAll("[data-tab]").forEach(function (b) {
-    b.classList.toggle("active", b === btn);
-    if (b === btn) b.setAttribute("aria-current", "true");
-    else b.removeAttribute("aria-current");
-  });
-  win.querySelectorAll("[data-pane]").forEach(function (p) {
-    p.hidden = p.getAttribute("data-pane") !== name;
-  });
-  /* installbox: the single copy button tracks the active command */
-  var box = bar.closest(".installbox");
-  if (box) {
-    var pane = win.querySelector('.ib-cmd[data-pane="' + name + '"]');
-    var copy = box.querySelector(".copy");
-    if (pane && copy) copy.setAttribute("data-copy", pane.getAttribute("data-cmd"));
-  }
-});
 

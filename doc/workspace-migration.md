@@ -158,13 +158,13 @@ portability — before reusing or re-solving a lock across hosts, read
 
 ### Upgrading the evaluated frontend
 
-Use matching core/SDK 0.47.0 reviewer-prerelease assets for these declarations (IR8); retained v3–v7
+Use matching core/SDK 0.48 assets for these declarations (IR8); retained v3–v7
 execution keeps its original versioned semantics. Evaluating with changed
 frontend bytes can invalidate the captured frontend/import pins in an existing
 `gripsack.lock`. An E301 refusal after source approval is not permission to edit
 those pins.
 
-The [0.47 reviewer migration examples](https://github.com/gripsack-dev/gripsack/blob/core-v0.47.0/typescript/README.md#reviewer-migration-delete-plumbing-keep-verification)
+The [0.48 migration examples](https://github.com/gripsack-dev/gripsack/blob/core-v0.48.0/typescript/README.md#reviewer-migration-delete-plumbing-keep-verification)
 replace generated tree manifests with captured `repoTree`, duplicate inline
 templates with `templateFile`, handwritten wrappers with profile-managed
 launchers, and versioned archive selectors with explicit `archiveRoot`.
@@ -201,11 +201,45 @@ workspace identities do **not** share recorded ownership.
 `--take-over` is not an ownership migration command: it does not
 transfer a legacy generation's ownership to a workspace.
 
+### Generation-bound migration
+
+Current core supports `--migrate-from N` for an **exact current legacy
+generation**, without a separate prune generation. This is the preferred path
+for intact legacy-owned links, including a directory symlink becoming a physical
+tracked-copy tree:
+
+1. Keep the previous checkout, the current core binary and the original private
+   state. Record `N` from `grip generations`; do not collect its recovery data.
+2. Prepare the workspace in a separate source checkout. For the actual cutover,
+   use the **original `GRIPSACK_HOME`**, not the separate state used for comparison.
+   Review/approve its source, run `grip update` when pins need refreshing, then
+   review/approve the resulting lock and run `grip check`. This does not release
+   old destinations.
+3. Review `grip plan personal --migrate-from N`, then run
+   `grip apply personal --migrate-from N`. Replace `personal` with your profile.
+   Replacement content and known runtime requirements prepare before old paths
+   are released. Stale generation numbers, foreign objects and drift refuse;
+   migration is not broader takeover permission.
+4. Verify deployed commands, modes, sibling resources and application behavior
+   before discarding the predecessor. Keep dependent commands stopped during
+   cutover: destination changes are journaled, **not one atomic profile-wide
+   filesystem operation**, so temporary unavailability is possible.
+
+Pre-flip failures compensate destination mutations; interrupted transactions are
+reconciled by the normal recovery path. A late activation/verification failure
+does not imply automatic rollback. Inspect hook outcomes and use the current
+binary's `grip rollback N` for explicit recovery. Preserve evidence and stop if
+foreign changes prevent safe restoration; do not delete journals or force an
+older binary onto newer state.
+
+The older prune-first sequence below remains an alternative, with a longer gap
+between deployments. It is not required when generation-bound migration applies.
+
 ### Apply the legacy prune before switching
 
-For paths that both configurations would manage, perform two separate
-applies. Keep the old checkout, host entrypoint and its original
-private state available throughout the cutover:
+If deliberately using the prune-first alternative, shared paths require two
+separate applies. Keep the old checkout, host entrypoint and original private
+state available throughout the cutover:
 
 1. **Stay on the legacy entrypoint.** Do not add `gripsack.ts` yet.
    Remove the shared module declarations from `hosts/<old-host>.ts`

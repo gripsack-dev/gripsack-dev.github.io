@@ -1,127 +1,129 @@
 # Adopting your dotfiles
 
-The honest walkthrough — no magic, and the two moments where gripsack
-deliberately refuses to be magic.
+Start with a small, reviewable set of files. New configurations should use a
+root `gripsack.ts` workspace; the host/module model remains supported as legacy.
 
 ## Start with one directory, not your whole setup
 
-A config-only repo needs nothing but `grip` itself: the frontend
-source rides inside the binary, and the only provisioning is the eval
-runtime — the first `grip check`/`apply` downloads a pinned,
-sha256-verified Deno once (~40MB, cached). Install the
-`@gripsack/core` npm package only to deliberately pin a copy of the
-authoring library matching your installed core version — ordinary
-repos never need it. And before a repo's code
-runs at all, grip asks once: an unfamiliar repo gets a trust prompt
-naming exactly what the sandbox allows. `y`, and you're in business.
+Use the [workspace migration guide](workspace-migration.md) and
+[persistent environments](environments.md) for current authoring. A file-only
+profile needs no package producer or build worker: captured repository files
+can become symlinks, tracked copies or managed blocks. Keep a backup of the
+original config before starting.
 
+Install core 0.48 and, only if deliberately pinning the SDK, its matching
+archive using the [release instructions](https://github.com/gripsack-dev/gripsack/releases/tag/core-v0.48.0).
+This is a public **unsigned** release, not an npm or crates.io publication;
+the signed installer/updater does not select it. The binary embeds the
+frontend and provisions a pinned, SHA-256-verified Deno for evaluation.
+Supported hosts are Linux and WSL2 on x86_64.
+
+Approval is for exact captured source and policy, not a one-time blessing of
+a directory. Review `grip trust inspect` and the approval prompt; editing
+source, changing the SDK pin or refreshing lock inputs can require approval
+again. See [source trust](safety.md).
+
+For an existing **legacy** workflow, this still creates a host/module repo:
 
 ```bash
 grip init my-env && cd my-env
-```
-
-You get a working repo: `env.toml`, a host entrypoint named after this
-machine, a tiny `hello` module that deploys one file into
-`~/.config/hello/`, and a commented tour of the features. Apply it:
-
-```bash
 grip check && grip apply
 ```
 
-Then look at `~/.config/hello/hello.toml` — it's a symlink into the
-store. Edit the file in the repo, apply again, watch the generation
-flip. That's the whole mechanism; everything else is detail.
+It writes `env.toml`, a machine-named host, a `hello` module and editor
+configuration. The hello file deploys under `~/.config/hello/`. `grip init`
+does not scaffold a workspace; its generated package version is not evidence
+of registry availability. Use the embedded frontend or the matching release
+SDK archive rather than assuming `npm install` can fetch 0.48.
 
 ## Move one real tool over
 
-`grip adopt` is the walkthrough as a command ([plan 0015](https://github.com/gripsack-dev/gripsack/tree/main/plan/0015-grip-adopt.md)).
-Point it at a live config path; it inspects what it sees, then *asks
-you* the ownership question with the semantics laid out — it never
-guesses, because only you know whether the app writes its own config.
-The safe default is `tracked_copy` (wrong guesses are free there;
-`owned` is the informed opt-in). Then it generates the payload +
-module + host entry, shows the plan, and touches nothing until you
-confirm:
+**Workspace:** copy the intended config into the repository and declare its
+profile files with `repoFile` or `repoTree`, `identity()` or `templateFile`,
+and a destination such as `trackedCopyTo`. Review source approval and
+`grip plan <profile>`, then use `grip apply <profile> --take-over` only after
+reviewing every destination the selected profile would take over. Start with
+a profile containing just the files you intend to adopt. `grip adopt` does
+not edit workspace profiles in 0.48; it refuses that operation explicitly.
+The [released SDK reference](https://github.com/gripsack-dev/gripsack/blob/core-v0.48.0/typescript/README.md#captured-files-trees-and-stable-package-roots)
+shows captured files and trees without evaluation-time filesystem reads.
 
-<div class="window">
-  <div class="titlebar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="wtitle">adoption is one command — and fully reversible</span></div>
-<pre><code class="language-bash">$ grip adopt ~/.config/helix
-adopting ~/.config/helix — 2 files, 1.1 kB
-  ownership: owned — helix doesn't rewrite its config
-  wrote configs/helix/ · modules/helix.ts · hosts/laptop.ts
-  prior state will be recorded — rollback restores your original files
-apply? [y/N] y
-applied — generation 1 active
+**Legacy host/module repo:** `grip adopt` inventories a live path, asks about
+ownership, copies the payload into `configs/`, and generates module and host
+source. `tracked_copy` is the conservative default; choose `owned` only for
+configs the application does not rewrite.
 
-$ grip rollback
-rolled back to generation 0   # your original files are back</code></pre>
-</div>
+```bash
+grip adopt ~/.config/helix
+# Review and approve generated source if requested. To resume afterward:
+grip adopt ~/.config/helix --resume
+```
 
-The apply absorbs **exactly** the adopted destinations (scoped
-take-over — unrelated drift is never clobbered) and records what every
-destination was before gripsack wrote it. Rollback — and undeclaring
-the module later — restores the original files, bytes and permission
-bits, drift-guarded: edits you make after adopting are yours, and a
-rollback keeps them. On a fresh machine adopt first records an empty
-**generation 0**, so there's always something to roll back to.
+Generation happens before deployment confirmation: it writes repository
+files, not the destination configs. `--yes` skips only apply confirmation,
+not source approval. Resume omits `--mode`: the approved module supplies it,
+without regenerating source. Takeover is scoped to the requested target;
+unrelated destinations do not gain takeover permission.
+
+Legacy adopt records an empty generation 0 on a fresh store. Subsequent
+rollback can restore the prior files when their deployed state is intact.
+This is not a promise that every workspace starts with that baseline.
 
 ## The safety net under all of it
 
-Adoption is honest because every layer under it has an inverse:
+1. **Foreign-path refusal** — deployment refuses foreign destinations unless
+   takeover is authorized.
+2. **Prior capture** — takeover records original bytes and permission bits
+   in the private store.
+3. **Drift guards** — tracked-copy and template edits are preserved by
+   default. Managed blocks intentionally reconcile their own content; see
+   [ownership modes](modules.md#ownership-modes).
+4. **Failed transitions** — journaled destination compensation is attempted
+   before commit. If the filesystem prevents recovery, the journal blocks
+   further mutation; arbitrary commands and external effects are not undone.
+5. **Generation rollback** — `grip rollback` returns to a retained generation,
+   subject to ownership and drift checks. It does not rebuild current source.
+6. **Crash recovery** — durable journals let subsequent mutation recover or
+   fail closed. Recovery preserves intervening user edits rather than treating
+   them as intact managed output. Late activation failure needs explicit
+   recovery; it is not automatic rollback.
 
-1. **Foreign-path refusal** — gripsack never touches a path it didn't
-   deploy unless you say `--take-over`.
-2. **Prior capture** — the moment it takes anything over, your
-   original bytes (and permission bits) go to a content-addressed
-   blob store.
-3. **Drift detection** — if you edit a deployed file, gripsack keeps
-   your edit and says so; it never silently reverts you.
-4. **Run rollback** — an apply that fails mid-graph restores every
-   destination it touched before reporting the error.
-5. **Generation rollback** — `grip rollback` flips `current` back;
-   adopted paths get their originals restored.
-6. **Crash recovery** — kill -9 or power loss mid-apply leaves a
-   journal; the next apply restores your files before doing anything
-   else — and if you edited them after the crash, *your* edit wins.
-
-`grip plan` labels every planned mutation with its reversibility
-class, so "what does undoing this mean" is answered before you
-confirm, not after.
-
-Writing the module by hand still works, of course — the generated file
-is exactly what you'd have written.
+Keep the retained generations, prior blobs and private state needed for undo.
+Pruning history removes recovery choices; a lockfile alone is not a backup.
+Read [the safety contract](safety.md) before relying on rollback.
 
 ## The ownership question is the whole game
 
-For each tool, one question: *does this app ever rewrite its own
-config?*
+For each file, ask whether the application rewrites it:
 
-- **Never** (helix, git, tmux) → `owned` symlinks.
-- **Sometimes** (zed, VS Code, most GUI apps) → `tracked_copy`: a real
-  file; gripsack detects drift and *keeps your edit* instead of
-  pretending the app behaves.
-- **Shared files** (`.bashrc`, `.profile`) → `merge`: gripsack owns one
-  delimited block, everything outside the markers is never touched.
-- **Same file, per-host values** (work email vs personal) →
-  `template` with `vars` computed in the host entrypoint from
-  `ctx.facts`.
+- **Never:** workspace `symlinkTo` (legacy `symlink` / `owned`).
+- **Sometimes:** `trackedCopyTo` (legacy `trackedCopy` / `tracked_copy`),
+  preserving a real file and detecting drift.
+- **Shared text file:** `managedBlock` (legacy `merge`) owns a delimited
+  block, not the surrounding text. Use only a format that accepts the markers;
+  strict JSON does not accept comments.
+- **Per-machine values:** `templateFile` or `templateText`, combined with
+  a destination. Legacy `template(to, vars)` computes variables in the host
+  entrypoint. Both models can use injected facts rather than ambient reads.
+
+Choose per file, not by application name alone. Templates are rendering, not
+a separate promise that an application cannot edit the result.
 
 ## What stays outside (on purpose)
 
-You don't have to migrate your packages. brew/apt/pixi keep managing
-binaries; gripsack manages `~/.config` — and you can adopt binary
-fetching later, tool by tool, when the pinned-download story is worth
-it. Fish users: your universal variables and conf.d are yours; a
-`merge` block in `~/.bashrc`-style files is the seam.
+Existing system and language package managers can keep managing binaries.
+Add workspace packages and environments only when their pinned inputs and
+runtime policy are useful to you. Shell state, caches and application-written
+state need not enter your profile; adopting a directory does not mean claiming
+all future children.
 
 ## When it breaks
 
-`grip doctor` checks the runtime, `grip why-owns <path>` answers "which
-module deployed this", and `grip rollback` flips the whole environment
-back to the previous generation. If a linter crashes, that's a warning,
-not a failed apply — your tools' problems are not your outage.
+Use `grip doctor` for runtime and editor wiring, `grip why-owns <path>` for
+ownership, and [run logs](runs.md) for diagnostics. Inspect the failed stage
+before deciding whether to roll back. Advisory config lint is not a required
+workspace check: required checks can block publication or activation.
 
-When you're ready to move a whole tree, the `gripsack-adopt` skill
-teaches an agent to do the inventory and the interview with you:
-`cp -r skills/gripsack-adopt ~/.claude/skills/` (see
-[skills](skills.md)).
+For an agent-assisted inventory and ownership interview, see
+[skills](skills.md). Review its proposed declarations and source approvals;
+an agent is not a substitute for the ownership decision or a backup.

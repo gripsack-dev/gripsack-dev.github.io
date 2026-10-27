@@ -1,9 +1,8 @@
 # Architecture
 
-How gripsack turns one git repository into your entire environment —
-packages from any source, dotfiles included — on any machine, with
-rollback. This page is the friendly tour; the design docs under
-[plan/](plan/) have the full details and the reasoning.
+How gripsack turns a repository into packages, development environments and
+managed files on Linux/WSL. This is the tour; [design records](plan/) retain
+the detailed contracts and outstanding work.
 
 ![gripsack architecture: eval row (env repo → frontend → IR → lockfile) with linter plugins validating configs at eval, feeding the execute row (core → store → generations → $HOME), with fetcher plugins below](architecture.svg)
 
@@ -15,11 +14,9 @@ gripsack is a compiler, and it keeps its two halves strictly separate:
   no environment variables, no network, no subprocesses, read-only
   within your repo. The machine's facts — os, arch, libc, hostname —
   are detected by the core and injected; host effects are *probes*,
-  symbolic requests the core binds. Modules — plain typed code —
-  describe what you want: where a tool comes from, how to build it,
-  which config files it owns. Evaluation emits **IR**, a JSON graph
-  where every node carries a *span* pointing back at the exact line
-  of your code that produced it.
+  symbolic requests the core binds. Workspace outputs and legacy modules
+  describe sources, builds and deployment. Evaluation emits **IR**, a
+  validated JSON graph with source locations for diagnostics.
 - **Execute** is the `grip` binary — one static Rust executable. It
   never evaluates code and only consumes IR: it parses, validates,
   resolves against the lockfile, builds a plan, and executes it as a
@@ -32,14 +29,14 @@ gripsack is a compiler, and it keeps its two halves strictly separate:
 `grip update` runs the source-preparation part without deployment: resolve,
 acquire, verify and capture the selected repo overlay. It writes complete
 source pins once, only after every selected source succeeds. Source-only
-merged artifacts are cached; recipes still run only during apply. The first
-warm or cold apply leaves a completed lockfile unchanged.
+merged artifacts are cached; package recipes run when realization is requested,
+not during source update. Applying a completed lock does not re-solve it.
 `grip update --check` performs the same preparation in private scratch, reports
 would-be changes, and publishes neither lockfile nor source cache.
 
-The payoff of the split: `grip plan` can show you exactly what would
-change without changing anything, errors point at your source instead of
-at JSON, and the core stays a small, boring, auditable program.
+`grip plan` prepares deployment changes without activating destinations.
+Source preparation and cached realization are distinct from deployment; this
+is not a promise that planning performs no filesystem or network work.
 
 The frontend *source* is embedded in the `grip` binary — the DSL
 version always matches the core — so only the runtime provisions: the
@@ -56,24 +53,24 @@ nothing observable is left to the frontend's environment.
 
 ## Modules and sources
 
-Everything is a **module** — a tool, a font, a set of dotfiles. A module
-declares typed steps, not scripts: a **source** (GitHub release,
-tarball, git, brew, conda, …), an optional build, where its files go, and
-which config files it manages. Modules depend on modules. Build-only
-dependencies form a [build closure](modules.md#dependencies): they are
-published to the store and supplied to build steps through PATH and
-`GRIP_DEP_*`, never deployed merely to serve a compile. Retained
-generations pin their store paths; rollback restores files without
-rebuilding. The unsigned reviewer core/SDK 0.47 prerelease emits **IR8**, including the legacy
-modules-compatibility envelope. Retained v3–v7 readers keep their historical
-meanings; new fields are not silently added to older declarations.
-`Dependency.for` remains, while inert retry fields are rejected. Both module
-authoring styles feed one prepared execution view; cross-module step needs
-order whole modules without changing deployment purposes.
+New configurations use a workspace: packages declare producers, files declare
+destinations, environments assemble commands, profiles select deployment, and
+tasks describe explicit operations and checks. These outputs share one graph
+without combining source resolution, installation and verification into each
+tool declaration.
+
+Legacy modules still combine those concerns and remain supported for migration.
+Their build-only dependencies are published to the store and supplied through
+PATH and `GRIP_DEP_*`, not deployed merely to compile a dependent module.
+Retained generations pin store paths; rollback does not rebuild them.
+
+Core/SDK 0.48 emits **IR8**, including the legacy modules-compatibility envelope.
+Retained v3–v7 readers keep their historical meanings. `Dependency.for` remains;
+inert retry fields are rejected.
 
 Low-level compiler APIs (`emitIr`, `emitWorkspaceIr`, `IR_VERSION` and compiler
 DTOs) are exported by `@gripsack/core/advanced`, not the ordinary authoring root.
-See the [0.47 reviewer SDK reference](https://github.com/gripsack-dev/gripsack/blob/core-v0.47.0/typescript/README.md).
+See the [0.48 SDK reference](https://github.com/gripsack-dev/gripsack/blob/core-v0.48.0/typescript/README.md).
 
 When a source is unusual — your company's internal registry — the
 sourcing ladder keeps the core small:
@@ -107,12 +104,14 @@ dotfiles with rollback. See
 
 ## Generations and rollback
 
-Every apply — one module or the whole graph — builds a complete new
-**generation**: an immutable tree of symlinks into the store. Activation
-is a single atomic rename (`current → generations/N`), and the exported
-env profile lives inside the generation, so it flips with it. Because
-the profile's bin directory is a fixed PATH entry, a flip takes effect
-instantly — no shell reload.
+A **generation** records a complete deployment and its immutable store references.
+An unchanged workspace apply can reuse the active generation when the complete
+deployment state matches; it does not necessarily consume a retention slot.
+Checks and hooks can still run. Changed deployments select a new generation
+through an atomic `current` flip, including its environment profile.
+
+Shell activation and non-interactive PATH are separate: profile-managed launchers
+provide commands without requiring an editor or SSH process to source a profile.
 
 Destination mutations (deploys, prunes, rollback restores) are
 journaled before they land: a crash anywhere is reconciled by the next
@@ -139,11 +138,12 @@ new apply with the adapter removed disables it), and downloads stay
 downloaded. The flip is the environment; the world outside it is
 yours.
 
-Reproducibility is **pinned inputs and reproducible deployment**, not
-hermetic builds: URLs, revisions, and content hashes are locked per
-host at resolve time, so machine B deploys what machine A deployed.
-gripsack has no sandbox — a shell build step can observe ambient
-machine state; hermetic builds are Nix's guarantee, honestly theirs.
+Reproducibility starts with pinned inputs and reproducible deployment, not a
+promise that every execution mode is hermetic. Workspace execution admits
+declared runtime closures; BuildKit-backed recipes use their declared build
+environment. Legacy ambient shell steps and explicit host execution have
+different isolation boundaries. Host success does not prove sealed closure
+completeness.
 
 **The store is content-addressed where content is knowable**
 ([plan 0014](https://github.com/gripsack-dev/gripsack/tree/main/plan/0014-content-addressed-fetches.md)).
@@ -156,20 +156,16 @@ and plan-time naming is what keeps `grip plan` a complete diff.
 
 ## Errors that point at your code
 
-Every IR node carries a span — file, line, column of the module code
-that emitted it (the same trick React uses for JSX error stacks). Every
-layer speaks the same diagnostic — eval, placeholders, paths, config
-[linters](linters.md), execution — with stable codes, spans pointing at
-the exact line, and suggestions, never a bare `error:` line. The
-core's compiler passes collect structured diagnostics:
+Compiler and execution diagnostics use stable codes and attach source locations
+where available. The same interface covers evaluation, paths, configuration
+[linters](linters.md) and execution:
 
 ```diag
 error[E101]: module "helix" depends on unknown module "git"
   --> modules/helix.ts:4:1
 ```
 
-Tomorrow's LSP is a thin shim over these same passes — the analysis is
-already done, spans and all. Details:
+An editor-facing LSP remains roadmap work. The diagnostic design is recorded in
 [plan/0004 — rich IR & passes](plan/0004-rich-ir-and-passes.md).
 
 ## Where things live
@@ -182,5 +178,7 @@ already done, spans and all. Details:
 | `~/.config/gripsack/config.toml` | machine-local user config |
 | your repo's `env.toml` | the committed, self-describing env config |
 
-`GRIPSACK_HOME` overrides the base directory. Nothing outside your home
-is ever touched: no root, no daemon.
+`GRIPSACK_HOME` overrides the base directory. Explicit destinations and host
+operations can reach outside the home directory when permissions allow.
+BuildKit recipes require a configured builder; ordinary configuration-file
+deployment does not require a privileged system service.

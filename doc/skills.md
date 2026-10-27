@@ -1,23 +1,28 @@
 # Skills
 
-Installable agent skills — teach your agent to operate and migrate
-gripsack environments by reading the repo, not by guessing.
+Installable agent guidance for reading and operating gripsack, not
+executable enforcement or proof that a deployment is safe. Prefer new
+IR8 workspaces; use the
+[0.48 SDK reference](https://github.com/gripsack-dev/gripsack/blob/core-v0.48.0/typescript/README.md)
+as API authority when a skill contains older examples.
 
 ## gripsack-debug
 
-Diagnose a failing run from its structured log. Every `grip` invocation
-writes JSONL with run ids and span-based causality to
-`~/.local/share/gripsack/runs/`; this skill teaches an agent to read
-it: field tables, span chains, jq filters, the diagnostic-code table,
-and the debugging loop.
+Read structured run logs: run IDs, span chains, jq filters and diagnostic
+codes. The default state location is `~/.local/share/gripsack/runs/`;
+use the actual `GRIPSACK_HOME` when configured. Logs are diagnostic
+evidence, not proof that every requested effect completed.
 
 ## gripsack-adopt
 
-Migrate an existing tool into a module, interview-style. The agent
-inventories the tool (binary location, version, config paths, install
-method), asks only the questions it can't answer from the system —
-pinning policy, config ownership mode per file — writes the module,
-and proves it: `plan` clean, apply works, second apply satisfied.
+This shipped skill targets the **legacy host/module workflow**. It
+inventories a tool's binary, version, config paths and install method,
+then helps choose pinning, ownership and verification. Some bundled
+examples predate the workspace API; do not copy their Pixi/build advice
+into a new workspace. Use workspace packages, profiles, file policies
+and named checks from the SDK reference instead. Review the plan,
+exercise the intended consumer and inspect a second apply; a successful
+command alone does not prove full migration or reversibility.
 
 ## griplint-author
 
@@ -45,11 +50,14 @@ like the core does.
 
 ## Install
 
-Copy the skill directory into your agent harness's skills path
-(e.g. `~/.claude/skills/` for Claude Code, or your equivalent):
+Copy the skill directories from the matching release into your agent
+harness's skills path (for example Claude Code). Review their contents
+before granting an agent execution authority; installing guidance does
+not install or upgrade the core.
 
 ```bash
-git clone --depth 1 https://github.com/gripsack-dev/gripsack /tmp/gripsack
+git clone --depth 1 --branch core-v0.48.0 https://github.com/gripsack-dev/gripsack /tmp/gripsack
+mkdir -p ~/.claude/skills
 cp -r /tmp/gripsack/skills/gripsack-debug ~/.claude/skills/
 cp -r /tmp/gripsack/skills/gripsack-adopt ~/.claude/skills/
 cp -r /tmp/gripsack/.agents/skills/griplint-author ~/.claude/skills/

@@ -1,45 +1,31 @@
 #!/usr/bin/env python3
-"""Assemble the gripsack website into public/.
+"""Build static pages locally from the site tree and a selected core Git commit.
 
-Single source of truth: the landing page is website/index.html, and the
-docs pages are converted from doc/*.md at build time — editing a doc in
-the repo is all it takes to update the site (pages.yml redeploys).
-Every docs page shares one chrome: a left rail (brand, site nav,
-on-this-page TOC) and a content column.
+    uv run --with markdown python website/build.py --core ../gripsack --core-ref core-v0.48.0
+    python3 -m http.server 8000 --directory public
+    python3 website/publish.py
 
-    uv run --with markdown python website/build.py --release-tag "$TAG" \
-      --manifest-sha256 "$MANIFEST_SHA256" --run-id "$SIGNING_RUN_ID"
+The core version, changelog and existing installer are read from local Git
+objects. This is documentation rendering, not signature or release admission.
+Pages only uploads/deploys the resulting static commit; it never builds products.
 """
 
 from __future__ import annotations
 
+import argparse
 import hashlib
 import re
 import shutil
 import json
+import subprocess
+import tomllib
 from pathlib import Path
 
 import markdown
-import release
 
 ROOT = Path(__file__).resolve().parent.parent
 OUT = ROOT / "public"
 
-# The palette picker's set (website/index.html data-set-palette) — demo
-# variants are stamped only for these.
-PALETTES = {
-    "catppuccin-mocha",
-    "catppuccin-latte",
-    "tokyo-night",
-    "gruvbox-dark",
-    "nord",
-    "dracula",
-    "one-dark",
-    "one-light",
-    "github-light",
-    "solarized-dark",
-    "solarized-light",
-}
 
 REPO = "https://github.com/gripsack-dev/gripsack"
 
@@ -51,7 +37,7 @@ _ASSET_VERSION: str | None = None
 
 
 def site_version() -> str:
-    """All rendered current-version data comes from the admitted release."""
+    """Version of the explicitly selected local core source."""
     return RELEASE["version"]
 
 
@@ -82,7 +68,7 @@ PAGES: dict[str, tuple[str, str]] = {
     "linters": ("doc/linters.md", "linters"),
     "skills": ("doc/skills.md", "skills"),
     "roadmap": ("doc/roadmap.md", "roadmap"),
-    # Exact changelog bytes from the authenticated core source; no fallback.
+    # The changelog remains with the selected core source, not a second mirror.
     "changelog": ("doc/changelog.md", "what's new"),
 }
 
@@ -214,10 +200,8 @@ def page(title: str, body: str, active: str, toc: list[tuple[str, str]], root: s
 {rail(active, toc, root)}
 <main class="content">
 <article class="md">
-<p class="note"><strong>Release scope:</strong> use matching core and SDK bytes.
-<a href="https://github.com/gripsack-dev/gripsack/releases/tag/core-v0.47.0">0.47 is an unsigned, unverified reviewer prerelease</a>;
-capture-glob exclusions and <code>--focus</code> require 0.48.
-<a href="{root}docs/roadmap.html#reviewer-prerelease-and-development">Availability and qualification</a>.</p>
+<p class="note">Documentation for core/SDK v{site_version()}.
+<a href="{root}docs/roadmap.html#release-qualification">Release and verification scope</a>.</p>
 {body}
 </article>
 <footer>
@@ -328,44 +312,16 @@ def assemble() -> None:
     index = index.replace("{release_source}", RELEASE["source"]["commit"])
     index = index.replace("./assets/site.css", f"./assets/site.css?v={asset_version()}")
     index = index.replace("./assets/site.js", f"./assets/site.js?v={asset_version()}")
-    # Stamp the demo variants that actually shipped into every demo img, so
-    # site.js never guesses a missing variant (and never 404s). Each slide's
-    # base gets its own list: <base>-<palette>.gif on disk = available.
-    def stamp_demo_variants(m: re.Match) -> str:
-        tag = m.group(0)
-        stem = Path(m.group(1)).name
-        if not (ROOT / "img" / f"{stem}.gif").exists():
-            # the slide's own GIF hasn't shipped yet — fall back to the
-            # default demo (palette variants included) instead of 404ing
-            tag = tag.replace(f'src="./img/{stem}.gif"', 'src="./img/demo.gif"')
-            tag = tag.replace(
-                f'data-demo-base="./img/{stem}"', 'data-demo-base="./img/demo"'
-            )
-            stem = "demo"
-        # filter to real palette names — demo-init-*.gif etc. would
-        # otherwise pollute the base demo's list ("init-nord", …)
-        variants = ",".join(
-            sorted(
-                v
-                for p in (ROOT / "img").glob(f"{stem}-*.gif")
-                if (v := p.stem.removeprefix(f"{stem}-")) in PALETTES
-            )
-        )
-        return tag.replace('data-demo-variants=""', f'data-demo-variants="{variants}"')
-
-    index = re.sub(
-        r'<img[^>]*data-demo-base="([^"]+)"[^>]*>', stamp_demo_variants, index
-    )
     (OUT / "index.html").write_text(index)
     # Custom domain — GitHub Pages reads this from the deployed artifact.
     (OUT / "CNAME").write_text("gripsack.dev\n")
-    # Exact Git blob bytes from the authenticated source, not mutable main.
+    # Preserve the installer endpoint without bypassing its own checks.
     (OUT / "install.sh").write_bytes(RELEASE_FILES["install.sh"])
-    (OUT / "release.json").write_text(json.dumps(RELEASE, sort_keys=True) + "\n")
     (OUT / "assets").mkdir(exist_ok=True)
     for name in ("icon.svg", "favicon.svg", "site.css", "site.js"):
         shutil.copy(ROOT / "website" / "assets" / name, OUT / "assets" / name)
     shutil.copy(ROOT / "doc" / "logo.svg", OUT / "assets" / "logo.svg")
+    # Historical media URLs remain valid, although the homepage no longer loads them.
     (OUT / "img").mkdir(exist_ok=True)
     for gif in (ROOT / "img").glob("*.gif"):
         shutil.copy(gif, OUT / "img" / gif.name)
@@ -375,15 +331,33 @@ def assemble() -> None:
     if (ROOT / "simple").exists():
         shutil.copytree(ROOT / "simple", OUT / "simple", dirs_exist_ok=True)
         shutil.copytree(ROOT / "simple", OUT / "packages", dirs_exist_ok=True)
-    # Stamp the demo variants that actually shipped into the img tag, so
-    # site.js never guesses a missing variant (and never 404s).
     for name in DOC_ASSETS:
         shutil.copy(ROOT / "doc" / name, OUT / "assets" / name)
     print("copied landing page + assets")
 
 
+def local_core_inputs(core: Path, reference: str) -> tuple[dict, dict[str, bytes]]:
+    commit = subprocess.check_output(
+        ["git", "-C", str(core), "rev-parse", "--verify", "--end-of-options",
+         reference + "^{commit}"], text=True,
+    ).strip()
+
+    def blob(name: str) -> bytes:
+        return subprocess.check_output(["git", "-C", str(core), "show", f"{commit}:{name}"])
+
+    manifest = tomllib.loads(blob("Cargo.toml").decode("utf-8"))
+    files = {name: blob(name) for name in ("CHANGELOG.md", "install.sh")}
+    return {"version": manifest["workspace"]["package"]["version"],
+            "source": {"commit": commit}}, files
+
+
 if __name__ == "__main__":
-    # Complete admission and source downloads BEFORE touching existing output.
-    RELEASE, RELEASE_FILES = release.admit(*release.selected_inputs(release.arguments()))
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--core", type=Path, required=True, help="local core Git repository")
+    parser.add_argument("--core-ref", default="HEAD", help="core commit or tag to document")
+    args = parser.parse_args()
+    # Resolve every input before replacing generated output.
+    RELEASE, RELEASE_FILES = local_core_inputs(args.core.resolve(), args.core_ref)
+    print(f"documenting core {RELEASE['version']} at {RELEASE['source']['commit']}")
     assemble()
     build_docs()

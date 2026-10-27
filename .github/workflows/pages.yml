@@ -1,27 +1,14 @@
 name: pages
+run-name: publish-static-${{ inputs.site_commit }}
 
-# Render an authenticated published release; product/examples qualification is
-# local and source-bound, not a duplicate hosted compilation lane.
+# website/build.py renders locally; website/publish.py nominates its Git commit.
 on:
   workflow_dispatch:
     inputs:
-      release_tag:
-        description: "Published core tag (all three selectors, or all blank to rebuild deployed selection)"
+      site_commit:
+        description: "Prebuilt static website commit from published-site"
+        required: true
         type: string
-      manifest_sha256:
-        description: "Exact published manifest SHA256"
-        type: string
-      run_id:
-        description: "Core signing/publishing run ID (not the Pages run)"
-        type: string
-  repository_dispatch:
-    types: [rebuild]
-  push:
-    branches: [main]
-    paths:
-      - "website/**"
-      - "doc/**"
-      - ".github/workflows/pages.yml"
 
 permissions:
   contents: read
@@ -31,59 +18,27 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v7
-        with:
-          persist-credentials: false
-      - name: Provision reviewed attestation verifier
-        shell: bash
-        run: |
-          set -euo pipefail
-          # cli/cli official Linux amd64 asset 599854672. Authenticate archive
-          # bytes BEFORE extracting/executing; the release is not a trust root.
-          ARCHIVE="$RUNNER_TEMP/gh_2.102.0_linux_amd64.tar.gz"
-          curl --fail --silent --show-error --location --proto '=https' --proto-redir '=https' \
-            --max-time 300 --max-filesize 100000000 \
-            https://github.com/cli/cli/releases/download/v2.102.0/gh_2.102.0_linux_amd64.tar.gz -o "$ARCHIVE"
-          printf '%s  %s\n' bb766f710eef8ede859c18578c72c327597cd4c8a85b06001b1f3843c6019386 "$ARCHIVE" | sha256sum --check --strict
-          mkdir -p "$RUNNER_TEMP/site-gh"
-          tar -xzf "$ARCHIVE" -C "$RUNNER_TEMP/site-gh" gh_2.102.0_linux_amd64/bin/gh
-          echo "$RUNNER_TEMP/site-gh/gh_2.102.0_linux_amd64/bin" >> "$GITHUB_PATH"
-      - uses: astral-sh/setup-uv@v5
-      - name: Admit selected release and render
-        shell: bash
-        env:
-          GH_TOKEN: ${{ github.token }}
-          RELEASE_TAG: ${{ inputs.release_tag || github.event.client_payload.release_tag }}
-          MANIFEST_SHA256: ${{ inputs.manifest_sha256 || github.event.client_payload.manifest_sha256 }}
-          SIGNING_RUN_ID: ${{ inputs.run_id || github.event.client_payload.run_id }}
-          EVENT_NAME: ${{ github.event_name }}
-        run: |
-          set -euo pipefail
-          args=()
-          if [[ "$EVENT_NAME" == repository_dispatch || -n "$RELEASE_TAG$MANIFEST_SHA256$SIGNING_RUN_ID" ]]; then
-            args=(--release-tag "$RELEASE_TAG" --manifest-sha256 "$MANIFEST_SHA256" --run-id "$SIGNING_RUN_ID")
-          fi
-          # No inputs on push/manual: re-admit https://gripsack.dev/release.json.
-          # Missing/invalid selectors or signature stop before artifact upload;
-          # the existing 0.46 deployment is retained until genuine promotion.
-          uv run --with markdown python website/build.py "${args[@]}"
-      - uses: actions/upload-pages-artifact@v3
-        with:
-          path: public
-
-  deploy:
-    needs: build
+  publish:
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     permissions:
+      contents: read
       pages: write
       id-token: write
     environment:
       name: github-pages
       url: ${{ steps.deploy.outputs.page_url }}
     steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ inputs.site_commit }}
+          path: public
+          persist-credentials: false
+      - name: Require rendered static entrypoints
+        run: test -f public/index.html && test -f public/CNAME
       - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: public
       - id: deploy
         uses: actions/deploy-pages@v4

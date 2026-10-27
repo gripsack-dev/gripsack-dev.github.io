@@ -51,12 +51,10 @@ grip apply dotfiles</pre>
   <p class="note">Review the plan before applying. <code>grip generations</code> lists retained generations; <code>grip rollback</code> restores a previous managed state. <a href="./docs/safety.html">Read the ownership and recovery boundaries</a>.</p>
 </section>
 <section id="install">
-  <h2 class="section">install deliberately</h2>
-  <p>The signed release selected for this site is <a href="https://github.com/gripsack-dev/gripsack/releases/tag/core-v{version}">v<!--VERSION--></a>. Its installer checks the signed local-qualification manifest before installation.</p>
-<pre>curl -fsSL https://gripsack.dev/install.sh | sh -s -- --version {version}</pre>
-  <p class="note"><code>grip self-update</code> independently selects the latest signed release. <a href="./docs/roadmap.html#release-qualification">Qualification and site binding</a>.</p>
-  <p><strong>Reviewer prerelease:</strong> <a href="https://github.com/gripsack-dev/gripsack/releases/tag/core-v0.47.0">0.47.0 is unsigned and unverified</a>. Use its manual installation instructions and matching SDK archive to try the workspace APIs shown here. It is not the authenticated installer selection; npm/crates publication is not implied.</p>
-  <p class="note">Capture-glob exclusions and the <code>--focus</code> view require core/SDK 0.48; they are not in 0.47. Check the <a href="https://github.com/gripsack-dev/gripsack/releases">release records</a> for available artifacts and qualification evidence.</p>
+  <h2 class="section">install</h2>
+  <p><a class="primary" href="https://github.com/gripsack-dev/gripsack/releases/tag/core-v{version}">download v<!--VERSION--> for Linux / WSL →</a></p>
+  <p>The release includes the binary, matching SDK, checksums and manual installation instructions. Check its notes for the exact verification scope; current 0.48 assets are unsigned.</p>
+  <p class="note">The frontend is embedded. A separate SDK is optional for editor support or an explicit frontend pin. <a href="./docs/roadmap.html#release-qualification">Release scope</a> · <a href="./docs/settings.html#the-frontend">frontend selection</a>.</p>
 </section>
 <section id="docs">
   <h2 class="section">go deeper when you need to</h2>
@@ -65,10 +63,9 @@ grip apply dotfiles</pre>
     <li><a href="./docs/adopting.html">Adopt existing dotfiles</a> — choose links, tracked copies or managed blocks.</li>
     <li><a href="./docs/environments.html">Packages and development environments</a> — build, run and launch tools.</li>
     <li><a href="./docs/safety.html">Safety and recovery</a> — review source, preserve drift and recover interrupted changes.</li>
-    <li><a href="https://github.com/gripsack-dev/gripsack/blob/{release_source}/typescript/README.md">SDK reference on GitHub</a> — complete declarations and advanced contracts at the signed release source.</li>
+    <li><a href="https://github.com/gripsack-dev/gripsack/blob/{release_source}/typescript/README.md">SDK reference on GitHub</a> — complete declarations and advanced contracts at the selected core source.</li>
     <li><a href="./docs/roadmap.html">Release scope and roadmap</a> · <a href="./docs/changelog.html">changelog</a>.</li>
   </ul>
-  <p>Mutable tools use reviewed source re-capture, not locked mutable overlays: deploy a repository tree with <code>trackedCopyTo</code>, let the tool edit its copy, then copy intended changes back to the repository, exclude caches, review and approve the source, and apply. The lockfile never snapshots a live destination.</p>
 </section>
 <section id="compare">
   <h2 class="section">where it fits</h2>

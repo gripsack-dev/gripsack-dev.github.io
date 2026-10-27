@@ -1,7 +1,19 @@
 # Writing modules
 
-A module is the unit of your environment: how to get a tool, build it,
-where its files and configs live. Two authoring styles, same IR.
+This page documents the **legacy host/module API**, still supported in core
+0.48 with no removal date. New configurations should start with a root
+`gripsack.ts` workspace: see [workspace migration](workspace-migration.md)
+and [persistent environments](environments.md). Workspace outputs use IR v8;
+the module examples below use the retained legacy model, not workspace packages.
+
+Authoring imports come from `@gripsack/core`. Low-level compiler integrations
+such as `emitIr` and `emitWorkspaceIr` belong in `@gripsack/core/advanced`.
+Use the matching embedded frontend or the SDK archive in the
+[0.48 release](https://github.com/gripsack-dev/gripsack/releases/tag/core-v0.48.0);
+0.48 is unsigned and has no npm or crates.io publication.
+
+A legacy module describes how to get a tool, build it and deploy its files.
+Its data and explicit-step styles share the same legacy IR.
 
 ## Data style (most modules)
 
@@ -80,7 +92,7 @@ self-location failure is not fixed by granting host libraries; see
 |---|---|---|
 | `symlink(to)` | store-owned, read-only | disciplined tools |
 | `trackedCopy(to)` | copied; drift detected, never silently overwritten | apps that rewrite their configs |
-| `merge(to, marker?)` | managed block in a shared file | `.bashrc`, `settings.json` other tools also write |
+| `merge(to, marker?)` | managed block in a shared text file | `.bashrc`, comment-tolerant configs |
 | `template(to, vars?)` | rendered per machine at deploy time | hostnames, work vs personal email |
 
 `merge(to, marker?)` owns exactly one delimited block inside a
@@ -100,6 +112,8 @@ Sharing one physical destination between modules is rejected. The comment style
 is inferred from the destination (`.jsonc` → `//`, `.vimrc` → `"`,
 `.html` → `<!-- -->`, rc files and everything unknown → `#`);
 `marker` overrides the prefix.
+Strict JSON cannot accept these comment delimiters; use a whole-file output
+or an explicitly compatible format rather than inserting markers into it.
 
 `template(to, vars?)` substitutes `{{ name }}` placeholders in
 the payload at deploy time; `{{{{` renders a literal `{{` (payloads
@@ -258,12 +272,13 @@ Rollback restores the recorded consumer files and never rebuilds.
 
 ### IR v3 migration
 
-0.36.0 emits and accepts **IR v3** only. Remove module/step `retries`;
-untyped declarations fail explicitly rather than ignoring the field.
-Update a pinned frontend with
-`npm install --save-dev @gripsack/core@^0.36.0`, or remove the pin to use
-the embedded copy. v1/v2 input fails with E100 before field decoding.
-Existing lockfiles and generations remain readable.
+Historical core/TypeScript **0.36.0 used IR v3**. Module/step `retries`
+was removed because it did not execute retries; untyped declarations now
+fail rather than silently accepting it. This is migration history, not
+a recommendation to install a 0.36 SDK with current core. Core 0.48 uses
+IR v8 for new workspaces and retains versioned legacy module execution.
+v1/v2 input is rejected before decoding. Existing legacy lockfiles and
+generations remain readable.
 
 Dependency purposes still use `for`, not the v1 `edge` field.
 `dep("rust", "build")` becomes `dep("rust", { for: "build" })`;
@@ -286,15 +301,16 @@ shadows the embedded frontend). `grip init` scaffolds all of it:
 `package.json` pinned to a compatible version, `tsconfig.json`,
 `.gitignore`, and a fresh `git init`.
 
-Since 0.40 there is a registry-free path too: the frontend the binary
-embeds materializes at `$GRIPSACK_HOME/frontend/ts-<version>/` with a
-stable `frontend/current` symlink, and its `package.json` resolves
-types straight from `src/`. Point your editor at it — symlink
-`node_modules/@gripsack/core` to `$GRIPSACK_HOME/frontend/current`, or
-add a tsconfig `paths` entry for `@gripsack/core` →
-`$GRIPSACK_HOME/frontend/current/src/index.ts` — with
-`npm i -D @types/node` and `noEmit` + `allowImportingTsExtensions` in
-your tsconfig. Eval keeps working either way: a symlinked pin escapes
-Deno's node_modules type-stripping ban by realpath, and an
-npm-installed pin executes the package's compiled `dist/` entry.
-`grip doctor` prints the exact wiring for your machine.
+The embedded frontend also provides registry-free editor types, materialized
+at `$GRIPSACK_HOME/frontend/ts-<version>/` with a `frontend/current` link.
+`grip doctor` prints the wiring for your machine. The generated package
+constraint is not proof of a published registry package: for 0.48, use the
+embedded frontend or the matching release SDK archive.
+
+Keep editor-only external SDK links out of source capture with an explicit
+`[capture] exclude` policy in `env.toml`; do not exclude an admitted deliberate
+pin or required source. A real `node_modules/@gripsack/core` pin shadows the
+embedded frontend and participates in captured identity. Changing it can
+require lock refresh and renewed exact-digest approval. See
+[workspace migration](workspace-migration.md) and the
+[released SDK reference](https://github.com/gripsack-dev/gripsack/blob/core-v0.48.0/typescript/README.md#source-approval-and-migration).

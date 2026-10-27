@@ -1,480 +1,89 @@
 # Roadmap
 
-Where gripsack is going. The north star: *a misconfiguration in any
-file gripsack touches should produce the same quality of error as a
-typo in a module.*
+Gripsack is an owner-driven environment manager: readable declarations, useful
+commands and recoverable changes take priority over release-process machinery.
+The detailed design and historical decisions live in the
+[core plans](https://github.com/gripsack-dev/gripsack/tree/main/plan), not in a
+second feature-history copy here.
 
 ## Supported platforms
 
-The standing supported scope is **Linux and WSL2's Linux environment on
-x86_64 only**. The owner confirmed this on2026-10-09 after selecting the
-x86_64-first0.46 release. ARM, macOS and native Windows are outside active
-scope; additional targets require a later explicit owner decision and actual
-qualification, not an untested release path kept on the critical path.
-
-The owner decision `PLATFORM-LINUX-WSL-2026-10-08` retires macOS support,
-including the Mac VM worker and Mac Conda runtime, from the active roadmap.
-This is not a temporary test waiver or a passing Mac qualification. There is no
-scheduled Mac support commitment or Mac blocker on Linux delivery; revisiting
-Mac would require a new owner decision. The Linux source formula remains
-available, while the Mac cask is disabled and the installer rejects macOS.
-Historical release notes and artifacts remain available as history, not as
-recommended installation paths.
+**Linux and WSL2's Linux environment on x86_64.** Native Windows, macOS and ARM
+are outside the active support scope. The core and internal Conda helper are
+musl-static; the provisioned Deno evaluator needs a glibc Linux environment.
+A working installation on one host does not qualify every GNU package or
+private deployment host.
 
 ## Release qualification
 
-Signed releases are qualified locally and then signed for publication; GitHub
-signs and publishes, it does not compile the product. The binary
-installer (`install.sh`) requires Python 3.11+ and an independently
-provisioned GitHub CLI 2.102.0+, and verifies the release's signed
-local-qualification manifest — exact archive and checksum bytes —
-before installing anything. `grip self-update` independently selects the
-latest signed release. Registry publication is a separate event, not implied
-by a GitHub release.
+[0.48.0](https://github.com/gripsack-dev/gripsack/releases/tag/core-v0.48.0)
+passed the owner-approved **17-gate practical local profile**, including all
+**96 Linux persistence partitions**, installed consumers, dependency audits,
+reproducibility and source packaging. Builds and qualification run locally.
+The release is **unsigned**; TLC, TLAPS and Verus remain separate research and
+are not claimed qualified by this release. Process-fault testing is not
+hardware power-loss qualification.
 
-This site follows the same rule: deployment admits exactly one
-authenticated release ([release.json](https://gripsack.dev/release.json))
-and stamps its version into the signed install command. Explicitly labeled
-unsigned reviewer links are separate from that authenticated selection.
+Use the release's manual installation instructions and matching SDK archive,
+or use the frontend embedded in the core. npm/crates.io publication is a
+separate event and is not implied by a GitHub release. The existing verified
+installer and `grip self-update` require signatures, so they are not the path
+for these unsigned assets; their checks have not been disabled.
+
+This website has **no signature admission requirement**. It renders locally
+from the site source and a selected core Git commit. A publish-only Pages job
+uploads those static files; it does not compile, qualify or sign the product.
+Maintainer commands are documented in
+[website/build.py](https://github.com/gripsack-dev/gripsack-dev.github.io/blob/main/website/build.py).
 
 ## Reviewer prerelease and development
 
-**0.47.0 is an unsigned, unverified reviewer prerelease**, published with
-[manual installation instructions and matching SDK assets](https://github.com/gripsack-dev/gripsack/releases/tag/core-v0.47.0).
-Asset readback and manual install/SDK smoke checks passed; full qualification
-and npm/crates publication are not claimed.
+[0.47.0](https://github.com/gripsack-dev/gripsack/releases/tag/core-v0.47.0) remains
+an explicitly unverified reviewer prerelease. Its notes disclose the Zstd
+advisories issued after publication. 0.48 updates those decoder dependencies
+and completes practical local qualification; neither release claims a signature.
 
-**Capture-glob exclusions and the `--focus` view require core/SDK 0.48.**
-They are not in the 0.47 prerelease. Check the
-[release records](https://github.com/gripsack-dev/gripsack/releases) for available
-artifacts and qualification evidence; a source version does not establish either.
-
-- **Workspace ergonomics at IR8** (core/SDK 0.47.0 reviewer prerelease) —
-  captured `repoTree` replaces generated tree manifests, `templateFile`
-  renders an approved repo file without a duplicated inline body,
-  `archiveRoot: { kind: "single_directory" }` selects one unambiguous
-  package root, and profiles can declare managed `launchers`
-  (`directory` + `commands`) instead of handwritten PATH wrappers. Manual
-  tasks (`grip task run NAME`) gained prerequisite graphs,
-  per-invocation deduplication, ordered checks, shared mutation locks and
-  retained status/logs; profile file checks distinguish captured, rendered
-  and deployed subjects; `apply`/`plan --migrate-from N` adopts exact
-  current owned links. Recursive capture-glob exclusions are not in 0.47.
-  Locked mutable overlays are not implemented: copy intended deployed-tree
-  changes back into repository source, exclude caches, review and approve the
-  new captured source, then apply. Locks never capture live destination state.
+0.48 adds recursive capture exclusions and focused changed-path review.
+Capture rules still protect required inputs and admitted SDK roots. For aliased
+content trees, the embedded frontend and suffix globs are the straightforward
+combination; an editor-only SDK can be explicitly excluded from runtime capture.
+See [capture settings](settings/reference.md#capture-envtoml-only) for the exact
+pin, alias and cache-identity boundaries.
 
 ## Shipped
 
-- **Linux/WSL runtime boundaries** (0.46.0, [notes](changelog.md)) —
-  `hostRuntime: { libraryDirectories }` admits reviewed host libraries for
-  GNU packages; `conda.environment` `systemRequirements` (glibc family and
-  Linux baseline) are bound into the frozen lock; persistent wrappers
-  re-admit the retained package/receipt graph and host libraries on every
-  invocation. 0.46 ships Linux x86_64/WSL first; the installer refuses ARM
-  rather than silently installing an older release.
+- **Workspaces:** named packages, recipes, environments, profiles and manual
+  tasks. Linux recipes/images use BuildKit; acquisition, native execution,
+  source capture, the store and activation remain native.
+  [Environments and commands](environments.md).
+- **Readable profiles:** captured `repoTree`, executable `templateFile`, managed
+  launchers and stable archive-root selection replace common repository-owned
+  generators and wrappers. [Migration guide](workspace-migration.md).
+- **Ownership and recovery:** tracked copies preserve local drift; generations,
+  explicit migration and rollback retain recovery boundaries.
+  [Safety](safety.md) and [adoption](adopting.md).
 
-- **Workspace profiles that execute** (0.44–0.45, [notes](changelog.md)) —
-  profile hooks (`post_link`, `post_activate`, `on_remove`) run through the
-  durable activation ledger with crash/replay handling; `[capture] exclude`
-  in `env.toml` names literal repo subtrees omitted from captured source,
-  and `grip trust inspect` lists them; sealed GNU execution admits the
-  bound platform loader by measured capability (RHEL 8's glibc 2.28 runs);
-  `pixi.fromLock` imports the external lock unchanged. Workspace
-  publication ships the Conda helper and the BuildKit client crate.
-
-- **Kernel-confined evaluation and bounded source approval** (0.43.0,
-  [notes](changelog.md)) — every evaluator launch and its descendants run
-  inside a Landlock boundary covering exactly the approved captured source
-  roots, the runtime's load roots and the operator's PATH executable
-  space; reads and writes anywhere else are denied by the kernel. Source
-  approval binds the canonical repository, the copied source digest and
-  the runtime/grant policy; `trust inspect --json` exposes the bounded
-  inventory, and legacy path-only trust must be renewed.
-
-- **Complete surveys and safe source boundaries** ([plan 0044](https://github.com/gripsack-dev/gripsack/blob/main/plan/0044-survey-paths-and-transport-feedback.md),
-  core/SDK 0.39.0) — lossless merge inspection prevents unowned-tail deletion;
-  every block contributes mode evidence; `update --check` surveys through local
-  failures with distinct 0/1/2 exits; explicit `{version.bare}` and staged layout
-  checks; host-bound auth diagnostics and bounded HTTP retries with attempt
-  evidence. Four calibrated TLA+ models have real-code/CLI bridges.
-
-- **Complete pins and bounded execution** ([plan 0042](https://github.com/gripsack-dev/gripsack/blob/main/plan/0042-bounded-acquisition-and-complete-pins.md),
-  core/TS 0.37.0) — update-time source acquisition and overlay pin completion,
-  including Pixi; streaming verified archives and independent acquisition
-  budgets; bounded protocol supervision; command-owned HTTP/recipe caches;
-  causal worker/step logs; packaged executable examples and strict schema/pack
-  admission; persistent sandboxed fuzz corpora; repeated-recovery and calibrated
-  supervisor/publication models; deliberate toolchain/image pins and durable
-  concurrent self-update. Reproducibility is a controlled two-clean-build
-  comparison, not a universal cross-time claim or an external audit.
-
-- **Contract fidelity and persistence** ([plan 0041](https://github.com/gripsack-dev/gripsack/blob/main/plan/0041-p1-contract-fidelity.md),
-  core/TS 0.36.0) — fail-closed GC admission; explicit/declarative parity;
-  real ordering-only `needs`; output gates; accurate warm preview; IR v3
-  removes inert retries. Private-mode receipts and exact template rollback
-  are corrected. Every recorded cut in six persistence scenarios is
-  exercised with errors, process loss and user drift; a separate ordering
-  model rejects the former EXDEV chmod-after-fsync bug. Physical power
-  loss is not simulated.
-- **Journey harness** (0.34.0, plan 0038) and **rollback activation**
-  (0.33.0, plan 0037) — seeded stateful journeys are in CI; rollback
-  replays the target generation's durable activation intents.
-
-- **Build closures** ([plan 0039](https://github.com/gripsack-dev/gripsack/blob/main/plan/0039-build-closures.md),
-  core/TS 0.35.0) — `dep(name, { for: "build" })` supplies store tools
-  to build steps without deploying them. Transitive build-edge PATH,
-  `GRIP_DEP_*`, payload receipts, and generation-pinned GC; pin changes
-  rebuild consumers, rollback never does. IR v2 is a clean alpha
-  cutover. See [dependencies and migration](modules.md#dependencies).
-
-- The core flow: `apply` / `plan` / `generations` / `rollback` —
-  generations on disk, atomic flip, no-op satisfaction
-- Run-level rollback: an apply that fails mid-graph restores every
-  touched destination to the previous generation — no half-applied
-  deployments. Post-activation adapter failures never auto-rollback
-  (a service that failed to start must not bounce your configs back)
-- `grip check` — eval + sema + linters, exit code = validity, zero
-  side effects; the CI gate for your dotfiles repo
-- Fetchers: `github_release` (with resolution + `{version}`
-  substitution), `git`, `brew` (bottles, with the pour), `pixi`,
-  bare binaries / `.tar.xz` / `.zip`
-- `gripfetch-*` plugin fetchers — NDJSON over stdio, every byte
-  hash-verified by the core
-- Plugin protocol hardening: the locked pin travels in every request,
-  provenance lands in the run log, stderr drains concurrently, and a
-  600s deadline means no hangs
-- `grip update [MODULE]` — the flake cycle, per-module
-- `--repo` bootstrap (path or git URL), self-provisioning runtimes —
-  bundled pixi and a pinned, sha256-verified Deno for eval, per platform
-- `tree(...)` — directory-shaped config deploys
-- Read-only store payloads — `chmod a-w` at publish: an app that
-  rewrites an `owned` config through its symlink gets EACCES instead
-  of silently corrupting the store
-- Foreign-path refusal: gripsack never touches a path it didn't deploy
-  unless you say `--take-over`
-- Prune-on-undeclare: remove a module from your repo and its deployed
-  files go with it
-- E110 (missing source) + E111 (duplicate destination) — the plan-time
-  gates for the two classic dotfile accidents
-- Per-host selection via auto-detected facts (os, arch, libc) and
-  declared tags
-- `verify` checks on deployed files
-- Parallel scheduler — N = cores, per-step resource flocks
-- Lifecycle locks: `apply` / `gc` / `update` / `rollback` serialize,
-  never interleave
-- `gc` (+ `--dry-run`) and `why-owns`
-- Exported env: `profile.sh` written at activation, plus `[eval] env`
-  build-time injection
-- Activation adapters (SystemdUser, fonts via `fc-cache`, and
-  desktop-entry via `update-desktop-database`)
-- 23 config linters — `griplint-*` for the tools your dotfiles
-  actually configure (helix, yazi, starship, zed, claude-code, …),
-  as data packs in `crates/griplint`, with a weekly upstream-watch
-  that files freshness issues; see [linters](linters.md)
-- Corporate proxy support, trusting the system CA roots, `NO_PROXY`
-  honored
-- Linux x86_64 release artifacts, a Linux-only Homebrew source formula and
-  install.sh. WSL uses the Linux environment; ARM, macOS and native Windows
-  are not active release targets.
-- Run logs with causal spans; the debug and adopt skills
-- `merge` + `template` ownership modes — a managed block inside
-  foreign files (`.bashrc`), and payloads rendered from `{{ vars }}`
-  at deploy time
-- `grip init` — scaffold an env repo from the embedded template,
-  package.json + tsconfig included (the IDE story)
-- The griplint engine in-crate — all 23 linters as embedded data packs
-  running in-process (the golden corpus replays byte-exact); no venv,
-  no provisioning, no lifecycle for first-party linters
-- Plugin lifecycle: `package = "owner/repo@tag"` provisions fetcher and
-  linter binaries — sha256-verified, receipted, store-resolved
-- Enterprise-grade GitHub releases: authenticated API downloads,
-  host-scoped tokens, `version=` pins, bare-host `base_url`
-- `[throttle]` token buckets + the `capabilities` op — rate budgets
-  live in fetchers; `[throttle]` in env.toml outranks them, and
-  buckets persist across runs
-- **Constrained evaluation** ([plan 0013](https://github.com/gripsack-dev/gripsack/tree/main/plan/0013-constrained-evaluation.md)) —
-  one frontend: TypeScript under a pinned, hash-verified Deno with
-  deny-by-default capabilities (no env, no network, no subprocesses,
-  read-only within the repo). Facts are injected by the core, not
-  self-detected; host effects are declared probes the core binds in a
-  two-stage eval, shown in `grip plan`'s host-inputs header. Host
-  entrypoints are `defineEnv` functions — modules are pure values.
-  The first eval of an unfamiliar repo is an explicit trust decision
-  (`grip trust`, `GRIPSACK_TRUST_ALL` for CI). The Python frontend,
-  bun, and uv are retired; the parity corpus became a golden IR
-  snapshot corpus.
-- **Content-addressed store identity** ([plan 0014](https://github.com/gripsack-dev/gripsack/tree/main/plan/0014-content-addressed-fetches.md)) —
-  the hybrid: fetch-only and config-only modules name their store path
-  by content hash (self-verifying; a mirror swap with identical bytes
-  re-proves once and dedups to the same path), builds stay
-  input-addressed so `grip plan` keeps plan-time naming. `store verify`
-  is host-independent — the manifest carries the expectation.
-- **`grip adopt`** ([plan 0015](https://github.com/gripsack-dev/gripsack/tree/main/plan/0015-grip-adopt.md)) —
-  the adoption flow as a first-class command: point it at
-  `~/.config/helix`, it explains what it sees, *asks* the ownership
-  question with the semantics laid out (never guesses — the safe
-  default is `tracked_copy`), generates the module, shows the plan,
-  and touches nothing until you confirm. The apply absorbs exactly
-  the adopted destinations (scoped take-over) and records prior
-  state — rollback, or undeclaring the module, restores your original
-  files, bytes and permission bits. A fresh machine gets an empty
-  generation 0, so adoption is always reversible.
-- **Structured `run` steps** (0007's middle rung): argv/env/cwd as
-  data, no shell interpretation, declared outputs checked — and the
-  `{arch.x64}` placeholder for node-style asset names
-- **Pin integrity hardening** — a fetched apply can no longer drop
-  pin metadata from the lockfile; the repo overlay hash (`repo256`)
-  moves the pin when a config tree gains a file; store publishes
-  survive a tmpfs `/tmp` (EXDEV copy fallback); deploys refuse
-  destinations resolving into the env repo; git payloads hash the
-  checkout, never the clone; and rollback restores the expanded
-  install keys a generation actually deployed
-- **Crash recovery for mutable destinations**
-  ([plan 0019](https://github.com/gripsack-dev/gripsack/tree/main/plan/0019-deploy-journal.md)) —
-  the deploy journal: every destination mutation (owned links,
-  tracked copies, templates, merge blocks) records its prior state —
-  file bytes into the content-addressed prior store, fsync'd —
-  before the write; the generation flip is the run's commit point;
-  and the next `apply` restores uncommitted entries under the
-  lifecycle lock before deploying anything. A kill -9 mid-apply no
-  longer leaves the filesystem between generations — and the drift
-  guard applies on recovery: a file edited after the crash keeps the
-  user's bytes. The transaction semantics were hardened by an
-  external review
-  ([plan 0020](https://github.com/gripsack-dev/gripsack/tree/main/plan/0020-review-response.md)):
-  runs declare their target generation before mutating (a crash
-  after the flip reads as committed, never restores a live
-  generation's priors), corrupt recovery metadata fails closed into
-  quarantine, only `NotFound` means "absent", cross-filesystem store
-  publication is atomic, journal cleanup is durable, and `grip plan`
-  labels every mutation's reversibility.
-- **Historical macOS behavioral CI + signed attestations** (plan/0020's two
-  queued items, 0.20.0): at that release, the full flow suite ran natively on a
-  macOS runner every push — its first runs found and fixed a real
-  product bug (hostnames with dots broke `init` → `check`: the file
-  name was sanitized, the lookup was not) plus two platform
-  assumptions in tests. That release added GitHub build provenance
-  (`gh attestation verify`). The e2e harness was rebuilt for cross-platform CI:
-  timing tests were self-relative (no wall-clock flakes), and failures printed
-  the grip run log — the macOS findings were debugged entirely from that
-  output. This history does not claim current Mac support or attestations for
-  later locally assembled releases.
-- **The machine-checked transaction model**
-  ([plan 0028](https://github.com/gripsack-dev/gripsack/tree/main/plan/0028-machine-checked-model.md)) —
-  and the guarantees now have their own page: [safety](safety.md) —
-  atomic selection, journaled transitions, drift preservation, exact
-  restoration, the GC model, plugin trust, and honest backup advice,
-  each enforced by test or the model gate.
-
-  the journal/flip/recovery protocol as an exhaustive state-machine
-  model, driving the SHIPPED decision functions (classify/decide):
-  every crash point, both crash kinds, every power-loss durability
-  subset, with and without post-crash user edits — zero violations.
-  Plus the protocol specced in TLA+ and TLC-checked in CI
-  (`docker compose run model`), with the 0.22 roll-forward rule kept
-  as a proven counterexample in both layers. The trigger fired early
-  by owner override — the model is mutation-calibrated (a one-line
-  classify mutant yields 136 violations).
-- **Canonical destinations + hardened transaction identity**
-  ([plan 0030](https://github.com/gripsack-dev/gripsack/tree/main/plan/0030-canonical-destinations.md),
-  0.26.0) — one physical file has one identity everywhere:
-  `~`/`$HOME`/absolute/symlinked-ancestor spellings of one directory
-  entry are a check-time error (E119, span-labeled); a mid-apply
-  external write aborts instead of clobbering; a second
-  `--take-over` keeps the epoch's first origin; pre-0.23 journal
-  markers refuse with guidance.
-- **Mode-aware identity**
-  ([plan 0031](https://github.com/gripsack-dev/gripsack/tree/main/plan/0031-mode-aware-identity.md),
-  0.27.0) — the full permission mode joins the manifest/journal
-  identity: chmod-only drift is detected and preserved like any
-  drift, rollback restores the recorded mode exactly, and fresh
-  writes land deterministic (umask-independent) modes. The lineage
-  explorer models destination aliases and chmod drift, driving the
-  shipped decision functions.
-- **Durable activation hooks**
-  ([plan 0032](https://github.com/gripsack-dev/gripsack/tree/main/plan/0032-durable-activation.md),
-  0.28.0) — the last unrecorded crash window closes: the pending
-  intent record is written BEFORE the flip, so a kill can't skip your
-  service restarts or cache refreshes; the next run resumes them.
-  Model-first: `specs/Activation.tla` is TLC-checked in CI; the
-  pre-0.28 shape is a kept mutant that violates the NoSilentSkip
-  invariant. Intents may run twice across a crash — idempotent by
-  contract, documented.
-- **The 0.27.0 review round**
-  ([plan 0033](https://github.com/gripsack-dev/gripsack/tree/main/plan/0033-review-response-0.27.0.md),
-  0.29.0) — take-over preserves a private file's mode (prior blobs
-  land 0600 under a 0700 store dir); the deliberate-pin read grant
-  validates the resolved package; step `needs` orders execution;
-  plan runs the same gates as check/apply and marks opaque run steps;
-  preserved drift blocks a mode switch. The lineage explorer drives
-  the shipped `plan_link` across mode changes.
-- **One shared operation list**
-  ([plan 0034](https://github.com/gripsack-dev/gripsack/tree/main/plan/0034-shared-operation-list.md),
-  0.30.0) — `ts → IR → ops → execute`: one planner computes the
-  destination operations; `grip plan` renders them, apply executes
-  them under the journal, rollback plans with the target generation's
-  manifest as the desired state. Plan/apply agreement is by
-  construction, with a VM-level harness proving the lifting (560
-  materialized cases, 0.31.0).
-- **Crash-recovery admission hardening** (plan/0045, 0.40.0): journal
-  entries carry tagged, versioned identities — a post-crash symlink can
-  no longer spell a removal intent or a file hash and get "recovered"
-  over; pre-0.40 entries fail closed into quarantine instead of being
-  guessed; torn run markers are rejected at parse; and `gc` refuses to
-  run while crash recovery is unfinished (a journaled prior blob can be
-  referenced by no manifest). Mutation authority is now a type:
-  `gc`/`rollback`/`store verify --repair` require a lifecycle session,
-  so the lock can't be skipped by library consumers.
-- **Editor-reachable embedded frontend** (0.40.0): the materialized
-  frontend resolves types straight from its TypeScript source
-  (`package.json` `types` → `src/index.ts`) behind a stable
-  `$GRIPSACK_HOME/frontend/current` symlink — IDE typechecking without
-  an npm install. The npm package keeps a compiled `dist/` runtime
-  entry because Deno never type-strips under a real `node_modules`;
-  the pin shim falls back to the source entry for symlinked trees.
-  `grip doctor` prints the wiring.
-
-- **Verified decision kernels** (plan/0046, 0.41.0): the recovery
-  commit classifier, the copy/link ownership decisions, and GC
-  retention planning are proved by Verus against contracts derived
-  from the authority rules — one implementation serves production,
-  the Rust explorers, and the verifier (`docker compose run --build
-  --rm verify`, in the required CI gate, mutation-calibrated). Plain
-  cargo and the musl release build the same source with specs erased.
-  The guarantee ledger tracks status:
-  [`verification/guarantees.md`](https://github.com/gripsack-dev/gripsack/tree/main/verification/guarantees.md).
-- **Structural operation contracts** (0.41.0): ops are constructible
-  only through the planner's coherence-checked constructor; removals
-  carry their authority in the variant; a preview marker reaching
-  execution is a classified error, never a panic.
-
-- **Verified merge, build-closure and scheduler foundations** (plan/0047, 0.42.0):
-  the managed-block splice keeps every foreign byte verbatim and in
-  order (spec-mirror contract over real bytes); the build closure is
-  exactly the build-reachable set, sound and complete over cycles; and
-  the scheduler's decisions — readiness, dependent release, the failure
-  latch — are the proved `PureScheduler` transition system that
-  production `run_all` now drives directly. The threads and the
-  mutex/condvar bridge stay tested, never claimed verified. Calibration
-  grows to four seeded mutants, one per kernel family;
-  `MERGE-SPLICE-001`, `GRAPH-CLOSURE-001` and `SCHEDULER-001` are
-  **checked** in the guarantee ledger.
+The complete API reference is the
+[0.48 SDK guide](https://github.com/gripsack-dev/gripsack/blob/core-v0.48.0/typescript/README.md).
+Release-by-release history is in the [changelog](changelog.md).
 
 ## Next
 
-Order is priority: reliability of the core loop first, ecosystems
-last. The first block is the review-round backlog — items three external audits proposed and the project accepted but deliberately
-deferred, each with its plan reference and trigger. (0025's breadth
-freeze stands: nothing new in the ecosystem block until the
-transaction items land. Model-first since 0032: new
-transaction-adjacent protocols get an exhaustive model before or
-with the implementation — the Rust harness driving shipped decision
-functions for string/path mechanics, TLA+ (TLC in CI) for protocols.)
-
-- **P2 — Opt-in, host-scoped gh credential integration** (0044 D1) —
-  reuse an explicitly selected host credential, covering public GitHub and
-  multiple enterprise hosts without an ambient one-host workaround. No automatic
-  sweep of `hosts.yml`: gh normally uses an OS credential store. Revisit with a
-  concrete multi-host consumer and an opt-in contract for host allowlisting,
-  precedence, keychain/noninteractive operation, bounded execution and redaction.
-  A module's `base_url` alone must never authorize sending a token.
-- **P2 — Read-only evidence for recipe-produced layouts** (0044 D2) —
-  source-only staged preflight is adopted; build-produced paths cannot be proven
-  by looking at their source archives. Existing apply-time verification stays.
-  Matching cached build artifacts are already checked; only prediction of
-  unavailable recipe outputs is deferred.
-  Revisit when a producer can supply a trustworthy, versioned output inventory
-  without executing builds, hooks or verification programs during `--check`.
-  Until then, report deferred evidence instead of a guessed success.
-- **P2 — Signed update-channel manifest + install-time verification** —
-  install.sh and `grip self-update` already verify the sha256
-  sidecar; the next step is provenance verified *automatically* at
-  install time (attestation-aware installer, signed channel
-  manifest) rather than taught as a manual step ([plan 0020](https://github.com/gripsack-dev/gripsack/tree/main/plan/0020-review-response.md)
-  queue; the 0025 review's install-order point folds in here).
-- **P2 — Non-UTF-8 symlink targets end-to-end** ([plan 0021](https://github.com/gripsack-dev/gripsack/tree/main/plan/0021-cap-std-fs-hardening.md)
-  pitfalls) — `OsStr` bytes through the journal and prior store;
-  today's loud refusal becomes byte-preserving capture and restore.
-- **`--force` for drift overwrite** ([plan 0026](https://github.com/gripsack-dev/gripsack/tree/main/plan/0026-path-centric-transactions.md)) —
-  an explicit override for the preserve-and-warn default in apply
-  and rollback. A product decision, not a safety gap — queued for an
-  owner decision.
-- **Explicit drift resolution: `grip resolve`** ([plan 0030](https://github.com/gripsack-dev/gripsack/tree/main/plan/0030-canonical-destinations.md);
-  named the next product capability by two external reviews) —
-  `--keep-live` / `--apply-repo` / `--adopt-live` per destination,
-  and an explicit origin-rebase, instead of preserve-and-warn plus
-  global `--take-over`.
-- **Compare-and-swap displacement** (0030) — `renameat2`/
-  `renameatx_np` give the mutation step atomic compare-and-swap where
-  the platform allows it; the precondition-at-mutation holds
-  meanwhile.
-- **Merge parser range invariants (Layer 2)** (0047 §4) — prove the
-  marker scanner's output satisfies the splice kernel's admission
-  (sorted, non-overlapping, in-bounds ranges) for all inputs, malformed
-  markers included. Time-boxed in 0047 and deferred with the bound
-  recorded in `MERGE-SPLICE-001`; small scope, completes the merge
-  contract boundary.
-- **HTTP retry-budget kernel** (0046's kernel list) — the bounded
-  retry/cooldown policy as a proved pure kernel: attempt counts,
-  cooldown respect and deadline accounting as contracts. The smallest
-  remaining kernel on the list.
-- **TLAPS: unbounded transaction safety** (0047 tooling decision) —
-  an inductive safety proof over the EXISTING `specs/Transaction.tla`,
-  upgrading the bounded TLC evidence to unbounded. No new model;
-  liveness stays TLC's.
-- **Cross-module merge aggregation** (0030 H6) — several modules'
-  blocks in ONE file as a single whole-file transition; E111/E119
-  reject sharing until then.
-- **P2 — Independent external audit after a quiet soak** (fifth audit,
-  supply-chain list) — the bounded release-target reproducibility comparison
-  ships in 0.37.0. An independent reviewer remains a separate evidence step,
-  triggered by a stable candidate and a quiet cycle without transaction-schema churn.
-- **`allow_outside_home` setting** (fifth audit, finding 12
-  half-adopted) — outside-home absolute destinations are allowed today
-  (same-privilege by design; real usage exists). An explicit setting
-  with louder plans is the hardened shape. The safety page documents
-  the actual boundary now.
-
-- **CycloneDX sidecar on releases** ([plan 0022](https://github.com/gripsack-dev/gripsack/tree/main/plan/0022-sbom-cargo-auditable.md)
-  optional follow-up) — the in-binary SBOM is the primary form; a
-  CycloneDX file attached to the GitHub release serves file-based
-  scanners. Lands when a user asks.
-
-- **Resolver executables** (0013 D8) — custom registries become
-  `gripresolve-*` plugins on the same NDJSON envelope as fetchers:
-  spawned with a scrubbed, declared-env-only environment (credentials
-  never touch eval), network intent declared and shown in plan.
-  The read-only update use case shipped separately as `grip update --check`
-  in 0.38.0; custom resolver executables remain deferred.
-- **Module env inheritance for dependents** (0039: stays separate) —
-  decide precedence and variable expansion for general dependency
-  exports. Build closures supply PATH and `GRIP_DEP_*` only; they do
-  not inherit activation-profile `env`. Existing priority retained.
-- **Secrets model** — references to external secret managers
-  (age/sops/1Password), decrypted at activation; values never in the
-  store, manifests, plans, or logs (0001 §7's seed, made public).
-- **More probe kinds** — `executable` and `file_exists` shipped;
-  `probe.command("wg", ["show"])` (a declared, core-run subprocess at
-  bind time) is the next rung.
-- **More reference fetchers** — `pip` (corporate PyPI mirrors) and the
-  internal-registry patterns, out-of-tree like `gripfetch-apt`.
-- **Library/header build exports — low priority, demand-driven**
-  (0039 brainstorm) — consider `provides`/library/include paths only
-  when a real consumer fixture needs them. Below the reliability
-  backlog; no speculative environment variables shipped.
-- **Controlled build PATH — low priority, opt-in design first**
-  (0039 brainstorm) — investigate one global strict-build setting,
-  including an explicit system-tool baseline and fixture impact.
-  Do not silently turn today's prepend-only PATH into a hermetic
-  environment. Existing builds use ambient shell/coreutils.
+- Keep the local build/release loop practical and address measured reviewer
+  failures. A new signer or remote verifier is not a prerequisite for iteration.
+- Finish the original handover's remaining product and evidence obligations,
+  including schedule/job lifecycle, semantic comparison/saved-plan execution and
+  trusted portable-artifact sharing. Shipping workspaces does not close every
+  original milestone; the
+  [handover ledger](https://github.com/gripsack-dev/gripsack/blob/main/plan/0054-workspace-ergonomics-and-handover-completion.md)
+  distinguishes implemented behavior, pending proof and missing capabilities.
+- Locked mutable overlays are not implemented. The supported workflow is a
+  tracked copy followed by deliberate re-capture into reviewed repository
+  source, not making the store writable or silently locking live mutations.
 
 ## North star
 
-- **The LSP**: sema passes + config parser + validator plugins all emit
-  the same span-labeled diagnostics; the editor shim maps them in.
-  Editing your kitty config in VSCode and getting an error squiggle at
-  the exact line — that moment.
-- **Fetcher registry**: `gripfetch-*` plugins for the long tail, under
-  `gripsack-dev` and beyond.
-
+Installing a tool, its configuration and a usable command should remain a
+small declaration with explicit source and runtime authority. Failures should
+name the cause and a recovery path, without requiring every dotfiles repository
+to maintain its own traversal engine, template copies or launcher framework.

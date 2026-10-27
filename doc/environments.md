@@ -5,19 +5,19 @@ or Pixi packages, command wrappers, config files — through the same
 generation/rollback transaction module repos use, and expose it to any
 shell through one plain file.
 
-For the unsigned core/SDK 0.47.0 reviewer prerelease (IR8), profile-managed launchers can replace handwritten
+In core/SDK 0.48 (IR8), profile-managed launchers replace handwritten
 activation/PATH wrappers: select `environment`, `launchers.directory` and
 `launchers.commands` explicitly. Captured `repoTree`, `templateFile` and package
 `archiveRoot` remove tree manifests, duplicate template bodies and versioned
 selector plumbing.
-Use the [0.47 reviewer SDK guide](https://github.com/gripsack-dev/gripsack/blob/core-v0.47.0/typescript/README.md#managed-profile-launchers)
+Use the [0.48 SDK guide](https://github.com/gripsack-dev/gripsack/blob/core-v0.48.0/typescript/README.md#managed-profile-launchers)
 and the [upgrade procedure](workspace-migration.md#upgrading-the-evaluated-frontend).
 The complete examples below retain supported explicit file/activation APIs;
 handwritten wrappers are an alternative, not a requirement for new profiles.
 
 ## A profile with a real toolchain
 
-This complete declaration uses APIs in the unsigned core/SDK 0.47.0 reviewer prerelease: node
+This complete declaration uses core/SDK 0.48 APIs: node
 26.10.0 from conda-forge, with an explicit Linux/glibc solve baseline and a
 `node` command. Historical runtime observations below are labeled separately;
 they are not qualification of the current release on every host.
@@ -164,7 +164,7 @@ compare, approve and apply without re-solving.
 ### Profile-managed personal command
 
 For new profiles, prefer the
-[managed launcher API](https://github.com/gripsack-dev/gripsack/blob/core-v0.47.0/typescript/README.md#managed-profile-launchers).
+[managed launcher API](https://github.com/gripsack-dev/gripsack/blob/core-v0.48.0/typescript/README.md#managed-profile-launchers).
 The explicit-file alternative below remains supported and demonstrates the
 ownership and activation mechanics. Its **source file's executable bit**
 supplies executability. `file(...)` has no `mode` option, and origin-free
@@ -312,7 +312,7 @@ development-core smoke; this is not a sealed-bootstrap fix. Neovim 0.12.5
 resource/parser loading and tree-sitter 0.27.1 version/help passed sealed
 smokes with explicitly reviewed `/usr/lib/x86_64-linux-gnu` authority.
 None of those observations qualifies a private deployment host.
-See the [0.47 reviewer SDK migration guide](https://github.com/gripsack-dev/gripsack/blob/core-v0.47.0/typescript/README.md#reviewer-migration-delete-plumbing-keep-verification)
+See the [SDK migration guide](https://github.com/gripsack-dev/gripsack/blob/core-v0.48.0/typescript/README.md#reviewer-migration-delete-plumbing-keep-verification)
 for current captured-template/tree, tracked-copy and profile-selection guidance;
 keep deployed-host verification explicit.
 
@@ -502,10 +502,10 @@ unconditionally refusing with the unavailable-A2-capability error:
 | task `checks` | ordered postconditions after successful task steps | once per invocation, stopping at the first failure; `sourcePath` resolves against the immutable check subject |
 | recipe publication checks | unchanged | as before |
 
-In the unsigned 0.47.0 reviewer prerelease, attached profile file checks and manual task prerequisites are
+In 0.48, attached profile file checks and manual task prerequisites are
 supported. Profile hooks have executed since 0.45.0; the task-check row above
 describes the current contract, not a claim about 0.45.0. See the
-[0.47 reviewer file-check and task contract](https://github.com/gripsack-dev/gripsack/blob/core-v0.47.0/typescript/README.md#file-checks-and-manual-tasks).
+[file-check and task contract](https://github.com/gripsack-dev/gripsack/blob/core-v0.48.0/typescript/README.md#file-checks-and-manual-tasks).
 Use `grip task list`, `grip task plan NAME`, `grip task run NAME --closed-stdin`,
 then `grip task status INVOCATION_ID` and `grip task log INVOCATION_ID`.
 `deps` are unordered prerequisites, `steps` ordered, and `checks` invocation

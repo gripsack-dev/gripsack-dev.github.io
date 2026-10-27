@@ -12,10 +12,8 @@ If you only remember one rule: **configuration is data, and it is read
 before any of your module code runs.** Settings can never depend on what
 a module computes — so there's no bootstrap paradox, ever.
 
-> Heads up: gripsack is alpha. The schema below is stable, but some
-> keys are wired up only as `grip apply` lands. This page documents the
-> config surface; [settings reference](settings/reference.md) has every
-> key in table form.
+This page covers current configuration. The
+[settings reference](settings/reference.md) lists keys and precedence.
 
 ## A minimal env.toml
 
@@ -28,10 +26,10 @@ That's enough for a working repo. Everything else is optional.
 
 ## The frontend
 
-Modules are TypeScript — `modules/*.ts` and `hosts/*.ts` *are* the
-frontend, and there is nothing to declare. (A stale
-`frontend = "python"` from older releases fails with a migration
-hint; the key is gone.)
+New declarations use a `gripsack.ts` workspace. Legacy `modules/*.ts` and
+`hosts/*.ts` remain supported for migration; both use the same sandboxed
+TypeScript frontend. A stale `frontend = "python"` key is refused with
+migration guidance.
 
 Eval runs sandboxed under a pinned Deno — no env vars, no network, no
 subprocesses — and the runtime provisions itself: the first eval
@@ -43,13 +41,36 @@ build. macOS and native Windows are not supported.
 The repo's installed `node_modules/@gripsack/core` shadows the embedded
 frontend. `grip doctor` reads that installed package's version, not just the
 range declared in `package.json`: a stale installed copy is a **MISS** even
-when the declaration is current. Update the local install to
-`@gripsack/core@^0.39.0`, or remove the shadowing copy to use the embedded
-frontend. With no local install, an old declaration remains a warning.
+when the declaration is current. Use the SDK archive matching your installed
+core from the [release downloads](https://github.com/gripsack-dev/gripsack/releases),
+or remove the shadowing copy to use the embedded frontend. A version declaration
+alone does not install or upgrade the SDK.
 
 File permission policy needs no setting. Copies/templates follow payload
 executability, track content plus full mode, and preserve user chmod drift;
 merge markers track their host's mode. See [ownership modes](modules.md#ownership-modes).
+
+## Source capture and caches
+
+Git ignore rules do not select captured source. In 0.48, explicit glob
+exclusions can keep tool caches from changing approval identity:
+
+```toml
+[capture]
+exclude = ["**/__pycache__", "**/.ruff_cache"]
+```
+
+This suffix-glob form works with captured internal aliases when evaluation
+uses the embedded frontend. A global glob that could carve a repository-pinned
+SDK is refused. If the local SDK is only for your editor, add the literal
+`"node_modules/@gripsack/core"` exclusion to select the embedded frontend
+explicitly; otherwise scope cache rules to unaliased content subtrees outside
+the pin root. Prefix-scoped globs must not span symlinked ancestors.
+
+Creating/removing matching caches below existing captured directories preserves
+approval. New ordinary directories, captured bytes/modes and policy changes
+still require review. Literal exclusions retain their historical
+appearance/removal behavior. [Full capture contract](settings/reference.md#capture-envtoml-only).
 
 ## Build-time environment
 

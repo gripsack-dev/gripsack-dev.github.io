@@ -1,20 +1,18 @@
 # Safety
 
-What gripsack guarantees, precisely — separated by surface, because
-"safe" is not one property. Everything on this page is enforced by
-test: the transaction invariants are also machine-checked (the
-journal protocol as an exhaustive state-machine model plus a
-TLC-checked TLA+ spec — [plan 0028](https://github.com/gripsack-dev/gripsack/tree/main/plan/0028-machine-checked-model.md)),
-and the decision kernels they lean on — commit classification,
-ownership authority, GC retention, the merge splice, build closures,
-and the scheduler's readiness/release/latch decisions — are proved by
-Verus, one implementation serving production and the verifier. The
-per-guarantee ledger with admission boundaries, trusted components
-and calibrations:
-[`verification/guarantees.md`](https://github.com/gripsack-dev/gripsack/tree/main/verification/guarantees.md).
+The boundaries below describe the 0.48 transaction and execution model,
+not a claim that every assurance gate passed. The public
+[core 0.48.0 release](https://github.com/gripsack-dev/gripsack/releases/tag/core-v0.48.0)
+is **unsigned**: 17 practical local gates and 96 persistence partitions
+passed; **TLC, TLAPS and Verus remain explicitly unqualified** for this
+release. Existing proof sources and historical runs are not current
+release qualification. 0.47 remains an unsigned, unverified prerelease.
 
-If anything on this page ever disagrees with the binary in your hand,
-that is a release-blocking bug — please file it.
+The detailed admission boundaries and trusted components are recorded in
+[`verification/guarantees.md`](https://github.com/gripsack-dev/gripsack/blob/core-v0.48.0/verification/guarantees.md).
+Linux and WSL2 on x86_64 are the supported host scope; this does not
+qualify macOS or every Linux distribution. Report discrepancies between
+these documented boundaries and the binary you use.
 
 ## The guarantee table
 
@@ -23,11 +21,10 @@ that is a release-blocking bug — please file it.
 | Store object publication | atomic final-name rename; payloads land read-only |
 | Generation selection | one atomic `current` flip (the link is validated to resolve under `$GRIPSACK_HOME/generations/`) |
 | Generation contents | immutable once published (manifest + profile stage and rename in together); IDs are never reused, even across gc |
-| Destination deploy / prune / rollback | journaled, postcondition-verified, crash-recovered; ownership lineage (origin survival, no drift
-  promotion) holds the same machine-checked standard since 0.25 |
+| Destination deploy / prune / rollback | journaled, postcondition-verified, crash-recovered; ownership lineage does not promote drift into managed content |
 | Failed apply or rollback | compensation is attempted immediately; if the filesystem prevents it, the durable journal blocks further mutation until recovery completes |
 | Tracked-copy drift | detected and **preserved by default**, in apply AND rollback |
-| External package-manager effects (brew/pixi/apt) | adapter-dependent, best effort — never auto-rolled-back |
+| External tools and package-manager effects | adapter-dependent; effects outside journaled destinations are not automatically rolled back |
 | Activation intents (caches, services, custom hooks) | durable intent before the flip; ambiguous interrupted delivery may run again with the same identity, so hooks must be idempotent; durable terminal outcomes are not automatically retried; post-activation failure never rolls back. Explicit rollback is a new activation and may execute the retained generation's hooks |
 | Arbitrary `run` steps | not automatically reversible (plan output says so) |
 
@@ -51,9 +48,8 @@ anything else is corruption and blocks, with the journal retained.
 - **Unix mode** — the recorded mode rides the restore (a 0600 secret
   replaced by a symlink mid-run comes back 0600, not umask-default).
 - **Symlink targets** — verbatim. A non-UTF-8 target cannot be
-  journaled today: gripsack refuses the mutation loudly instead of
-  recording a link it could not restore. (Byte-exact preservation is
-  on the roadmap.)
+  journaled: gripsack refuses the mutation instead of recording a link
+  it could not restore.
 - **Nothing else** — mtimes, ownership, xattrs are outside the model
   by design.
 
@@ -82,14 +78,24 @@ inspected — recovery metadata is never silently discarded.
 
 ## Plugin and tool trust
 
-`gripfetch-*` plugins and provisioned tools (deno, pixi) are **trusted
-code running with your privileges**. Hash verification protects store
-contents — every fetched byte is checked against the lockfile before
-it enters the store — it does not make a malicious plugin harmless.
-The credential boundary is eval: TypeScript module evaluation runs
-sandboxed (no env, no network, no subprocesses) and sees no
-credentials; fetching necessarily can. The lockfile is the sole
-source of pinning; a tampered pin fails the hash check at apply.
+`gripfetch-*`, external `griplint-*` plugins and native tools are
+**trusted code running with your privileges**. Fetched payload identity
+checks do not make a malicious plugin harmless, and a checksum supplied
+alongside a release is not an authenticated signature.
+
+TypeScript evaluation uses a captured source bundle and provisioned Deno,
+with restricted reads and no environment, network or subprocess grants.
+This is not a sandbox for later native execution. Source approval binds
+captured content and policy; it does not protect against privileged or
+same-UID modification of trusted runtime storage. Fetching can access
+credentials and host configuration.
+
+Workspace file checks, task commands and profile hooks have distinct
+lifecycle stages. A deployed `pre_flip` check can trigger journal
+compensation; `post_link` and `post_activate` failures do not roll back
+the committed generation. Native host commands can have effects beyond
+managed files. See the
+[0.48 SDK lifecycle reference](https://github.com/gripsack-dev/gripsack/blob/core-v0.48.0/typescript/README.md#file-checks-and-manual-tasks).
 
 ## Unattended approval
 
@@ -178,12 +184,13 @@ UID reach it: trust records, journals and retained generations remain
 private authoritative state.
 
 Recorded destination ownership does not migrate merely because a new
-workspace wants the same path. `--take-over` does not transfer that
-recorded ownership across identities. Follow the
-[separately applied legacy prune](workspace-migration.md#apply-the-legacy-prune-before-switching)
-before switching entrypoints; review and approve each source/lock
-change, and allow for the deliberate interval without the pruned
-deployment. Do not edit journals or delete managed files to force it.
+workspace wants the same path. `--take-over` is not a cross-identity
+ownership transfer. For a current legacy generation `N`, 0.48 supports
+an explicit reviewed `grip plan personal --migrate-from N`, followed by
+`grip apply personal --migrate-from N`. Follow the
+[migration guidance](workspace-migration.md) for its admission limits
+and the separate legacy-prune alternative. Do not edit journals or
+delete managed files to force migration.
 
 ## Explicit host-runtime dependence
 
@@ -244,6 +251,9 @@ backup system. Keep an independent backup of irreplaceable
 configuration. The store is a cache of fetchable payloads plus prior
 blobs — it is not the only copy of anything you cannot re-derive.
 
-Recommended today: dogfood freely, read `grip plan` before applying,
-keep the backup. Not yet: sole recovery boundary for an irreplaceable
-home directory, unattended fleet deployment.
+Read `grip plan` before applying and keep independent backups. This is
+not qualification as the sole recovery boundary for an irreplaceable
+home directory or for unattended fleet deployment. Install 0.48 manually
+from the release archives: npm/crates.io publication is not part of this
+release, and the signed installer/updater still fails closed on unsigned
+artifacts.
