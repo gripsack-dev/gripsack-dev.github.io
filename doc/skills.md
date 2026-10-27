@@ -15,14 +15,16 @@ evidence, not proof that every requested effect completed.
 
 ## gripsack-adopt
 
-This shipped skill targets the **legacy host/module workflow**. It
-inventories a tool's binary, version, config paths and install method,
-then helps choose pinning, ownership and verification. Some bundled
-examples predate the workspace API; do not copy their Pixi/build advice
-into a new workspace. Use workspace packages, profiles, file policies
-and named checks from the SDK reference instead. Review the plan,
-exercise the intended consumer and inspect a second apply; a successful
-command alone does not prove full migration or reversibility.
+The [current adoption guide](https://github.com/gripsack-dev/gripsack/blob/d8d233c0738634fa79ae734bfdb76ad79c9917a4/skills/gripsack-adopt/SKILL.md)
+is workspace-first, with explicit notes for existing legacy repositories. It
+inventories the executable, version, configuration and ownership before choosing
+packages, profiles, file policies, launchers and verification.
+
+The tagged 0.48 source still contains the older legacy-oriented guide. Use the
+reviewed postrelease documentation revision below for the updated instructions;
+this does not change the released binary. Review the plan, exercise the actual
+consumer and retain a tested recovery path. A successful command alone does not
+prove full migration or reversibility.
 
 ## griplint-author
 
@@ -50,16 +52,19 @@ like the core does.
 
 ## Install
 
-Copy the skill directories from the matching release into your agent
-harness's skills path (for example Claude Code). Review their contents
-before granting an agent execution authority; installing guidance does
-not install or upgrade the core.
+Copy the skill directories from this reviewed documentation revision into your
+agent harness's skills path (for example Claude Code). Read their contents
+before granting execution authority. Installing guidance does not install or
+upgrade the core.
 
 ```bash
-git clone --depth 1 --branch core-v0.48.0 https://github.com/gripsack-dev/gripsack /tmp/gripsack
+skill_source=$(mktemp -d)
+git -C "$skill_source" init --quiet
+git -C "$skill_source" fetch --depth 1 https://github.com/gripsack-dev/gripsack d8d233c0738634fa79ae734bfdb76ad79c9917a4
+git -C "$skill_source" checkout --detach FETCH_HEAD
 mkdir -p ~/.claude/skills
-cp -r /tmp/gripsack/skills/gripsack-debug ~/.claude/skills/
-cp -r /tmp/gripsack/skills/gripsack-adopt ~/.claude/skills/
-cp -r /tmp/gripsack/.agents/skills/griplint-author ~/.claude/skills/
-cp -r /tmp/gripsack/.agents/skills/gripfetch-author ~/.claude/skills/
+cp -r "$skill_source/skills/gripsack-debug" ~/.claude/skills/
+cp -r "$skill_source/skills/gripsack-adopt" ~/.claude/skills/
+cp -r "$skill_source/.agents/skills/griplint-author" ~/.claude/skills/
+cp -r "$skill_source/.agents/skills/gripfetch-author" ~/.claude/skills/
 ```
