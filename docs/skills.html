@@ -77,14 +77,15 @@ codes. The default state location is <code>~/.local/share/gripsack/runs/</code>;
 use the actual <code>GRIPSACK_HOME</code> when configured. Logs are diagnostic
 evidence, not proof that every requested effect completed.</p>
 <h2 id="gripsack-adopt">gripsack-adopt</h2>
-<p>This shipped skill targets the <strong>legacy host/module workflow</strong>. It
-inventories a tool's binary, version, config paths and install method,
-then helps choose pinning, ownership and verification. Some bundled
-examples predate the workspace API; do not copy their Pixi/build advice
-into a new workspace. Use workspace packages, profiles, file policies
-and named checks from the SDK reference instead. Review the plan,
-exercise the intended consumer and inspect a second apply; a successful
-command alone does not prove full migration or reversibility.</p>
+<p>The <a href="https://github.com/gripsack-dev/gripsack/blob/d8d233c0738634fa79ae734bfdb76ad79c9917a4/skills/gripsack-adopt/SKILL.md">current adoption guide</a>
+is workspace-first, with explicit notes for existing legacy repositories. It
+inventories the executable, version, configuration and ownership before choosing
+packages, profiles, file policies, launchers and verification.</p>
+<p>The tagged 0.48 source still contains the older legacy-oriented guide. Use the
+reviewed postrelease documentation revision below for the updated instructions;
+this does not change the released binary. Review the plan, exercise the actual
+consumer and retain a tested recovery path. A successful command alone does not
+prove full migration or reversibility.</p>
 <h2 id="griplint-author">griplint-author</h2>
 <p>Author a config linter as a <strong>data pack</strong> in <code>crates/griplint/packs/</code>:
 research the tool's config surface end to end (official docs first,
@@ -106,16 +107,19 @@ the store's hash verification enforces. Prove it:
 — the contract made executable; the suite drives your plugin exactly
 like the core does.</p>
 <h2 id="install">Install</h2>
-<p>Copy the skill directories from the matching release into your agent
-harness's skills path (for example Claude Code). Review their contents
-before granting an agent execution authority; installing guidance does
-not install or upgrade the core.</p>
-<pre><code class="language-bash">git clone --depth 1 --branch core-v0.48.0 https://github.com/gripsack-dev/gripsack /tmp/gripsack
+<p>Copy the skill directories from this reviewed documentation revision into your
+agent harness's skills path (for example Claude Code). Read their contents
+before granting execution authority. Installing guidance does not install or
+upgrade the core.</p>
+<pre><code class="language-bash">skill_source=$(mktemp -d)
+git -C &quot;$skill_source&quot; init --quiet
+git -C &quot;$skill_source&quot; fetch --depth 1 https://github.com/gripsack-dev/gripsack d8d233c0738634fa79ae734bfdb76ad79c9917a4
+git -C &quot;$skill_source&quot; checkout --detach FETCH_HEAD
 mkdir -p ~/.claude/skills
-cp -r /tmp/gripsack/skills/gripsack-debug ~/.claude/skills/
-cp -r /tmp/gripsack/skills/gripsack-adopt ~/.claude/skills/
-cp -r /tmp/gripsack/.agents/skills/griplint-author ~/.claude/skills/
-cp -r /tmp/gripsack/.agents/skills/gripfetch-author ~/.claude/skills/
+cp -r &quot;$skill_source/skills/gripsack-debug&quot; ~/.claude/skills/
+cp -r &quot;$skill_source/skills/gripsack-adopt&quot; ~/.claude/skills/
+cp -r &quot;$skill_source/.agents/skills/griplint-author&quot; ~/.claude/skills/
+cp -r &quot;$skill_source/.agents/skills/gripfetch-author&quot; ~/.claude/skills/
 </code></pre>
 </article>
 <footer>
