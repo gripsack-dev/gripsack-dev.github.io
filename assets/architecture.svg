@@ -1,0 +1,85 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 608" font-family="DejaVu Sans Mono, monospace">
+  <!-- gripsack architecture: three bands — your env repo (eval, blue),
+       the IR contract (yellow), the core (execute, green) — with fetcher
+       plugins feeding the core (peach) and linter plugins feeding eval
+       (mauve). build.py swaps hexes for site CSS vars, so the diagram
+       re-themes with the palette picker. -->
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#89b4fa"/>
+    </marker>
+    <marker id="arrg" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#a6e3a1"/>
+    </marker>
+    <marker id="arrp" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#fab387"/>
+    </marker>
+    <marker id="arrm" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#cba6f7"/>
+    </marker>
+  </defs>
+  <rect width="960" height="608" rx="16" fill="#11111b"/>
+
+  <!-- ===== band 1: your env repo ===== -->
+  <text x="24" y="32" font-size="11" fill="#6c7086">EVAL — sandboxed typescript · pinned deno · injected facts</text>
+  <rect x="24" y="48" width="360" height="160" rx="14" fill="#1e1e2e" stroke="#89b4fa" stroke-width="2.5"/>
+  <text x="204" y="80" text-anchor="middle" font-size="14" font-weight="bold" fill="#cdd6f4">your env repo</text>
+  <text x="204" y="108" text-anchor="middle" font-size="11" fill="#a6adc8">modules/*.ts · hosts/*.ts</text>
+  <text x="204" y="128" text-anchor="middle" font-size="11" fill="#a6adc8">env.toml · hosts/ · locks/</text>
+  <text x="204" y="160" text-anchor="middle" font-size="9.5" fill="#6c7086">self-describing: carries its own</text>
+  <text x="204" y="174" text-anchor="middle" font-size="9.5" fill="#6c7086">fetcher wiring in env.toml</text>
+
+  <line x1="390" y1="128" x2="456" y2="128" stroke="#89b4fa" stroke-width="2" marker-end="url(#arr)"/>
+  <text x="423" y="112" text-anchor="middle" font-size="10" fill="#89b4fa">eval</text>
+  <text x="423" y="148" text-anchor="middle" font-size="9" fill="#6c7086">pinned deno</text>
+
+  <!-- ===== band 2: the IR contract ===== -->
+  <rect x="464" y="48" width="472" height="160" rx="14" fill="#1e1e2e" stroke="#f9e2af" stroke-width="2.5"/>
+  <text x="700" y="80" text-anchor="middle" font-size="14" font-weight="bold" fill="#f9e2af">IR — the contract</text>
+  <text x="700" y="108" text-anchor="middle" font-size="11" fill="#a6adc8">modules · spans · resources · steps</text>
+  <text x="700" y="128" text-anchor="middle" font-size="11" fill="#a6adc8">pure JSON — schema/ir/v1.json</text>
+  <text x="700" y="148" text-anchor="middle" font-size="11" fill="#a6adc8">locks/&lt;host&gt;.lock pins urls + sha256</text>
+  <text x="700" y="180" text-anchor="middle" font-size="9.5" fill="#6c7086">any frontend may emit it — gripsack</text>
+  <text x="700" y="194" text-anchor="middle" font-size="9.5" fill="#6c7086">ships one: typescript (0013)</text>
+
+  <line x1="700" y1="212" x2="700" y2="308" stroke="#a6e3a1" stroke-width="2" marker-end="url(#arrg)"/>
+  <text x="718" y="240" font-size="10" fill="#6c7086">resolved + locked</text>
+
+  <!-- ===== linter plugins: run by the core after eval ===== -->
+  <rect x="24" y="224" width="360" height="56" rx="10" fill="#1e1e2e" stroke="#cba6f7" stroke-width="2"/>
+  <text x="204" y="246" text-anchor="middle" font-size="11.5" font-weight="bold" fill="#cba6f7">griplint-* — linter plugins</text>
+  <text x="204" y="264" text-anchor="middle" font-size="9.5" fill="#a6adc8">run by the core after eval · NDJSON</text>
+  <line x1="204" y1="220" x2="204" y2="212" stroke="#cba6f7" stroke-width="2" marker-end="url(#arrm)"/>
+  <text x="404" y="248" font-size="10" fill="#6c7086">diagnostics ride the eval envelope —</text>
+  <text x="404" y="264" font-size="10" fill="#6c7086">plugins serialize; only the core renders (0011)</text>
+
+  <!-- ===== band 3: the core ===== -->
+  <text x="24" y="300" font-size="11" fill="#6c7086">EXECUTE — one static musl binary, no daemon, no root</text>
+  <rect x="24" y="316" width="912" height="196" rx="14" fill="#1e1e2e" stroke="#a6e3a1" stroke-width="2.5"/>
+  <text x="48" y="346" font-size="14" font-weight="bold" fill="#a6e3a1">grip core</text>
+  <text x="48" y="372" font-size="11" fill="#a6adc8">parse → validate → resolve → lower → plan → execute</text>
+  <text x="48" y="390" font-size="9.5" fill="#6c7086">compiler passes — structured, span-labeled diagnostics</text>
+
+  <rect x="48" y="404" width="264" height="88" rx="10" fill="#181825" stroke="#585b70" stroke-width="1.5"/>
+  <text x="180" y="430" text-anchor="middle" font-size="12" font-weight="bold" fill="#cdd6f4">store</text>
+  <text x="180" y="452" text-anchor="middle" font-size="10" fill="#a6adc8">/store/&lt;hash&gt;-&lt;name&gt;</text>
+  <text x="180" y="470" text-anchor="middle" font-size="10" fill="#a6adc8">immutable · hash-addressed (0014)</text>
+
+  <rect x="348" y="404" width="264" height="88" rx="10" fill="#181825" stroke="#585b70" stroke-width="1.5"/>
+  <text x="480" y="430" text-anchor="middle" font-size="12" font-weight="bold" fill="#cdd6f4">generations</text>
+  <text x="480" y="452" text-anchor="middle" font-size="10" fill="#a6adc8">1..N, immutable</text>
+  <text x="480" y="470" text-anchor="middle" font-size="10" fill="#a6adc8">current → N — one atomic flip</text>
+
+  <rect x="648" y="404" width="264" height="88" rx="10" fill="#181825" stroke="#585b70" stroke-width="1.5"/>
+  <text x="780" y="430" text-anchor="middle" font-size="12" font-weight="bold" fill="#cdd6f4">$HOME</text>
+  <text x="780" y="452" text-anchor="middle" font-size="10" fill="#a6adc8">configs per ownership mode</text>
+  <text x="780" y="470" text-anchor="middle" font-size="10" fill="#a6adc8">bin/ on PATH once</text>
+
+  <!-- ===== fetcher plugins ===== -->
+  <rect x="24" y="532" width="400" height="56" rx="10" fill="#1e1e2e" stroke="#fab387" stroke-width="2"/>
+  <text x="224" y="554" text-anchor="middle" font-size="11.5" font-weight="bold" fill="#fab387">gripfetch-* — fetcher plugins</text>
+  <text x="224" y="572" text-anchor="middle" font-size="9.5" fill="#a6adc8">NDJSON over stdio · every byte hash-verified</text>
+  <line x1="224" y1="526" x2="224" y2="518" stroke="#fab387" stroke-width="2" marker-end="url(#arrp)"/>
+  <text x="452" y="558" font-size="10" fill="#6c7086">gripresolve-* plugins are planned (0013 D8); fetcher</text>
+  <text x="452" y="574" font-size="10" fill="#6c7086">plugins only when the transport itself is bespoke (0002)</text>
+</svg>

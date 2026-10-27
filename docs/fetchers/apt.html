@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>gripsack — apt (fetcher plugin)</title>
+<meta name="description" content="gripsack for Linux and WSL — your whole environment in one bag. Packages from any source plus your dotfiles, with generations and rollback.">
+<link rel="icon" href="../../assets/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../../assets/site.css?v=d59cbc70">
+<script src="../../assets/site.js?v=d59cbc70" defer></script>
+</head>
+<body class="docs">
+<div class="shell">
+<aside class="rail">
+  <a class="brand" href="../../index.html">
+    <img src="../../assets/icon.svg" alt="gripsack icon"><span class="wordmark">gripsack</span>
+  </a>
+  <span class="rail-head">menu</span>
+  <nav>
+    <a href="../../index.html">home</a>
+    <a href="../../docs/adopting.html">adopting your dotfiles</a>
+    <a href="../../docs/compare.html">compare</a>
+    <a href="../../docs/architecture.html">architecture</a>
+    <a href="../../docs/safety.html">safety</a>
+    <a href="../../docs/modules.html">modules</a>
+    <a href="../../docs/environments.html">environments</a>
+    <a href="../../docs/workspace-migration.html">workspace migration</a>
+    <a href="../../docs/settings.html">settings</a>
+    <a class="child" href="../../docs/settings/reference.html">↳ settings reference</a>
+    <a href="../../docs/runs.html">run logs</a>
+    <a href="../../docs/fetchers.html">fetchers</a>
+    <a class="active child" href="../../docs/fetchers/apt.html">↳ apt</a>
+    <a href="../../docs/linters.html">linters</a>
+    <a href="../../docs/skills.html">skills</a>
+    <a href="../../docs/roadmap.html">roadmap</a>
+    <a href="../../docs/changelog.html">what's new</a>
+    <a class="gh" href="https://github.com/gripsack-dev/gripsack">github ↗</a>
+    <a href="../../docs/roadmap.html#supported-platforms">Linux &amp; WSL support</a>
+  </nav>
+  <span class="rail-head">on this page</span>
+  <div class="rail-toc">
+    <a href="#install">Install</a>
+    <a href="#use">Use</a>
+    <a href="#what-works">What works</a>
+    <a href="#notes">Notes</a>
+    <a href="#the-fetcher-itself">The fetcher itself</a>
+  </div>
+  <span class="rail-head">theme</span>
+  <div class="rail-palettes">
+    <button data-set-palette="catppuccin-mocha" title="catppuccin-mocha" style="--sw:#89b4fa" aria-label="catppuccin-mocha"></button>
+    <button data-set-palette="tokyo-night" title="tokyo-night" style="--sw:#7aa2f7" aria-label="tokyo-night"></button>
+    <button data-set-palette="gruvbox-dark" title="gruvbox-dark" style="--sw:#83a598" aria-label="gruvbox-dark"></button>
+    <button data-set-palette="nord" title="nord" style="--sw:#88c0d0" aria-label="nord"></button>
+    <button data-set-palette="dracula" title="dracula" style="--sw:#bd93f9" aria-label="dracula"></button>
+    <button data-set-palette="one-dark" title="one-dark" style="--sw:#61afef" aria-label="one-dark"></button>
+    <button data-set-palette="solarized-dark" title="solarized-dark" style="--sw:#268bd2" aria-label="solarized-dark"></button>
+    <button data-set-palette="catppuccin-latte" title="catppuccin-latte" style="--sw:#1e66f5" aria-label="catppuccin-latte"></button>
+    <button data-set-palette="github-light" title="github-light" style="--sw:#0969da" aria-label="github-light"></button>
+    <button data-set-palette="one-light" title="one-light" style="--sw:#4078f2" aria-label="one-light"></button>
+    <button data-set-palette="solarized-light" title="solarized-light" style="--sw:#268bd2" aria-label="solarized-light"></button>
+  </div>
+  <span class="palette-name" data-palette-name>catppuccin-mocha</span>
+</aside>
+<main class="content">
+<article class="md">
+<p class="note">Documentation for core/SDK v0.48.0.
+<a href="../../docs/roadmap.html#release-qualification">Release and verification scope</a>.</p>
+<h1 id="apt-fetcher-plugin">apt (fetcher plugin)</h1>
+<p>An external fetcher for the <strong>supported legacy host/module API</strong>.
+<code>gripfetch-apt</code> wraps the host's <code>apt-cache</code> and <code>apt-get download</code>;
+it does not install system packages or run maintainer scripts.
+Configured mirrors and proxy settings remain host inputs.</p>
+<p>For new IR8 workspaces, start with the
+<a href="https://github.com/gripsack-dev/gripsack/blob/core-v0.48.0/typescript/README.md#a-workspace-is-a-function-ir-v8">0.48 provider/package APIs</a>.
+The legacy <code>pluginFetch</code> example below is not a workspace provider
+adapter. Core 0.48 supports Linux/WSL2 x86_64; this plugin additionally
+requires an apt-equipped host and suitable package indexes.</p>
+<h2 id="install">Install</h2>
+<p>Declarative — the plugin lifecycle provisions it from the release:</p>
+<pre><code class="language-toml"># env.toml
+[fetchers.apt]
+package = &quot;gripsack-dev/gripfetch-apt@0.1.0&quot;
+</code></pre>
+<p>When the registered plugin is needed, core provisions its release
+binary and verifies the mandatory SHA-256 sidecar before storing it.
+This is checksum verification, not signature authentication or a
+sandbox. For a separately installed development binary, use
+<code>path = "/opt/bin/gripfetch-apt"</code> <strong>instead of</strong> <code>package</code>.
+Do not rely on unregistered PATH discovery.</p>
+<h2 id="use">Use</h2>
+<div class="window">
+  <div class="titlebar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="wtitle">a module fetching from apt</span></div>
+<pre><code class="language-typescript">import { module, pluginFetch, symlink, verifyBinary } from "@gripsack/core";
+
+export default module("jq", {
+  fetch: pluginFetch("apt", { package: "jq", version: "1.7.1-3build1" }),
+  install: { "bin/jq": symlink("~/.local/bin/jq") },
+  verify: verifyBinary("bin/jq", ["--version"]),
+});</code></pre>
+</div>
+
+<h2 id="what-works">What works</h2>
+<ul>
+<li><strong>Pinned and unpinned</strong>: omit <code>version</code> to resolve the newest the
+  host's mirrors serve (the pin lands in <code>grip update</code>'s lockfile);
+  pin it to reproduce exactly — a re-fetch stages the payload and
+  verifies its canonical tree hash against the lock.</li>
+<li><strong>No root</strong>: <code>apt-get download</code> needs none.</li>
+<li><strong>The payload layout</strong>: <code>usr/bin/*</code> maps to <code>bin/*</code>, so legacy modules
+  use <code>install: { "bin/jq": symlink(...) }</code>.</li>
+<li><strong>Enterprise mirrors</strong>: your sources.list is the truth; rate budgets
+  are the fetcher's to declare (apt declares none — mirrors aren't APIs).</li>
+</ul>
+<h2 id="notes">Notes</h2>
+<ul>
+<li>Version strings are the distro's, build suffixes included
+  (<code>2.10-3build1</code> — they differ across distros; resolve once with
+  <code>grip update</code> and the lockfile keeps everyone honest).</li>
+<li>The fetcher fails loudly when apt is absent, when a pinned version
+  left the mirror, and on hash mismatches — never a silent payload.</li>
+<li><code>.deb</code> extraction rejects archive paths that escape staging. The
+  native plugin still runs with your privileges.</li>
+<li>Downloading one <code>.deb</code> does not resolve or retain a complete dependency
+  closure. A binary can still require host libraries; this is not
+  portable or sealed workspace-package execution.</li>
+<li>The plugin reports <code>W02</code> when the package index has no SHA-256.
+  The retained canonical-tree pin still checks locked reproduction;
+  it does not authenticate an unreviewed first download.</li>
+</ul>
+<h2 id="the-fetcher-itself">The fetcher itself</h2>
+<p><a href="https://github.com/gripsack-dev/gripfetch-apt">gripfetch-apt</a> is a
+separate Rust plugin. Its README reports <strong>9/9 protocol conformance</strong>
+against <a href="https://github.com/gripsack-dev/gripfetch-conformance">gripfetch-conformance</a>;
+that is the plugin's historical report, not a fresh 0.48 integration
+qualification or proof for every mirror and distro. Consult its release
+assets for availability. This is separate from core 0.48, which is
+installed manually from its unsigned release archives and has no
+npm/crates.io publication.</p>
+</article>
+<footer>
+  <span><span class="blink"></span> © 2026 <a href="https://github.com/tknawara">Tarek Nawara</a></span>
+  <span>MIT license</span>
+  <a href="https://github.com/gripsack-dev">gripsack-dev</a>
+  <a href="https://github.com/gripsack-dev/gripsack">source</a>
+  <a href="../../index.html">home</a>
+  <span style="margin-left:auto"><span class="fversion">v0.48.0</span> · eleven palettes</span>
+</footer>
+</main>
+</div>
+</body>
+</html>

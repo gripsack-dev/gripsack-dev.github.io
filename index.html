@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>gripsack — your environment, in one workspace</title>
+<meta name="description" content="Typed workspaces for packages, development environments and personal profiles. Linux and WSL2, with reviewed inputs, generations and rollback.">
+<meta property="og:title" content="gripsack — your environment, in one workspace">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://gripsack.dev/">
+<link rel="icon" href="./assets/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="./assets/site.css?v=d59cbc70">
+<script src="./assets/site.js?v=d59cbc70" defer></script>
+</head>
+<body class="home">
+<header class="topbar">
+  <a class="brand" href="./index.html"><img src="./assets/icon.svg" alt=""><span class="wordmark">gripsack</span></a>
+  <nav aria-label="Primary"><a href="#start">start</a><a href="#install">install</a><a href="#docs">docs</a><a href="https://github.com/gripsack-dev/gripsack">github ↗</a></nav>
+</header>
+<main class="content">
+<section class="hero">
+  <div class="logo" role="img" aria-label="gripsack"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 310" font-family="ui-monospace, DejaVu Sans Mono, monospace">
+  <!-- gripsack logo, Catppuccin Mocha (static bake for README/<img> use;
+       the re-themable var() version lives on gripsack.dev). A traveler's
+       gripsack with a config file and a terminal chip peeking out. -->
+  
+  <ellipse cx="240" cy="240" rx="118" ry="10" fill="var(--deep)"/>
+  <g transform="rotate(-10 176 82)">
+    <rect x="152" y="46" width="48" height="72" rx="6" fill="var(--card)" stroke="var(--border-strong)" stroke-width="2.5"/>
+    <rect x="161" y="62" width="24" height="6" rx="2.5" fill="var(--blue)"/>
+    <rect x="161" y="74" width="30" height="6" rx="2.5" fill="var(--teal)"/>
+    <rect x="161" y="86" width="20" height="6" rx="2.5" fill="var(--dim)"/>
+  </g>
+  <g transform="rotate(9 307 77)">
+    <rect x="282" y="44" width="50" height="66" rx="9" fill="var(--card)" stroke="var(--border-strong)" stroke-width="2.5"/>
+    <text x="293" y="76" font-size="24" font-weight="bold" fill="var(--green)">❯</text>
+    <rect x="308" y="60" width="10" height="17" rx="2.5" fill="var(--green)" opacity="0.65"/>
+  </g>
+  <rect x="204" y="68" width="72" height="44" rx="18" fill="none" stroke="#c9906a" stroke-width="8"/>
+  <rect x="140" y="110" width="200" height="122" rx="26" fill="var(--peach)"/>
+  <rect x="140" y="110" width="200" height="48" rx="24" fill="#d1946f"/>
+  <rect x="180" y="102" width="14" height="64" rx="4" fill="#b87f5c"/>
+  <rect x="286" y="102" width="14" height="64" rx="4" fill="#b87f5c"/>
+  <rect x="176" y="126" width="22" height="16" rx="4" fill="none" stroke="var(--yellow)" stroke-width="3.5"/>
+  <rect x="282" y="126" width="22" height="16" rx="4" fill="none" stroke="var(--yellow)" stroke-width="3.5"/>
+  <circle cx="187" cy="162" r="3.2" fill="var(--yellow)"/>
+  <circle cx="293" cy="162" r="3.2" fill="var(--yellow)"/>
+  <path d="M 158 212 H 322" stroke="#b87f5c" stroke-width="3.5" stroke-dasharray="8 8" stroke-linecap="round"/>
+  <text x="240" y="291" text-anchor="middle" font-size="54" font-weight="bold" letter-spacing="-2" fill="var(--text)">gripsack</text>
+</svg></div>
+  <p class="kicker">personal environment manager · alpha</p>
+  <h1 class="tagline">your environment,<br>in <span class="accent">one workspace</span>.</h1>
+  <p class="sub">Describe packages, development environments and personal profiles in typed TypeScript. Review the inputs, plan the change, and keep generations you can roll back to.</p>
+  <p class="alt">Linux x86_64 and WSL2. No native Windows, macOS or ARM support.</p>
+  <div class="cta"><a class="primary" href="#start">one small example →</a><a href="./docs/workspace-migration.html">workspace guide</a></div>
+</section>
+<section id="start">
+  <h2 class="section">one workspace, named outputs</h2>
+  <p class="lede">A workspace exports the things you use. Packages and environments serve development commands; profiles deploy your personal files through the generation transaction. Start with a single managed block:</p>
+  <div class="window">
+    <div class="titlebar"><span class="wtitle">gripsack.ts</span></div>
+<pre><code class="language-typescript">import {
+  defineWorkspace, file, literalText, managedBlock, profile, workspace,
+} from "@gripsack/core";
+
+const dotfiles = profile("dotfiles", {
+  files: [file({
+    content: literalText("export EDITOR=vi\n"),
+    destination: managedBlock("~/.profile", "gripsack-editor"),
+  })],
+});
+
+export default defineWorkspace(() =&gt; workspace({ outputs: [dotfiles] }));</code></pre>
+  </div>
+  <p>Save as <code>gripsack.ts</code> in a repository. Use matching core and SDK bytes; review the source and policy when prompted.</p>
+<pre>grip check
+grip plan dotfiles
+grip apply dotfiles</pre>
+  <p class="note">Review the plan before applying. <code>grip generations</code> lists retained generations; <code>grip rollback</code> restores a previous managed state. <a href="./docs/safety.html">Read the ownership and recovery boundaries</a>.</p>
+</section>
+<section id="install">
+  <h2 class="section">install</h2>
+  <p><a class="primary" href="https://github.com/gripsack-dev/gripsack/releases/tag/core-v0.48.0">download v0.48.0 for Linux / WSL →</a></p>
+  <p>The release includes the binary, matching SDK, checksums and manual installation instructions. Check its notes for the exact verification scope; current 0.48 assets are unsigned.</p>
+  <p class="note">The frontend is embedded. A separate SDK is optional for editor support or an explicit frontend pin. <a href="./docs/roadmap.html#release-qualification">Release scope</a> · <a href="./docs/settings.html#the-frontend">frontend selection</a>.</p>
+</section>
+<section id="docs">
+  <h2 class="section">go deeper when you need to</h2>
+  <ul>
+    <li><a href="./docs/workspace-migration.html">Workspace and profile migration</a> — move from legacy modules without losing ownership.</li>
+    <li><a href="./docs/adopting.html">Adopt existing dotfiles</a> — choose links, tracked copies or managed blocks.</li>
+    <li><a href="./docs/environments.html">Packages and development environments</a> — build, run and launch tools.</li>
+    <li><a href="./docs/safety.html">Safety and recovery</a> — review source, preserve drift and recover interrupted changes.</li>
+    <li><a href="https://github.com/gripsack-dev/gripsack/blob/3a845bc8c83a42dd1b529789730d421208f929ae/typescript/README.md">SDK reference on GitHub</a> — complete declarations and advanced contracts at the selected core source.</li>
+    <li><a href="./docs/roadmap.html">Release scope and roadmap</a> · <a href="./docs/changelog.html">changelog</a>.</li>
+  </ul>
+</section>
+<section id="compare">
+  <h2 class="section">where it fits</h2>
+  <p>Keep your OS package manager. Gripsack manages user-space tools and personal configuration with explicit ownership and rollback. <a href="./docs/compare.html">Compare the trade-offs →</a></p>
+</section>
+<footer><span>MIT licensed · <a href="https://github.com/gripsack-dev/gripsack">source</a></span><a href="./docs/architecture.html">architecture</a></footer>
+</main>
+</body>
+</html>

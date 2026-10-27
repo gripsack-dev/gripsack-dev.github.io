@@ -1,0 +1,390 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>gripsack — architecture</title>
+<meta name="description" content="gripsack for Linux and WSL — your whole environment in one bag. Packages from any source plus your dotfiles, with generations and rollback.">
+<link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../assets/site.css?v=d59cbc70">
+<script src="../assets/site.js?v=d59cbc70" defer></script>
+</head>
+<body class="docs">
+<div class="shell">
+<aside class="rail">
+  <a class="brand" href="../index.html">
+    <img src="../assets/icon.svg" alt="gripsack icon"><span class="wordmark">gripsack</span>
+  </a>
+  <span class="rail-head">menu</span>
+  <nav>
+    <a href="../index.html">home</a>
+    <a href="../docs/adopting.html">adopting your dotfiles</a>
+    <a href="../docs/compare.html">compare</a>
+    <a class="active" href="../docs/architecture.html">architecture</a>
+    <a href="../docs/safety.html">safety</a>
+    <a href="../docs/modules.html">modules</a>
+    <a href="../docs/environments.html">environments</a>
+    <a href="../docs/workspace-migration.html">workspace migration</a>
+    <a href="../docs/settings.html">settings</a>
+    <a class="child" href="../docs/settings/reference.html">↳ settings reference</a>
+    <a href="../docs/runs.html">run logs</a>
+    <a href="../docs/fetchers.html">fetchers</a>
+    <a class="child" href="../docs/fetchers/apt.html">↳ apt</a>
+    <a href="../docs/linters.html">linters</a>
+    <a href="../docs/skills.html">skills</a>
+    <a href="../docs/roadmap.html">roadmap</a>
+    <a href="../docs/changelog.html">what's new</a>
+    <a class="gh" href="https://github.com/gripsack-dev/gripsack">github ↗</a>
+    <a href="../docs/roadmap.html#supported-platforms">Linux &amp; WSL support</a>
+  </nav>
+  <span class="rail-head">on this page</span>
+  <div class="rail-toc">
+    <a href="#the-two-halves">The two halves</a>
+    <a href="#modules-and-sources">Modules and sources</a>
+    <a href="#dotfiles-first-class">Dotfiles, first-class</a>
+    <a href="#generations-and-rollback">Generations and rollback</a>
+    <a href="#errors-that-point-at-your-code">Errors that point at your code</a>
+    <a href="#where-things-live">Where things live</a>
+  </div>
+  <span class="rail-head">theme</span>
+  <div class="rail-palettes">
+    <button data-set-palette="catppuccin-mocha" title="catppuccin-mocha" style="--sw:#89b4fa" aria-label="catppuccin-mocha"></button>
+    <button data-set-palette="tokyo-night" title="tokyo-night" style="--sw:#7aa2f7" aria-label="tokyo-night"></button>
+    <button data-set-palette="gruvbox-dark" title="gruvbox-dark" style="--sw:#83a598" aria-label="gruvbox-dark"></button>
+    <button data-set-palette="nord" title="nord" style="--sw:#88c0d0" aria-label="nord"></button>
+    <button data-set-palette="dracula" title="dracula" style="--sw:#bd93f9" aria-label="dracula"></button>
+    <button data-set-palette="one-dark" title="one-dark" style="--sw:#61afef" aria-label="one-dark"></button>
+    <button data-set-palette="solarized-dark" title="solarized-dark" style="--sw:#268bd2" aria-label="solarized-dark"></button>
+    <button data-set-palette="catppuccin-latte" title="catppuccin-latte" style="--sw:#1e66f5" aria-label="catppuccin-latte"></button>
+    <button data-set-palette="github-light" title="github-light" style="--sw:#0969da" aria-label="github-light"></button>
+    <button data-set-palette="one-light" title="one-light" style="--sw:#4078f2" aria-label="one-light"></button>
+    <button data-set-palette="solarized-light" title="solarized-light" style="--sw:#268bd2" aria-label="solarized-light"></button>
+  </div>
+  <span class="palette-name" data-palette-name>catppuccin-mocha</span>
+</aside>
+<main class="content">
+<article class="md">
+<p class="note">Documentation for core/SDK v0.48.0.
+<a href="../docs/roadmap.html#release-qualification">Release and verification scope</a>.</p>
+<h1 id="architecture">Architecture</h1>
+<p>How gripsack turns a repository into packages, development environments and
+managed files on Linux/WSL. This is the tour; <a href="https://github.com/gripsack-dev/gripsack/tree/main/plan/">design records</a> retain
+the detailed contracts and outstanding work.</p>
+<p><div class="diagram" role="img" aria-label="gripsack architecture: eval row (env repo → frontend → IR → lockfile) with linter plugins validating configs at eval, feeding the execute row (core → store → generations → $HOME), with fetcher plugins below"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 608" font-family="DejaVu Sans Mono, monospace">
+  <!-- gripsack architecture: three bands — your env repo (eval, blue),
+       the IR contract (yellow), the core (execute, green) — with fetcher
+       plugins feeding the core (peach) and linter plugins feeding eval
+       (mauve). build.py swaps hexes for site CSS vars, so the diagram
+       re-themes with the palette picker. -->
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="var(--blue)"/>
+    </marker>
+    <marker id="arrg" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="var(--green)"/>
+    </marker>
+    <marker id="arrp" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="var(--peach)"/>
+    </marker>
+    <marker id="arrm" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="var(--mauve)"/>
+    </marker>
+  </defs>
+  <rect width="960" height="608" rx="16" fill="var(--bg)"/>
+
+  <!-- ===== band 1: your env repo ===== -->
+  <text x="24" y="32" font-size="11" fill="var(--faint)">EVAL — sandboxed typescript · pinned deno · injected facts</text>
+  <rect x="24" y="48" width="360" height="160" rx="14" fill="var(--card)" stroke="var(--blue)" stroke-width="2.5"/>
+  <text x="204" y="80" text-anchor="middle" font-size="14" font-weight="bold" fill="var(--text)">your env repo</text>
+  <text x="204" y="108" text-anchor="middle" font-size="11" fill="var(--dim)">modules/*.ts · hosts/*.ts</text>
+  <text x="204" y="128" text-anchor="middle" font-size="11" fill="var(--dim)">env.toml · hosts/ · locks/</text>
+  <text x="204" y="160" text-anchor="middle" font-size="9.5" fill="var(--faint)">self-describing: carries its own</text>
+  <text x="204" y="174" text-anchor="middle" font-size="9.5" fill="var(--faint)">fetcher wiring in env.toml</text>
+
+  <line x1="390" y1="128" x2="456" y2="128" stroke="var(--blue)" stroke-width="2" marker-end="url(#arr)"/>
+  <text x="423" y="112" text-anchor="middle" font-size="10" fill="var(--blue)">eval</text>
+  <text x="423" y="148" text-anchor="middle" font-size="9" fill="var(--faint)">pinned deno</text>
+
+  <!-- ===== band 2: the IR contract ===== -->
+  <rect x="464" y="48" width="472" height="160" rx="14" fill="var(--card)" stroke="var(--yellow)" stroke-width="2.5"/>
+  <text x="700" y="80" text-anchor="middle" font-size="14" font-weight="bold" fill="var(--yellow)">IR — the contract</text>
+  <text x="700" y="108" text-anchor="middle" font-size="11" fill="var(--dim)">modules · spans · resources · steps</text>
+  <text x="700" y="128" text-anchor="middle" font-size="11" fill="var(--dim)">pure JSON — schema/ir/v1.json</text>
+  <text x="700" y="148" text-anchor="middle" font-size="11" fill="var(--dim)">locks/&lt;host&gt;.lock pins urls + sha256</text>
+  <text x="700" y="180" text-anchor="middle" font-size="9.5" fill="var(--faint)">any frontend may emit it — gripsack</text>
+  <text x="700" y="194" text-anchor="middle" font-size="9.5" fill="var(--faint)">ships one: typescript (0013)</text>
+
+  <line x1="700" y1="212" x2="700" y2="308" stroke="var(--green)" stroke-width="2" marker-end="url(#arrg)"/>
+  <text x="718" y="240" font-size="10" fill="var(--faint)">resolved + locked</text>
+
+  <!-- ===== linter plugins: run by the core after eval ===== -->
+  <rect x="24" y="224" width="360" height="56" rx="10" fill="var(--card)" stroke="var(--mauve)" stroke-width="2"/>
+  <text x="204" y="246" text-anchor="middle" font-size="11.5" font-weight="bold" fill="var(--mauve)">griplint-* — linter plugins</text>
+  <text x="204" y="264" text-anchor="middle" font-size="9.5" fill="var(--dim)">run by the core after eval · NDJSON</text>
+  <line x1="204" y1="220" x2="204" y2="212" stroke="var(--mauve)" stroke-width="2" marker-end="url(#arrm)"/>
+  <text x="404" y="248" font-size="10" fill="var(--faint)">diagnostics ride the eval envelope —</text>
+  <text x="404" y="264" font-size="10" fill="var(--faint)">plugins serialize; only the core renders (0011)</text>
+
+  <!-- ===== band 3: the core ===== -->
+  <text x="24" y="300" font-size="11" fill="var(--faint)">EXECUTE — one static musl binary, no daemon, no root</text>
+  <rect x="24" y="316" width="912" height="196" rx="14" fill="var(--card)" stroke="var(--green)" stroke-width="2.5"/>
+  <text x="48" y="346" font-size="14" font-weight="bold" fill="var(--green)">grip core</text>
+  <text x="48" y="372" font-size="11" fill="var(--dim)">parse → validate → resolve → lower → plan → execute</text>
+  <text x="48" y="390" font-size="9.5" fill="var(--faint)">compiler passes — structured, span-labeled diagnostics</text>
+
+  <rect x="48" y="404" width="264" height="88" rx="10" fill="var(--deep)" stroke="var(--border-strong)" stroke-width="1.5"/>
+  <text x="180" y="430" text-anchor="middle" font-size="12" font-weight="bold" fill="var(--text)">store</text>
+  <text x="180" y="452" text-anchor="middle" font-size="10" fill="var(--dim)">/store/&lt;hash&gt;-&lt;name&gt;</text>
+  <text x="180" y="470" text-anchor="middle" font-size="10" fill="var(--dim)">immutable · hash-addressed (0014)</text>
+
+  <rect x="348" y="404" width="264" height="88" rx="10" fill="var(--deep)" stroke="var(--border-strong)" stroke-width="1.5"/>
+  <text x="480" y="430" text-anchor="middle" font-size="12" font-weight="bold" fill="var(--text)">generations</text>
+  <text x="480" y="452" text-anchor="middle" font-size="10" fill="var(--dim)">1..N, immutable</text>
+  <text x="480" y="470" text-anchor="middle" font-size="10" fill="var(--dim)">current → N — one atomic flip</text>
+
+  <rect x="648" y="404" width="264" height="88" rx="10" fill="var(--deep)" stroke="var(--border-strong)" stroke-width="1.5"/>
+  <text x="780" y="430" text-anchor="middle" font-size="12" font-weight="bold" fill="var(--text)">$HOME</text>
+  <text x="780" y="452" text-anchor="middle" font-size="10" fill="var(--dim)">configs per ownership mode</text>
+  <text x="780" y="470" text-anchor="middle" font-size="10" fill="var(--dim)">bin/ on PATH once</text>
+
+  <!-- ===== fetcher plugins ===== -->
+  <rect x="24" y="532" width="400" height="56" rx="10" fill="var(--card)" stroke="var(--peach)" stroke-width="2"/>
+  <text x="224" y="554" text-anchor="middle" font-size="11.5" font-weight="bold" fill="var(--peach)">gripfetch-* — fetcher plugins</text>
+  <text x="224" y="572" text-anchor="middle" font-size="9.5" fill="var(--dim)">NDJSON over stdio · every byte hash-verified</text>
+  <line x1="224" y1="526" x2="224" y2="518" stroke="var(--peach)" stroke-width="2" marker-end="url(#arrp)"/>
+  <text x="452" y="558" font-size="10" fill="var(--faint)">gripresolve-* plugins are planned (0013 D8); fetcher</text>
+  <text x="452" y="574" font-size="10" fill="var(--faint)">plugins only when the transport itself is bespoke (0002)</text>
+</svg></div></p>
+<h2 id="the-two-halves">The two halves</h2>
+<p>gripsack is a compiler, and it keeps its two halves strictly separate:</p>
+<ul>
+<li><strong>Eval</strong> is sandboxed TypeScript under a pinned, hash-verified Deno:
+  no environment variables, no network, no subprocesses, read-only
+  within your repo. The machine's facts — os, arch, libc, hostname —
+  are detected by the core and injected; host effects are <em>probes</em>,
+  symbolic requests the core binds. Workspace outputs and legacy modules
+  describe sources, builds and deployment. Evaluation emits <strong>IR</strong>, a
+  validated JSON graph with source locations for diagnostics.</li>
+<li><strong>Execute</strong> is the <code>grip</code> binary — one static Rust executable. It
+  never evaluates code and only consumes IR: it parses, validates,
+  resolves against the lockfile, builds a plan, and executes it as a
+  DAG into a hash-addressed <strong>store</strong>. Credentials: <strong>evaluation</strong>
+  sees none (the sandbox denies env, network, and subprocesses); the
+  fetch/execution layer necessarily can — fetching a private release
+  requires a token. The boundary is eval-vs-everything-else, and
+  that is the boundary the trust prompt describes.</li>
+</ul>
+<p><code>grip update</code> runs the source-preparation part without deployment: resolve,
+acquire, verify and capture the selected repo overlay. It writes complete
+source pins once, only after every selected source succeeds. Source-only
+merged artifacts are cached; package recipes run when realization is requested,
+not during source update. Applying a completed lock does not re-solve it.
+<code>grip update --check</code> performs the same preparation in private scratch, reports
+would-be changes, and publishes neither lockfile nor source cache.</p>
+<p><code>grip plan</code> prepares deployment changes without activating destinations.
+Source preparation and cached realization are distinct from deployment; this
+is not a promise that planning performs no filesystem or network work.</p>
+<p>The frontend <em>source</em> is embedded in the <code>grip</code> binary — the DSL
+version always matches the core — so only the runtime provisions: the
+first eval downloads the pinned Deno once (per-platform sha256 baked
+into grip, ~40MB, cached under <code>$GRIPSACK_HOME/tools/</code>;
+<code>GRIPSACK_DENO</code> overrides). And eval never runs unasked: the first
+eval of a repo grip doesn't trust prompts first — naming the path,
+the remote, and exactly what the sandbox allows — and <code>y</code> records it
+(<code>grip trust list/add/remove</code>; <code>GRIPSACK_TRUST_ALL=1</code> is refused —
+approval binds exact captured digests, see
+<a href="../docs/safety.html#unattended-approval">unattended approval</a>). Same repo +
+same lockfile + same declared host now means the same graph, because
+nothing observable is left to the frontend's environment.</p>
+<h2 id="modules-and-sources">Modules and sources</h2>
+<p>New configurations use a workspace: packages declare producers, files declare
+destinations, environments assemble commands, profiles select deployment, and
+tasks describe explicit operations and checks. These outputs share one graph
+without combining source resolution, installation and verification into each
+tool declaration.</p>
+<p>Legacy modules still combine those concerns and remain supported for migration.
+Their build-only dependencies are published to the store and supplied through
+PATH and <code>GRIP_DEP_*</code>, not deployed merely to compile a dependent module.
+Retained generations pin store paths; rollback does not rebuild them.</p>
+<p>Core/SDK 0.48 emits <strong>IR8</strong>, including the legacy modules-compatibility envelope.
+Retained v3–v7 readers keep their historical meanings. <code>Dependency.for</code> remains;
+inert retry fields are rejected.</p>
+<p>Low-level compiler APIs (<code>emitIr</code>, <code>emitWorkspaceIr</code>, <code>IR_VERSION</code> and compiler
+DTOs) are exported by <code>@gripsack/core/advanced</code>, not the ordinary authoring root.
+See the <a href="https://github.com/gripsack-dev/gripsack/blob/core-v0.48.0/typescript/README.md">0.48 SDK reference</a>.</p>
+<p>When a source is unusual — your company's internal registry — the
+sourcing ladder keeps the core small:</p>
+<ol>
+<li><strong>built-in fetcher arguments</strong> (<code>base_url</code> covers GitHub Enterprise),</li>
+<li><strong>fetchers</strong> — <code>gripfetch-*</code> plugins for genuinely bespoke
+   transports, with the core hash-verifying every byte they return.</li>
+</ol>
+<p>Bespoke <em>resolution</em> ("latest artifact X" → pinned URL + hash) is
+planned as a third plugin kind — <code>gripresolve-*</code> executables,
+specified in <a href="https://github.com/gripsack-dev/gripsack/blob/main/plan/0013-constrained-evaluation.md">plan/0013 D8</a>
+and built next, not shipped; today the built-ins resolve at
+lock/update time.</p>
+<h2 id="dotfiles-first-class">Dotfiles, first-class</h2>
+<p>Config files are deployed per <strong>ownership mode</strong>, chosen per file:</p>
+<table>
+<thead>
+<tr>
+<th>mode</th>
+<th>what it means</th>
+<th>use it for</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>owned</code></td>
+<td>store-owned symlink, read-only</td>
+<td>disciplined tools (helix, git)</td>
+</tr>
+<tr>
+<td><code>tracked-copy</code></td>
+<td>copied out; drift detected next apply</td>
+<td>apps that rewrite their own configs</td>
+</tr>
+<tr>
+<td><code>merge</code></td>
+<td>managed block inside a shared file</td>
+<td><code>.bashrc</code>, <code>.profile</code></td>
+</tr>
+<tr>
+<td><code>template</code></td>
+<td>rendered per machine at activation</td>
+<td>hostnames, work vs personal</td>
+</tr>
+</tbody>
+</table>
+<p>You don't have to migrate your packages to use this. A module with no
+source at all — just configs — is a first-class setup: brew/apt keep
+managing binaries, gripsack manages <code>~/.config</code>, and you get versioned
+dotfiles with rollback. See
+<a href="https://github.com/gripsack-dev/gripsack/tree/main/plan/0006-gradual-migration.md">plan/0006 — gradual migration</a>.</p>
+<h2 id="generations-and-rollback">Generations and rollback</h2>
+<p>A <strong>generation</strong> records a complete deployment and its immutable store references.
+An unchanged workspace apply can reuse the active generation when the complete
+deployment state matches; it does not necessarily consume a retention slot.
+Checks and hooks can still run. Changed deployments select a new generation
+through an atomic <code>current</code> flip, including its environment profile.</p>
+<p>Shell activation and non-interactive PATH are separate: profile-managed launchers
+provide commands without requiring an editor or SSH process to source a profile.</p>
+<p>Destination mutations (deploys, prunes, rollback restores) are
+journaled before they land: a crash anywhere is reconciled by the next
+run — you get the previous generation or the committed one, never an
+unexplained mixture. Rollback runs the same journal in reverse. The
+guarantees, precisely:</p>
+<table>
+<thead>
+<tr>
+<th>surface</th>
+<th>guarantee</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>store object publication</td>
+<td>atomic final-name rename</td>
+</tr>
+<tr>
+<td>generation selection + env profile</td>
+<td>one atomic <code>current</code> flip</td>
+</tr>
+<tr>
+<td>destination deploy / prune / rollback</td>
+<td>journaled, crash-recovered</td>
+</tr>
+<tr>
+<td>failed apply or rollback</td>
+<td>restores captured prior state</td>
+</tr>
+<tr>
+<td>external package-manager effects</td>
+<td>adapter-dependent, best effort</td>
+</tr>
+<tr>
+<td>arbitrary run steps</td>
+<td>not automatically reversible</td>
+</tr>
+</tbody>
+</table>
+<p><strong>What rollback covers, exactly.</strong> Transactional per generation: store
+payloads, symlinks, tracked copies, managed blocks inside foreign
+files, and the exported env profile — all restored to the previous
+generation's bytes. Not transactional: side effects that already ran
+— a service an activation adapter already enabled stays enabled (a
+new apply with the adapter removed disables it), and downloads stay
+downloaded. The flip is the environment; the world outside it is
+yours.</p>
+<p>Reproducibility starts with pinned inputs and reproducible deployment, not a
+promise that every execution mode is hermetic. Workspace execution admits
+declared runtime closures; BuildKit-backed recipes use their declared build
+environment. Legacy ambient shell steps and explicit host execution have
+different isolation boundaries. Host success does not prove sealed closure
+completeness.</p>
+<p><strong>The store is content-addressed where content is knowable</strong>
+(<a href="https://github.com/gripsack-dev/gripsack/tree/main/plan/0014-content-addressed-fetches.md">plan 0014</a>).
+A fetched or config-only payload's path names its canonical content
+hash — so the store verifies itself (<code>grip store-verify</code> needs no
+lockfile and no hostname), and a mirror swap with identical bytes
+re-proves once, then dedups to the same path. Built modules stay
+input-addressed: their output can't be named before the build runs,
+and plan-time naming is what keeps <code>grip plan</code> a complete diff.</p>
+<h2 id="errors-that-point-at-your-code">Errors that point at your code</h2>
+<p>Compiler and execution diagnostics use stable codes and attach source locations
+where available. The same interface covers evaluation, paths, configuration
+<a href="../docs/linters.html">linters</a> and execution:</p>
+<pre><code class="language-diag">error[E101]: module &quot;helix&quot; depends on unknown module &quot;git&quot;
+  --&gt; modules/helix.ts:4:1
+</code></pre>
+<p>An editor-facing LSP remains roadmap work. The diagnostic design is recorded in
+<a href="https://github.com/gripsack-dev/gripsack/tree/main/plan/0004-rich-ir-and-passes.md">plan/0004 — rich IR &amp; passes</a>.</p>
+<h2 id="where-things-live">Where things live</h2>
+<table>
+<thead>
+<tr>
+<th>path</th>
+<th>what</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>~/.local/share/gripsack/store/</code></td>
+<td>immutable, hash-addressed payloads</td>
+</tr>
+<tr>
+<td><code>~/.local/share/gripsack/generations/</code></td>
+<td>one directory per generation</td>
+</tr>
+<tr>
+<td><code>~/.local/share/gripsack/current</code></td>
+<td>the symlink that IS your profile</td>
+</tr>
+<tr>
+<td><code>~/.config/gripsack/config.toml</code></td>
+<td>machine-local user config</td>
+</tr>
+<tr>
+<td>your repo's <code>env.toml</code></td>
+<td>the committed, self-describing env config</td>
+</tr>
+</tbody>
+</table>
+<p><code>GRIPSACK_HOME</code> overrides the base directory. Explicit destinations and host
+operations can reach outside the home directory when permissions allow.
+BuildKit recipes require a configured builder; ordinary configuration-file
+deployment does not require a privileged system service.</p>
+</article>
+<footer>
+  <span><span class="blink"></span> © 2026 <a href="https://github.com/tknawara">Tarek Nawara</a></span>
+  <span>MIT license</span>
+  <a href="https://github.com/gripsack-dev">gripsack-dev</a>
+  <a href="https://github.com/gripsack-dev/gripsack">source</a>
+  <a href="../index.html">home</a>
+  <span style="margin-left:auto"><span class="fversion">v0.48.0</span> · eleven palettes</span>
+</footer>
+</main>
+</div>
+</body>
+</html>

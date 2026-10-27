@@ -1,0 +1,415 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>gripsack — fetchers</title>
+<meta name="description" content="gripsack for Linux and WSL — your whole environment in one bag. Packages from any source plus your dotfiles, with generations and rollback.">
+<link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../assets/site.css?v=d59cbc70">
+<script src="../assets/site.js?v=d59cbc70" defer></script>
+</head>
+<body class="docs">
+<div class="shell">
+<aside class="rail">
+  <a class="brand" href="../index.html">
+    <img src="../assets/icon.svg" alt="gripsack icon"><span class="wordmark">gripsack</span>
+  </a>
+  <span class="rail-head">menu</span>
+  <nav>
+    <a href="../index.html">home</a>
+    <a href="../docs/adopting.html">adopting your dotfiles</a>
+    <a href="../docs/compare.html">compare</a>
+    <a href="../docs/architecture.html">architecture</a>
+    <a href="../docs/safety.html">safety</a>
+    <a href="../docs/modules.html">modules</a>
+    <a href="../docs/environments.html">environments</a>
+    <a href="../docs/workspace-migration.html">workspace migration</a>
+    <a href="../docs/settings.html">settings</a>
+    <a class="child" href="../docs/settings/reference.html">↳ settings reference</a>
+    <a href="../docs/runs.html">run logs</a>
+    <a class="active" href="../docs/fetchers.html">fetchers</a>
+    <a class="child" href="../docs/fetchers/apt.html">↳ apt</a>
+    <a href="../docs/linters.html">linters</a>
+    <a href="../docs/skills.html">skills</a>
+    <a href="../docs/roadmap.html">roadmap</a>
+    <a href="../docs/changelog.html">what's new</a>
+    <a class="gh" href="https://github.com/gripsack-dev/gripsack">github ↗</a>
+    <a href="../docs/roadmap.html#supported-platforms">Linux &amp; WSL support</a>
+  </nav>
+  <span class="rail-head">on this page</span>
+  <div class="rail-toc">
+    <a href="#in-tree-first-class">In-tree (first-class)</a>
+    <a href="#coherent-conda-and-pixi-environments">Coherent Conda and Pixi environments</a>
+    <a href="#complete-source-pins">Complete source pins</a>
+    <a href="#placeholders">Placeholders</a>
+    <a href="#out-of-tree-plugins">Out-of-tree (plugins)</a>
+    <a href="#the-ladder-always">The ladder, always</a>
+  </div>
+  <span class="rail-head">theme</span>
+  <div class="rail-palettes">
+    <button data-set-palette="catppuccin-mocha" title="catppuccin-mocha" style="--sw:#89b4fa" aria-label="catppuccin-mocha"></button>
+    <button data-set-palette="tokyo-night" title="tokyo-night" style="--sw:#7aa2f7" aria-label="tokyo-night"></button>
+    <button data-set-palette="gruvbox-dark" title="gruvbox-dark" style="--sw:#83a598" aria-label="gruvbox-dark"></button>
+    <button data-set-palette="nord" title="nord" style="--sw:#88c0d0" aria-label="nord"></button>
+    <button data-set-palette="dracula" title="dracula" style="--sw:#bd93f9" aria-label="dracula"></button>
+    <button data-set-palette="one-dark" title="one-dark" style="--sw:#61afef" aria-label="one-dark"></button>
+    <button data-set-palette="solarized-dark" title="solarized-dark" style="--sw:#268bd2" aria-label="solarized-dark"></button>
+    <button data-set-palette="catppuccin-latte" title="catppuccin-latte" style="--sw:#1e66f5" aria-label="catppuccin-latte"></button>
+    <button data-set-palette="github-light" title="github-light" style="--sw:#0969da" aria-label="github-light"></button>
+    <button data-set-palette="one-light" title="one-light" style="--sw:#4078f2" aria-label="one-light"></button>
+    <button data-set-palette="solarized-light" title="solarized-light" style="--sw:#268bd2" aria-label="solarized-light"></button>
+  </div>
+  <span class="palette-name" data-palette-name>catppuccin-mocha</span>
+</aside>
+<main class="content">
+<article class="md">
+<p class="note">Documentation for core/SDK v0.48.0.
+<a href="../docs/roadmap.html#release-qualification">Release and verification scope</a>.</p>
+<h1 id="fetchers">Fetchers</h1>
+<p>How gripsack gets bytes. Two tiers: in-tree fetchers maintained in the
+core, and <code>gripfetch-*</code> plugins for everything else. Version pinning
+always lands in the lockfile (<code>grip update</code> re-resolves; <code>apply</code>
+verifies).
+<div class="diagram" role="img" aria-label="the fetcher plugin flow: a module's pluginFetch call with opaque args → the core discovers the executable (env.toml path → the plugin store → PATH) and sends one JSON request on stdin → the gripfetch-artifactory plugin writes bytes and streams NDJSON back → the core hash-verifies the bytes against the lockfile before anything enters the store, with the in-tree fetchers below"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 380" font-family="DejaVu Sans Mono, monospace">
+  <!-- the fetcher plugin flow: module pluginFetch (blue) → core
+       discovery + one JSON request (green) → gripfetch-* plugin
+       (peach, matching architecture.svg) → bytes through the lockfile
+       verification gate (yellow) → store. build.py swaps hexes for
+       site CSS vars — same palette as linters-flow.svg. -->
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="var(--blue)"/>
+    </marker>
+    <marker id="arrg" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="var(--green)"/>
+    </marker>
+    <marker id="arrp" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="var(--peach)"/>
+    </marker>
+  </defs>
+  <rect width="960" height="380" rx="16" fill="var(--bg)"/>
+
+  <text x="24" y="30" font-size="11" fill="var(--faint)">FETCH — bespoke transport, hash-verified bytes</text>
+
+  <!-- module opt-in -->
+  <rect x="24" y="46" width="264" height="92" rx="14" fill="var(--card)" stroke="var(--blue)" stroke-width="2"/>
+  <text x="156" y="74" text-anchor="middle" font-size="12.5" font-weight="bold" fill="var(--text)">your module</text>
+  <text x="156" y="96" text-anchor="middle" font-size="9.5" fill="var(--blue)">pluginFetch("artifactory", {…})</text>
+  <text x="156" y="116" text-anchor="middle" font-size="9.5" fill="var(--faint)">args opaque to the core</text>
+
+  <line x1="294" y1="92" x2="338" y2="92" stroke="var(--blue)" stroke-width="2" marker-end="url(#arr)"/>
+
+  <!-- the core: discovery + request -->
+  <rect x="344" y="46" width="296" height="92" rx="14" fill="var(--card)" stroke="var(--green)" stroke-width="2"/>
+  <text x="492" y="72" text-anchor="middle" font-size="12.5" font-weight="bold" fill="var(--green)">grip core</text>
+  <text x="492" y="94" text-anchor="middle" font-size="10" fill="var(--dim)">discovers the executable:</text>
+  <text x="492" y="114" text-anchor="middle" font-size="9.5" fill="var(--faint)">env.toml path → plugin store → PATH</text>
+  <line x1="646" y1="92" x2="698" y2="92" stroke="var(--green)" stroke-width="2" marker-end="url(#arrg)"/>
+  <text x="672" y="122" text-anchor="middle" font-size="8" fill="var(--faint)">one JSON</text>
+  <text x="672" y="133" text-anchor="middle" font-size="8" fill="var(--faint)">on stdin</text>
+
+  <!-- the plugin -->
+  <rect x="704" y="46" width="232" height="92" rx="14" fill="var(--card)" stroke="var(--peach)" stroke-width="2"/>
+  <text x="820" y="74" text-anchor="middle" font-size="12.5" font-weight="bold" fill="var(--peach)">gripfetch-artifactory</text>
+  <text x="820" y="96" text-anchor="middle" font-size="10" fill="var(--dim)">NDJSON · stdio</text>
+  <text x="820" y="116" text-anchor="middle" font-size="9.5" fill="var(--faint)">internal registry · mTLS</text>
+
+  <!-- lockfile pin + returned bytes down to the gate -->
+  <line x1="492" y1="142" x2="492" y2="194" stroke="var(--green)" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#arrg)"/>
+  <text x="476" y="172" text-anchor="end" font-size="9.5" fill="var(--green)">locked pin</text>
+  <line x1="820" y1="142" x2="820" y2="194" stroke="var(--peach)" stroke-width="2" marker-end="url(#arrp)"/>
+  <text x="820" y="172" text-anchor="middle" font-size="9.5" fill="var(--peach)">bytes + NDJSON</text>
+
+  <!-- the verification gate, with the store behind it -->
+  <rect x="344" y="200" width="592" height="92" rx="14" fill="var(--card)" stroke="var(--yellow)" stroke-width="2.5"/>
+  <text x="560" y="228" text-anchor="middle" font-size="13" font-weight="bold" fill="var(--yellow)">verify — the gate</text>
+  <text x="560" y="250" text-anchor="middle" font-size="10.5" fill="var(--dim)">bytes hash-verified against the lockfile — before the store</text>
+  <text x="560" y="270" text-anchor="middle" font-size="9.5" fill="var(--faint)">wrong or malicious → failed apply, never a poisoned store</text>
+
+  <rect x="776" y="216" width="144" height="60" rx="10" fill="var(--deep)" stroke="var(--border-strong)" stroke-width="1.5"/>
+  <text x="848" y="240" text-anchor="middle" font-size="11" font-weight="bold" fill="var(--text)">store</text>
+  <text x="848" y="260" text-anchor="middle" font-size="8.5" fill="var(--dim)">/store/&lt;hash&gt;-&lt;name&gt;</text>
+
+  <!-- request anatomy -->
+  <text x="24" y="224" font-size="10" fill="var(--dim)">request: {"op":"fetch", args,</text>
+  <text x="40" y="240" font-size="10" fill="var(--dim)">dest_dir, locked?}</text>
+  <text x="24" y="258" font-size="9.5" fill="var(--faint)">locked? — the lockfile pin (first-fetch vs re-fetch)</text>
+  <text x="24" y="274" font-size="9.5" fill="var(--faint)">back: progress / diagnostic / response</text>
+  <text x="24" y="290" font-size="9.5" fill="var(--faint)">stderr drains concurrently · 600s deadline</text>
+
+  <!-- in-tree strip -->
+  <rect x="24" y="312" width="912" height="44" rx="10" fill="var(--card)" stroke="var(--border-strong)" stroke-width="1.5"/>
+  <text x="480" y="331" text-anchor="middle" font-size="11" font-weight="bold" fill="var(--text)">in-tree fetchers — <tspan font-weight="normal" fill="var(--dim)">file · tarball · git · github_release · brew</tspan></text>
+  <text x="480" y="347" text-anchor="middle" font-size="9.5" fill="var(--faint)">the bespoke long tail — internal registries, mTLS, credentialed dances — is gripfetch-* territory</text>
+</svg></div></p>
+<h2 id="in-tree-first-class">In-tree (first-class)</h2>
+<table>
+<thead>
+<tr>
+<th>fetcher</th>
+<th>status</th>
+<th>pinning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>fileFetch(path)</code></td>
+<td>live</td>
+<td>content hash</td>
+</tr>
+<tr>
+<td><code>tarball(url, sha256)</code></td>
+<td>live</td>
+<td>pinned sha256, verified before the store</td>
+</tr>
+<tr>
+<td><code>git(url, rev?)</code></td>
+<td>live</td>
+<td>shallow-fetched and pinned to the resolved commit. No rev follows the default branch at update; a named branch/tag is also frozen to its resolved commit for apply. An explicit commit ID remains fixed</td>
+</tr>
+<tr>
+<td><code>githubRelease({ repo, asset, version?, base_url? })</code></td>
+<td>live</td>
+<td>resolved release and verified asset hash, locked; <code>version</code> pins the tag. <code>base_url</code> accepts a bare GHE base URL (<code>/api/v3</code> is appended). Private/GHE assets use the API endpoint when a token is explicitly bound to its host; see authentication below</td>
+</tr>
+<tr>
+<td><code>brew(...)</code> (bottles)</td>
+<td>live</td>
+<td>update resolves the current stable formula and pins its bottle URL, version and digest. A declared version is a tripwire against that resolution, not a range. Cold apply reuses the locked bottle without asking for today's stable version. Raw bottle layout remains: install paths look like <code>jq/{version}/bin/jq</code></td>
+</tr>
+</tbody>
+</table>
+<p><code>mise</code> is deliberately not a fetcher: its GitHub-backed releases can use
+<code>githubRelease</code> directly.</p>
+<p>A gzipped <em>single file</em> (<code>.gz</code> that isn't a tar) stages decompressed as
+one executable, named for the asset minus the suffix — alongside
+<code>.tar.gz</code>/<code>.tar.xz</code>/<code>.zip</code> archives and bare uncompressed binaries.</p>
+<h2 id="coherent-conda-and-pixi-environments">Coherent Conda and Pixi environments</h2>
+<p>Since 0.44, workspace package providers use <code>conda.environment(...)</code> to solve a
+coherent environment, or <code>pixi.fromLock(...)</code> to import a selected environment
+from an explicitly captured Pixi manifest and lock. These are workspace sources,
+not single-package fetchers. The old callable <code>pixi(...)</code> SDK constructor is
+removed; retained legacy IR keeps its original meaning.</p>
+<p>The lock binds the complete selected closure, channel/platform policy and
+original archive URLs and digests. A cold frozen build acquires those exact
+archives without solving again. Native prefixes and image prefixes are
+materialized independently from the same locked records.</p>
+<p>Native <code>packages</code> values use Conda matchspec syntax: for example,
+<code>"==25.07.1"</code> pins a version; bare <code>"25.07.1"</code> is not a supported range.
+<code>pixi.fromLock</code> imports the external solve without upgrading its packages.
+Update that lock with its solver when an upgrade is intended.</p>
+<p>Source update preflights exact Conda archives for unsupported package lifecycle
+scripts before prefix materialization. Refused scripts must not be deleted or
+bypassed. Workspace hooks are a separate, supported lifecycle; they do not grant
+permission to execute package scripts.</p>
+<p>See the <a href="https://github.com/gripsack-dev/gripsack/blob/core-v0.48.0/typescript/README.md#a-workspace-is-a-function-ir-v8">workspace SDK reference</a>
+and the <a href="https://github.com/gripsack-dev/example-env-typescript/tree/main/workspaces/conda">coherent environment example</a>.
+Current release support is Linux x86_64, including WSL2's Linux environment,
+not native Windows. Earlier Linux qualification of the BuildKit production
+backend and coherent Conda runtime is not qualification of every package or
+deployment host. ARM, macOS, the Mac VM worker and the Mac Conda journey are
+outside active support scope; they are not pending release blockers.</p>
+<p>Use the <a href="https://github.com/gripsack-dev/gripsack/releases/tag/core-v0.48.0">current release's installation instructions</a>:
+0.48 ships unsigned archives, not a new signed-installer or npm registry release.
+Keep the SDK compatible with the core; installing an SDK does not upgrade the
+binary. Historical artifacts are not a current platform-support promise.</p>
+<h2 id="complete-source-pins">Complete source pins</h2>
+<p>Since 0.37.0, <code>grip update</code> acquires and verifies sources, captures the selected
+repo overlay and writes completed pins once after all selected modules succeed.
+Source-only merged trees are cached without creating destinations or a generation.
+Build recipes and activation hooks do not run. The first warm or cold apply leaves
+the completed lockfile unchanged; a failed update preserves its previous bytes.
+“One commit” means one user lockfile diff — grip does not make git commits.</p>
+<p>Archive downloads are bounded private spools and their full transport digest is
+verified before extraction. Decoded bytes, entry counts, metadata and decoder
+working memory are admitted separately. Traversal, link escape and unsupported
+entries fail before publication. See <a href="../docs/settings/reference.html">acquisition limits</a>.
+Trusted runtime provisioning captures host network policy before repo build-env
+injection; artifact clients capture it afterwards. Pools are shared only within
+that command and environment phase.</p>
+<h3 id="read-only-surveys-and-layout-evidence">Read-only surveys and layout evidence</h3>
+<p><code>grip update --check</code> surveys the selected modules even when an individual source
+fails. Each module is unchanged, would change, failed, or inapplicable; the final
+summary says incomplete when any source failed. Exits are <strong>0</strong> complete/current,
+<strong>1</strong> complete/changes available, <strong>2</strong> incomplete or operational failure.
+Neither source cache nor lockfile is published by a check.</p>
+<p>Source-only install/config and payload-verification paths are checked against the
+captured, merged stage <strong>before</strong> normal update publishes its cache or lock.
+Known missing paths fail with the original pattern, raw locked tag, expanded path
+and observed top-level entries. Recipes and verification programs never run during
+update. Recipe-produced layout is deferred until its output exists; <code>check</code> and
+<code>plan</code> use matching cached artifacts without downloading and say when evidence is
+unavailable.</p>
+<h3 id="authentication-and-request-failures">Authentication and request failures</h3>
+<p>Gripsack retains explicit host-bound credentials. <code>GITHUB_TOKEN</code> takes precedence
+over <code>GH_TOKEN</code> and goes only to github.com/api.github.com. Enterprise credentials
+use <code>GITHUB_ENTERPRISE_TOKEN</code>, then <code>GH_ENTERPRISE_TOKEN</code>, and require
+<code>GH_HOST</code> (or <code>GITHUB_HOST</code>) naming the intended enterprise host:</p>
+<pre><code class="language-sh">export GH_HOST=ghe.example.com
+# Supply GH_ENTERPRISE_TOKEN through your trusted secret environment.
+grip update --check --host laptop
+</code></pre>
+<p>The module's <code>base_url</code> is a destination, <strong>not a token grant</strong>. This is stricter
+than gh's ability to infer a host from its command/repository context; it is not
+exact gh-CLI parity. Missing, unbound/mismatched and rejected bound credentials
+get different hints for resolution and locked cold downloads. Correct binding
+also determines whether the API asset URL or browser URL is attempted.
+Cross-host and HTTPS-to-HTTP redirects do not forward authorization.</p>
+<p>An unauthenticated GitHub API primary quota is shared by an egress IP (60/hour),
+not by a grip process. A local throttle cannot restore that quota. Confirmed
+403/429 rate failures name the reset/cooldown and suggest a public token when
+none is bound; other 403s can be permissions or secondary limits. A token is not
+a promise to bypass every network/SSO/rate policy.</p>
+<p>Grip inherits the caller's environment. Non-interactive SSH does not necessarily
+load <code>/etc/profile.d</code>; supply secrets explicitly in the calling provisioning
+script. Grip never sources profiles, reads gh's credential store, or logs tokens
+to compensate for missing environment.</p>
+<p>First-party HTTP GETs retry classified transient 500/502/503/504, connection and
+interrupted-body failures. The limits are <strong>three policy attempts total</strong>, one
+<strong>600s operation deadline</strong>, and at most <strong>30s retry waiting</strong> (normally 1s, then
+2s). Server Retry-After/reset lower bounds are never shortened to fit; long or
+unknown cooldowns stop with an explanation. Partial transfers restart at zero
+without resetting the byte budget. Auth, certificate, invalid metadata,
+checksum, archive-safety and local I/O failures are not blindly retried.</p>
+<p>Errors identify the URL, policy attempts and stopping reason; URI credentials
+and query material are redacted. Pooled-connection recovery inside the HTTP
+library is not counted as a separate policy attempt. Built-in local pacing is
+30/min for api.github.com and ghcr.io, 60/min for formulae.brew.sh; release CDN
+downloads have no built-in domain bucket. User <code>[throttle]</code> overrides still win.</p>
+<h2 id="placeholders">Placeholders</h2>
+<p>GitHub <strong>asset patterns</strong> accept the tokens below. Legacy module
+install/config/verify paths also interpolate version tokens; <strong>workspace
+command and artifact selectors remain literal</strong>. For versioned archive directory
+names, select <code>archiveRoot: { kind: "single_directory" }</code> on a relocatable
+package, then use root-relative selectors. The root must be one unambiguous real
+directory; see the <a href="https://github.com/gripsack-dev/gripsack/blob/core-v0.48.0/typescript/README.md#captured-files-trees-and-stable-package-roots">SDK contract</a>.</p>
+<p>Direct tarball URLs support platform tokens, not a version they have not
+resolved. This is an explicit placeholder set, not path guessing:</p>
+<table>
+<thead>
+<tr>
+<th>placeholder</th>
+<th>expands to</th>
+<th>example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>{version}</code></td>
+<td>raw locked tag in paths; legacy raw-first, then stripped asset search</td>
+<td><code>ripgrep-{version}-{target}/rg</code></td>
+</tr>
+<tr>
+<td><code>{version.bare}</code></td>
+<td>exactly one leading lowercase <code>v</code> removed</td>
+<td><code>rootle-{version.bare}-{target}/rootle</code></td>
+</tr>
+<tr>
+<td><code>{system}</code></td>
+<td>flake-style platform</td>
+<td><code>x86_64-linux</code></td>
+</tr>
+<tr>
+<td><code>{target}</code></td>
+<td>the rust triple</td>
+<td><code>x86_64-unknown-linux-musl</code></td>
+</tr>
+<tr>
+<td><code>{arch}</code></td>
+<td>rust arch</td>
+<td><code>x86_64</code></td>
+</tr>
+<tr>
+<td><code>{arch.go}</code></td>
+<td>goreleaser arch</td>
+<td><code>amd64</code></td>
+</tr>
+<tr>
+<td><code>{arch.x64}</code></td>
+<td>node-style arch</td>
+<td><code>x64</code></td>
+</tr>
+<tr>
+<td><code>{os}</code></td>
+<td><code>linux</code> / <code>darwin</code></td>
+<td><code>linux</code></td>
+</tr>
+</tbody>
+</table>
+<p>For tag <code>v0.12.1</code>, <code>{version}</code> in a payload path means <code>v0.12.1</code>, while
+<code>{version.bare}</code> means <code>0.12.1</code>. A bare token in an asset pattern has only that
+exact spelling; it never adds <code>v</code> back. Missing/empty required versions and
+unsafe expanded paths are errors. Lockfiles still record the raw tag.</p>
+<p>In legacy modules, use <code>{version.bare}</code> in the asset pattern and payload key when
+upstream v-prefixes tags but not archive names/directories. That behavior was
+introduced in 0.39; current IR8 retains the versioned legacy contract. Unknown
+tokens are E114 errors, including in explicit steps.</p>
+<h2 id="out-of-tree-plugins">Out-of-tree (plugins)</h2>
+<p>A <code>gripfetch-&lt;name&gt;</code> executable — declared in <code>env.toml</code> and
+provisioned by grip's plugin lifecycle, or hand-placed on <code>PATH</code> —
+speaking NDJSON over stdio:</p>
+<div class="plugin-cards">
+  <a class="plugin-card" href="fetchers/apt.html">
+    <span class="pc-name">apt</span>
+    <span class="pc-blurb">distro packages via the host's apt — wraps, never reimplements; enterprise mirrors inherit free</span>
+  </a>
+</div>
+
+<ul>
+<li><code>fetch {args, dest_dir, locked}</code> → bytes into <code>dest_dir</code>, responds
+  <code>{sha256}</code></li>
+<li><code>capabilities</code> → <code>{"capabilities": {"throttle": {"registry.example.com":
+  "60/min"}}}</code> — the fetcher declares its registry's rate budget; the
+  engine runs a token bucket per domain and throttles to it. Budgets
+  live in fetchers because the fetcher knows its registry; <code>[throttle]</code>
+  in env.toml outranks any declaration. A plugin that predates the op
+  is tolerated (no declared budgets) but must not pretend success.</li>
+</ul>
+<p>Protocol hosts bound serialized requests (4 MiB), stdout lines (1 MiB),
+cumulative stdout/stderr (16 MiB each), retained stderr (64 KiB), and diagnostics
+(1,024). Fetch, capability and linter exchanges retain their own success policies.
+Deadlines include cleanup; a response never hides later output/exit failures.
+The host owns the process group and closes inherited pipes. Prompt OS scheduling
+and SIGKILL/reaping are assumptions; descendants deliberately leaving the group
+are not a sandbox guarantee. Cleanup failures are reported, never detached.</p>
+<p>The core hash-verifies every returned byte against the lockfile before
+it enters the store — a plugin cannot poison the store. Be precise
+about what that means: <strong>a <code>gripfetch-*</code> executable is
+trusted code running with your user privileges.</strong> Hash verification
+protects store contents, not the host — the plugin process can read
+files, inherit environment variables, and open network connections.
+Treat a fetcher plugin exactly as you would any binary you install.
+Writing one? The contract made executable:
+<a href="https://github.com/gripsack-dev/gripfetch-conformance">gripfetch-conformance</a>
+— the suite every plugin runs against.</p>
+<p>The reference implementation is
+<a href="https://github.com/gripsack-dev/gripfetch-apt">gripfetch-apt</a> —
+distro packages via the host's apt (wraps, never reimplements; honors
+the host's mirrors), conformance-gated, and provisionable through the
+plugin lifecycle (<code>package = "gripsack-dev/gripfetch-apt@0.1.0"</code>).</p>
+<p>This is also the home for internal company registries and anything
+bespoke. If the transport is fine but <em>resolution</em> isn't ("latest
+artifact X" → pinned URL + hash), that is planned as its own plugin
+kind — <code>gripresolve-*</code> executables, specified in
+<a href="https://github.com/gripsack-dev/gripsack/blob/main/plan/0013-constrained-evaluation.md">plan/0013 D8</a>
+and built next; today the built-ins resolve at lock/update time.</p>
+<h2 id="the-ladder-always">The ladder, always</h2>
+<ol>
+<li>built-in fetcher arguments (<code>base_url</code> covers GitHub Enterprise),</li>
+<li><code>gripfetch-*</code> plugin (bespoke transport).</li>
+</ol>
+<p>Full design: <a href="https://github.com/gripsack-dev/gripsack/blob/main/plan/0002-sourcing.md">plan/0002</a>.</p>
+</article>
+<footer>
+  <span><span class="blink"></span> © 2026 <a href="https://github.com/tknawara">Tarek Nawara</a></span>
+  <span>MIT license</span>
+  <a href="https://github.com/gripsack-dev">gripsack-dev</a>
+  <a href="https://github.com/gripsack-dev/gripsack">source</a>
+  <a href="../index.html">home</a>
+  <span style="margin-left:auto"><span class="fversion">v0.48.0</span> · eleven palettes</span>
+</footer>
+</main>
+</div>
+</body>
+</html>

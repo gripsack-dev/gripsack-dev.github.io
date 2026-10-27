@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>gripsack — run logs</title>
+<meta name="description" content="gripsack for Linux and WSL — your whole environment in one bag. Packages from any source plus your dotfiles, with generations and rollback.">
+<link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../assets/site.css?v=d59cbc70">
+<script src="../assets/site.js?v=d59cbc70" defer></script>
+</head>
+<body class="docs">
+<div class="shell">
+<aside class="rail">
+  <a class="brand" href="../index.html">
+    <img src="../assets/icon.svg" alt="gripsack icon"><span class="wordmark">gripsack</span>
+  </a>
+  <span class="rail-head">menu</span>
+  <nav>
+    <a href="../index.html">home</a>
+    <a href="../docs/adopting.html">adopting your dotfiles</a>
+    <a href="../docs/compare.html">compare</a>
+    <a href="../docs/architecture.html">architecture</a>
+    <a href="../docs/safety.html">safety</a>
+    <a href="../docs/modules.html">modules</a>
+    <a href="../docs/environments.html">environments</a>
+    <a href="../docs/workspace-migration.html">workspace migration</a>
+    <a href="../docs/settings.html">settings</a>
+    <a class="child" href="../docs/settings/reference.html">↳ settings reference</a>
+    <a class="active" href="../docs/runs.html">run logs</a>
+    <a href="../docs/fetchers.html">fetchers</a>
+    <a class="child" href="../docs/fetchers/apt.html">↳ apt</a>
+    <a href="../docs/linters.html">linters</a>
+    <a href="../docs/skills.html">skills</a>
+    <a href="../docs/roadmap.html">roadmap</a>
+    <a href="../docs/changelog.html">what's new</a>
+    <a class="gh" href="https://github.com/gripsack-dev/gripsack">github ↗</a>
+    <a href="../docs/roadmap.html#supported-platforms">Linux &amp; WSL support</a>
+  </nav>
+  <span class="rail-head">on this page</span>
+  <div class="rail-toc">
+    <a href="#where">Where</a>
+    <a href="#whats-inside">What's inside</a>
+    <a href="#for-agents">For agents</a>
+  </div>
+  <span class="rail-head">theme</span>
+  <div class="rail-palettes">
+    <button data-set-palette="catppuccin-mocha" title="catppuccin-mocha" style="--sw:#89b4fa" aria-label="catppuccin-mocha"></button>
+    <button data-set-palette="tokyo-night" title="tokyo-night" style="--sw:#7aa2f7" aria-label="tokyo-night"></button>
+    <button data-set-palette="gruvbox-dark" title="gruvbox-dark" style="--sw:#83a598" aria-label="gruvbox-dark"></button>
+    <button data-set-palette="nord" title="nord" style="--sw:#88c0d0" aria-label="nord"></button>
+    <button data-set-palette="dracula" title="dracula" style="--sw:#bd93f9" aria-label="dracula"></button>
+    <button data-set-palette="one-dark" title="one-dark" style="--sw:#61afef" aria-label="one-dark"></button>
+    <button data-set-palette="solarized-dark" title="solarized-dark" style="--sw:#268bd2" aria-label="solarized-dark"></button>
+    <button data-set-palette="catppuccin-latte" title="catppuccin-latte" style="--sw:#1e66f5" aria-label="catppuccin-latte"></button>
+    <button data-set-palette="github-light" title="github-light" style="--sw:#0969da" aria-label="github-light"></button>
+    <button data-set-palette="one-light" title="one-light" style="--sw:#4078f2" aria-label="one-light"></button>
+    <button data-set-palette="solarized-light" title="solarized-light" style="--sw:#268bd2" aria-label="solarized-light"></button>
+  </div>
+  <span class="palette-name" data-palette-name>catppuccin-mocha</span>
+</aside>
+<main class="content">
+<article class="md">
+<p class="note">Documentation for core/SDK v0.48.0.
+<a href="../docs/roadmap.html#release-qualification">Release and verification scope</a>.</p>
+<h1 id="run-logs">Run logs</h1>
+<p>Core 0.48 initializes a structured log for command runs, including workspace
+and legacy flows. Logs help explain engine events; they are not a complete
+transcript of every subprocess or a proof that a deployment succeeded.
+Argument-parsing exits (such as <code>--help</code>) occur before logging, and a failure
+to initialize logging can leave no run file.</p>
+<h2 id="where">Where</h2>
+<pre><code class="language-text">~/.local/share/gripsack/runs/&lt;run-id&gt;.jsonl   # one file per logged run
+~/.local/share/gripsack/runs/latest          # symlink to the newest log
+</code></pre>
+<p>The state root is <code>$GRIPSACK_HOME</code> when nonempty, otherwise
+<code>$XDG_DATA_HOME/gripsack</code> when set, otherwise the default above. The root
+<code>run</code> span carries <code>run_id</code> and <code>command</code>; do not depend on the console
+printing an id for every command. <code>latest</code> identifies the most recently
+initialized log, not necessarily the last completed or failed command.
+Save the specific filename when comparing concurrent runs.</p>
+<h2 id="whats-inside">What's inside</h2>
+<p>Each line is a JSON event with <code>timestamp</code>, <code>level</code>, <code>fields.message</code> and,
+where emitted, <code>fields.code</code>. <code>span</code> describes the current span and <code>spans</code>
+is its ancestry: an array of <strong>objects</strong> with a <code>name</code> and structured fields,
+not strings such as <code>"module:helix"</code>. Module or stage fields are present only
+where the corresponding instrumentation emits them.</p>
+<pre><code class="language-bash">home=${GRIPSACK_HOME:-&quot;${XDG_DATA_HOME:-&quot;$HOME/.local/share&quot;}/gripsack&quot;}
+L=&quot;$home/runs/latest&quot;
+jq -c 'select(.level == &quot;ERROR&quot;)' &quot;$L&quot;
+jq -c 'select(.fields.code != null)' &quot;$L&quot;
+jq -c '{message: .fields.message, spans: .spans}' &quot;$L&quot;
+</code></pre>
+<p>The console defaults to warnings and errors on stderr; JSONL records info
+and above. <code>GRIPSACK_LOG=debug grip check</code> enables debug console output,
+but does <strong>not</strong> lower the JSONL layer's fixed info threshold. Machine-readable
+command output such as <code>grip check --json</code> remains on stdout separately.</p>
+<p>Logs are diagnostic evidence, not retention roots or recovery authority.
+Keep journals, generation manifests and retained content intact when
+investigating a failed transition; see <a href="../docs/safety.html">safety</a>. Review logs for
+private paths or command details before sharing them.</p>
+<h2 id="for-agents">For agents</h2>
+<p>The <a href="https://github.com/gripsack-dev/gripsack/tree/core-v0.48.0/skills/gripsack-debug">released debugging skill</a>
+provides a debugging workflow and diagnostic references. See <a href="../docs/skills.html">skills</a>
+for installation. Give the agent the specific run log and the failing command,
+not only <code>latest</code>, which another command may replace. For captured-source
+approval and evaluation receipts, use the separate <a href="../docs/safety.html">source-trust guidance</a>;
+a completed evaluation receipt is not a successful build or apply receipt.</p>
+</article>
+<footer>
+  <span><span class="blink"></span> © 2026 <a href="https://github.com/tknawara">Tarek Nawara</a></span>
+  <span>MIT license</span>
+  <a href="https://github.com/gripsack-dev">gripsack-dev</a>
+  <a href="https://github.com/gripsack-dev/gripsack">source</a>
+  <a href="../index.html">home</a>
+  <span style="margin-left:auto"><span class="fversion">v0.48.0</span> · eleven palettes</span>
+</footer>
+</main>
+</div>
+</body>
+</html>

@@ -1,0 +1,388 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>gripsack — workspace migration</title>
+<meta name="description" content="gripsack for Linux and WSL — your whole environment in one bag. Packages from any source plus your dotfiles, with generations and rollback.">
+<link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../assets/site.css?v=d59cbc70">
+<script src="../assets/site.js?v=d59cbc70" defer></script>
+</head>
+<body class="docs">
+<div class="shell">
+<aside class="rail">
+  <a class="brand" href="../index.html">
+    <img src="../assets/icon.svg" alt="gripsack icon"><span class="wordmark">gripsack</span>
+  </a>
+  <span class="rail-head">menu</span>
+  <nav>
+    <a href="../index.html">home</a>
+    <a href="../docs/adopting.html">adopting your dotfiles</a>
+    <a href="../docs/compare.html">compare</a>
+    <a href="../docs/architecture.html">architecture</a>
+    <a href="../docs/safety.html">safety</a>
+    <a href="../docs/modules.html">modules</a>
+    <a href="../docs/environments.html">environments</a>
+    <a class="active" href="../docs/workspace-migration.html">workspace migration</a>
+    <a href="../docs/settings.html">settings</a>
+    <a class="child" href="../docs/settings/reference.html">↳ settings reference</a>
+    <a href="../docs/runs.html">run logs</a>
+    <a href="../docs/fetchers.html">fetchers</a>
+    <a class="child" href="../docs/fetchers/apt.html">↳ apt</a>
+    <a href="../docs/linters.html">linters</a>
+    <a href="../docs/skills.html">skills</a>
+    <a href="../docs/roadmap.html">roadmap</a>
+    <a href="../docs/changelog.html">what's new</a>
+    <a class="gh" href="https://github.com/gripsack-dev/gripsack">github ↗</a>
+    <a href="../docs/roadmap.html#supported-platforms">Linux &amp; WSL support</a>
+  </nav>
+  <span class="rail-head">on this page</span>
+  <div class="rail-toc">
+    <a href="#where-the-two-models-stand">Where the two models stand</a>
+    <a href="#what-maps-to-what">What maps to what</a>
+    <a href="#removed-pixipackage">Removed: pixi(package)</a>
+    <a href="#lockfiles">Lockfiles</a>
+    <a href="#running-both-during-migration">Running both during migration</a>
+    <a href="#downgrade-boundary">Downgrade boundary</a>
+  </div>
+  <span class="rail-head">theme</span>
+  <div class="rail-palettes">
+    <button data-set-palette="catppuccin-mocha" title="catppuccin-mocha" style="--sw:#89b4fa" aria-label="catppuccin-mocha"></button>
+    <button data-set-palette="tokyo-night" title="tokyo-night" style="--sw:#7aa2f7" aria-label="tokyo-night"></button>
+    <button data-set-palette="gruvbox-dark" title="gruvbox-dark" style="--sw:#83a598" aria-label="gruvbox-dark"></button>
+    <button data-set-palette="nord" title="nord" style="--sw:#88c0d0" aria-label="nord"></button>
+    <button data-set-palette="dracula" title="dracula" style="--sw:#bd93f9" aria-label="dracula"></button>
+    <button data-set-palette="one-dark" title="one-dark" style="--sw:#61afef" aria-label="one-dark"></button>
+    <button data-set-palette="solarized-dark" title="solarized-dark" style="--sw:#268bd2" aria-label="solarized-dark"></button>
+    <button data-set-palette="catppuccin-latte" title="catppuccin-latte" style="--sw:#1e66f5" aria-label="catppuccin-latte"></button>
+    <button data-set-palette="github-light" title="github-light" style="--sw:#0969da" aria-label="github-light"></button>
+    <button data-set-palette="one-light" title="one-light" style="--sw:#4078f2" aria-label="one-light"></button>
+    <button data-set-palette="solarized-light" title="solarized-light" style="--sw:#268bd2" aria-label="solarized-light"></button>
+  </div>
+  <span class="palette-name" data-palette-name>catppuccin-mocha</span>
+</aside>
+<main class="content">
+<article class="md">
+<p class="note">Documentation for core/SDK v0.48.0.
+<a href="../docs/roadmap.html#release-qualification">Release and verification scope</a>.</p>
+<h1 id="workspace-migration">Workspace migration</h1>
+<p>The module model — <code>env.toml</code>, <code>hosts/*.ts</code>, <code>modules/*.ts</code> — is
+<strong>legacy: supported, with no removal date</strong>. The workspace (one root
+<code>gripsack.ts</code>) is the active development surface. This page is where
+the SDK's <code>pixi(package)</code> diagnostic sends you, and the honest mapping
+for moving a repo across — including what you should <em>not</em> move yet.</p>
+<h2 id="where-the-two-models-stand">Where the two models stand</h2>
+<table>
+<thead>
+<tr>
+<th>model</th>
+<th>entrypoint</th>
+<th>status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>modules</td>
+<td><code>env.toml</code> + <code>hosts/&lt;name&gt;.ts</code> selecting <code>modules/*.ts</code></td>
+<td>legacy — retained readers and execution, including legacy activation hooks; removed constructors below are not restored</td>
+</tr>
+<tr>
+<td>workspace</td>
+<td>one root <code>gripsack.ts</code></td>
+<td>the active development surface</td>
+</tr>
+</tbody>
+</table>
+<p><code>grip apply --help</code> labels the host/module model "legacy". That word
+is a direction of travel, not a countdown: <strong>no removal date is set</strong>.
+A module repo that does everything you need has no obligation to move.
+New capability — coherent Conda/Pixi environments, executing profile
+hooks, platform-keyed locks — lands as workspace outputs.</p>
+<h2 id="what-maps-to-what">What maps to what</h2>
+<table>
+<thead>
+<tr>
+<th>in the module repo</th>
+<th>in the workspace</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>hosts/&lt;name&gt;.ts</code> — one entrypoint per machine, <code>defineEnv((ctx) =&gt; …)</code></td>
+<td>one root <code>gripsack.ts</code>; workspace outputs replace host entrypoint selection</td>
+</tr>
+<tr>
+<td>per-host parameters (template vars computed from <code>ctx.facts</code>)</td>
+<td>values computed in the entrypoint; <code>targetPlatform({ os, arch, abi })</code> describes command compatibility, not a machine identity</td>
+</tr>
+<tr>
+<td>per-host binary destinations in module <code>install</code></td>
+<td>profile file destinations — <code>symlinkTo</code> / <code>trackedCopyTo</code> / <code>managedBlock</code>; <code>profile.launchers</code> exposes explicitly selected environment commands</td>
+</tr>
+<tr>
+<td><code>locks/&lt;host&gt;.lock</code> — one lockfile per host</td>
+<td>one <code>gripsack.lock</code>, keyed by platform rather than hostname</td>
+</tr>
+<tr>
+<td>ownership modes <code>symlink</code> / <code>trackedCopy</code> / <code>merge</code> / <code>template</code></td>
+<td><code>symlinkTo</code> / <code>trackedCopyTo</code> / <code>managedBlock</code> / <code>templateText</code> or captured <code>templateFile</code> — ownership semantics unchanged</td>
+</tr>
+<tr>
+<td><code>pixi(package)</code> provider</td>
+<td><code>conda.environment(...)</code> or <code>pixi.fromLock(...)</code> — below</td>
+</tr>
+</tbody>
+</table>
+<p>Config ownership is unchanged between the models: store-owned
+symlinks, drift-preserving tracked copies, delimited managed blocks,
+rendered templates — the same table as
+<a href="../docs/modules.html#ownership-modes">ownership modes</a>. The contract is the
+same, but changing entrypoint/state roots is a deliberate ownership
+cutover, not automatic transfer of another store's history.</p>
+<h2 id="removed-pixipackage">Removed: <code>pixi(package)</code></h2>
+<p>The old callable <code>pixi("name", { … })</code> constructor was removed in
+0.44. Calling the public <code>pixi</code> binding now reports an E130 migration
+diagnostic — not a bare <code>TypeError</code> — naming the removal, the
+replacements and this page:</p>
+<pre><code class="language-text">pixi(package) was removed in 0.44; a coherent environment belongs in a gripsack.ts workspace
+  help: Use conda.environment(...) or pixi.fromLock(...).
+        Migration guide: https://gripsack.dev/docs/workspace-migration.html
+</code></pre>
+<p>A package stops being one fetched thing and becomes a coherent
+environment output. Solve it natively:</p>
+<div class="window">
+  <div class="titlebar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="wtitle">gripsack.ts — conda.environment</span></div>
+<pre><code class="language-typescript">import { conda, pkg, provider, targetPlatform } from "@gripsack/core";
+
+const target = targetPlatform({ os: "linux", arch: "x86_64", abi: "gnu" });
+
+export const node = pkg("node", {
+  producer: provider(conda.environment({
+    channels: ["conda-forge"],
+    packages: { nodejs: "=26.10.0" },
+  })),
+  commands: { node: "bin/node" },
+  target,
+  layout: { kind: "prefix_materialized" },
+});
+// … an environment("tools", …) output selects packages; a
+// profile("with-node", …) output deploys the environment and any
+// config files — see below.
+</code></pre>
+</div>
+
+<p>The complete verified shape — environment and profile wired up,
+applied and sourced — is
+<a href="../docs/environments.html#a-profile-with-a-real-toolchain">persistent environments</a>.</p>
+<p>…or freeze exactly what you reviewed as a Pixi lock. The manifest and
+lock are captured repository files, declared as named workspace inputs
+— never host paths:</p>
+<div class="window">
+  <div class="titlebar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="wtitle">gripsack.ts — pixi.fromLock</span></div>
+<pre><code class="language-typescript">import { inputFile, pixi, provider } from "@gripsack/core";
+
+// captured repository files become named inputs…
+const inputs = [
+  inputFile("pixi-manifest", "pixi.toml"),
+  inputFile("pixi-lock", "pixi.lock"),
+];
+
+// …and the frozen import selects a lock environment by name
+const pyrightSource = provider(pixi.fromLock({
+  manifest: "pixi-manifest",
+  lock: "pixi-lock",
+  environment: "default",
+}));
+// pass `inputs` to workspace({ inputs, outputs: [/* … */] }) and use
+// the source as pkg("pyright", { producer: pyrightSource, /* … */ })</code></pre>
+</div>
+
+<p>A changed manifest or lock document is refused until an explicit
+<code>grip update</code> and renewed exact-digest source approval — between
+updates as well. For a cross-host libc/kernel solve baseline, declare
+<code>systemRequirements</code> in native <code>conda.environment</code>, or
+<code>[system-requirements]</code> in the manifest used for a Pixi import — see
+<a href="../docs/environments.html#solve-baselines">solve baselines</a>. Neither replaces
+actual archive/CPU/runtime admission on the receiving host.</p>
+<p>There are two separate decisions: approve the source bytes for
+evaluation, then explicitly refresh the imported frozen identity.
+For a deliberately reviewed manifest or lock edit:</p>
+<pre><code class="language-sh">set -eu
+grip trust inspect --json
+# Load this edit's exact reviewed values from your review, not inspect.
+: &quot;${reviewed_bundle:?review the changed inputs first}&quot;
+: &quot;${reviewed_policy:?review the changed policy first}&quot;
+grip trust add --bundle &quot;$reviewed_bundle&quot; --policy &quot;$reviewed_policy&quot;
+if result=$(grip check 2&gt;&amp;1); then
+  echo &quot;expected a stale frozen-input refusal&quot; &gt;&amp;2
+  exit 1
+fi
+printf '%s\n' &quot;$result&quot;
+case &quot;$result&quot; in
+  *'Pixi input '*'differs from its frozen identity'*) ;;
+  *) echo &quot;unexpected failure — stop and investigate&quot; &gt;&amp;2; exit 1 ;;
+esac
+grip update
+</code></pre>
+<p>Read the failure: the expected refusal is E301, naming the changed
+Pixi input and its frozen identity; an unrelated error is not proof.
+After <code>update</code>, inspect the capture and resulting <code>gripsack.lock</code>
+again. Use the <a href="../docs/safety.html#unattended-approval">unattended comparison</a>
+with newly reviewed expected digests, then <code>grip check</code> and apply the
+profile. Do not keep using the pre-update approval.</p>
+<p>Measured with the promoted 0.45.0 binary on modern Linux and UBI 8:
+adding a comment to <strong>each of <code>pixi.toml</code> and <code>pixi.lock</code> separately</strong>
+still failed <code>check</code> after the changed source had been approved.
+Each explicit <code>update</code> followed by review/reapproval made <code>check</code>
+succeed. The imported 42-archive closure stayed identical: refreshing
+the document identity was not a re-solve or an integrity bypass.</p>
+<h2 id="lockfiles">Lockfiles</h2>
+<p>Legacy resolution pins one <code>locks/&lt;host&gt;.lock</code> per host: N machines,
+N lockfiles, each resolved on its own host. A workspace writes <strong>one
+platform-keyed <code>gripsack.lock</code></strong>: per platform it records immutable
+exact archives plus the solve's recorded assumptions. Identity is not
+portability — before reusing or re-solving a lock across hosts, read
+<a href="../docs/environments.html#solve-baselines">solve baselines</a>.</p>
+<h3 id="upgrading-the-evaluated-frontend">Upgrading the evaluated frontend</h3>
+<p>Use matching core/SDK 0.48 assets for these declarations (IR8); retained v3–v7
+execution keeps its original versioned semantics. Evaluating with changed
+frontend bytes can invalidate the captured frontend/import pins in an existing
+<code>gripsack.lock</code>. An E301 refusal after source approval is not permission to edit
+those pins.</p>
+<p>The <a href="https://github.com/gripsack-dev/gripsack/blob/core-v0.48.0/typescript/README.md#reviewer-migration-delete-plumbing-keep-verification">0.48 migration examples</a>
+replace generated tree manifests with captured <code>repoTree</code>, duplicate inline
+templates with <code>templateFile</code>, handwritten wrappers with profile-managed
+launchers, and versioned archive selectors with explicit <code>archiveRoot</code>.
+Keep source capture exclusions, destination ownership, lock review and
+exact-digest approval; shorter declarations do not waive those boundaries.</p>
+<p>Review and approve the upgraded checkout/SDK, explicitly run <code>grip update</code>
+for the affected source, then inspect and review the generated Gripsack lock.
+Approve its exact new bundle/policy digests before <code>check</code>, <code>run</code> or <code>apply</code>.
+This is a deliberate update; native Conda sources may solve again, so review
+the selected baseline and archives.</p>
+<p>For <code>pixi.fromLock</code>, the reviewed <code>pixi.toml</code> and <code>pixi.lock</code> can stay
+byte-identical: import that frozen solve rather than regenerating it. Actual
+0.45→0.46 qualification observed the old Gripsack lock's frontend refusal,
+then refreshed only <code>gripsack.lock</code>; the upstream Pixi documents and all42
+archive identities stayed unchanged. Repeated frozen consumers subsequently
+ran on glibc2.41 and UBI8/glibc2.28 without a public-channel re-solve.</p>
+<h2 id="running-both-during-migration">Running both during migration</h2>
+<p>Keep <strong>separate entrypoint roots</strong> while migrating: for example, a
+<code>legacy-env/</code> checkout containing <code>env.toml</code>, <code>hosts/</code> and <code>modules/</code>,
+and a sibling <code>workspace-env/</code> checkout containing its own <code>env.toml</code>
+and <code>gripsack.ts</code>. Run commands from the appropriate checkout.
+Adding a root <code>gripsack.ts</code> to the legacy checkout <strong>shadows the
+<code>hosts/*.ts</code> entrypoints</strong>; <code>--host</code> is not a switch back to the module
+model or a workspace selector.</p>
+<p>Use distinct private <code>GRIPSACK_HOME</code> directories and disjoint
+destinations while comparing deployments. Separate state roots and
+workspace identities do <strong>not</strong> share recorded ownership.
+<code>--take-over</code> is not an ownership migration command: it does not
+transfer a legacy generation's ownership to a workspace.</p>
+<h3 id="generation-bound-migration">Generation-bound migration</h3>
+<p>Current core supports <code>--migrate-from N</code> for an <strong>exact current legacy
+generation</strong>, without a separate prune generation. This is the preferred path
+for intact legacy-owned links, including a directory symlink becoming a physical
+tracked-copy tree:</p>
+<ol>
+<li>Keep the previous checkout, the current core binary and the original private
+   state. Record <code>N</code> from <code>grip generations</code>; do not collect its recovery data.</li>
+<li>Prepare the workspace in a separate source checkout. For the actual cutover,
+   use the <strong>original <code>GRIPSACK_HOME</code></strong>, not the separate state used for comparison.
+   Review/approve its source, run <code>grip update</code> when pins need refreshing, then
+   review/approve the resulting lock and run <code>grip check</code>. This does not release
+   old destinations.</li>
+<li>Review <code>grip plan personal --migrate-from N</code>, then run
+   <code>grip apply personal --migrate-from N</code>. Replace <code>personal</code> with your profile.
+   Replacement content and known runtime requirements prepare before old paths
+   are released. Stale generation numbers, foreign objects and drift refuse;
+   migration is not broader takeover permission.</li>
+<li>Verify deployed commands, modes, sibling resources and application behavior
+   before discarding the predecessor. Keep dependent commands stopped during
+   cutover: destination changes are journaled, <strong>not one atomic profile-wide
+   filesystem operation</strong>, so temporary unavailability is possible.</li>
+</ol>
+<p>Pre-flip failures compensate destination mutations; interrupted transactions are
+reconciled by the normal recovery path. A late activation/verification failure
+does not imply automatic rollback. Inspect hook outcomes and use the current
+binary's <code>grip rollback N</code> for explicit recovery. Preserve evidence and stop if
+foreign changes prevent safe restoration; do not delete journals or force an
+older binary onto newer state.</p>
+<p>The older prune-first sequence below remains an alternative, with a longer gap
+between deployments. It is not required when generation-bound migration applies.</p>
+<h3 id="apply-the-legacy-prune-before-switching">Apply the legacy prune before switching</h3>
+<p>If deliberately using the prune-first alternative, shared paths require two
+separate applies. Keep the old checkout, host entrypoint and original private
+state available throughout the cutover:</p>
+<ol>
+<li><strong>Stay on the legacy entrypoint.</strong> Do not add <code>gripsack.ts</code> yet.
+   Remove the shared module declarations from <code>hosts/&lt;old-host&gt;.ts</code>
+   (or remove just their shared destinations). Preserve unrelated
+   modules. Removing declarations alone releases nothing.</li>
+<li>Review the edited legacy capture and approve its exact bundle and
+   policy digests using <a href="../docs/safety.html#unattended-approval">unattended approval</a>.
+   From the legacy checkout, with the <strong>original</strong> <code>GRIPSACK_HOME</code>,
+   run <code>grip plan --host old-host</code> and review the prune list. Then run
+   <code>grip apply --host old-host</code> <strong>without a module selector</strong>, so the
+   full legacy host commits the prune generation.</li>
+<li>Confirm that this apply succeeded and the shared paths were
+   released. Ordinary tracked-copy drift remains preserved, not
+   silently removed: a preserved destination is not a successful
+   clean cutover. Stop and resolve it through the normal ownership
+   workflow rather than deleting files or editing journals.</li>
+<li><strong>Only now switch entrypoints.</strong> Add the root <code>gripsack.ts</code>, or
+   move to the separate workspace checkout and its deliberately
+   chosen private state. Review/approve that source, run <code>grip update</code>,
+   review the resulting <code>gripsack.lock</code> and captured inventory, then
+   approve the new exact digests again. Review <code>grip plan</code> and apply
+   the intended profile, for example <code>grip apply personal</code>.</li>
+</ol>
+<p>There is a deliberate interval between steps 2 and 4 during which
+pruned tools/configuration are <strong>absent</strong>. Schedule the cutover
+accordingly; this is not an atomic transfer across identities.
+If a prior unmanaged file was retained for restoration, pruning can
+restore it instead of leaving an absent path: inspect the result
+before the new profile claims it. Do not roll an old legacy
+generation back over paths now owned by the workspace.</p>
+<p>Positive fixture evidence with public 0.45.0 on Linux/WSL: a legacy
+symlink was deployed in generation 1, an independently reviewed
+empty legacy host pruned it in generation 2, then a reviewed root
+workspace update/reapproval/apply deployed a tracked copy at the same
+destination in generation 3. No <code>--take-over</code>, manual destination
+deletion or state editing was used.</p>
+<p>Platform-keyed locking does not mean host-specific configuration
+disappears: two machines with the same OS/architecture/ABI share a
+platform key, not a hostname or a guarantee of identical runtime
+capabilities. Review output selection and the recorded solve baseline
+separately.</p>
+<h2 id="downgrade-boundary">Downgrade boundary</h2>
+<p><strong>Newer-format state is not generally downgrade-supported.</strong> Keep the
+newer binary to operate on it; do not point an old binary at it to
+apply, roll back, recover or collect it. Older released binaries were
+not retroactively patched.</p>
+<p>Limited observations with completed transactions on 2026-10-06:
+0.42.0 collected and rolled back a simple legacy generation and a
+file-only workspace fixture left by 0.44.1. Those cases do <strong>not</strong>
+establish general downgrade safety. With a structured environment
+generation, 0.42.0 <code>gc</code> refused the unknown <code>kind</code> field, while bare
+<code>rollback</code> returned no readable rollback target (exit 1). That is not
+a successful rollback. <code>status</code> was not available in 0.42.0.</p>
+<p>Workspace-hook generation manifests use the 0.45 version-2 envelope,
+which old readers reject. The new binary retains readers for older
+formats; that forward-upgrade compatibility is not a promise that an
+old binary understands new journals, activation records or generation
+manifests. Preserve backups and use the newer binary for recovery.</p>
+</article>
+<footer>
+  <span><span class="blink"></span> © 2026 <a href="https://github.com/tknawara">Tarek Nawara</a></span>
+  <span>MIT license</span>
+  <a href="https://github.com/gripsack-dev">gripsack-dev</a>
+  <a href="https://github.com/gripsack-dev/gripsack">source</a>
+  <a href="../index.html">home</a>
+  <span style="margin-left:auto"><span class="fversion">v0.48.0</span> · eleven palettes</span>
+</footer>
+</main>
+</div>
+</body>
+</html>
