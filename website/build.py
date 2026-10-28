@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 """Build static pages locally from the site tree and a selected core Git commit.
 
-    uv run --with markdown python website/build.py --core ../gripsack --core-ref core-v0.48.0
+    uv run --with markdown python website/build.py --core ../gripsack --core-ref HEAD
     python3 -m http.server 8000 --directory public
     python3 website/publish.py
 
-The core version, changelog and existing installer are read from local Git
-objects. This is documentation rendering, not signature or release admission.
+The core version and existing installer are read from local Git objects.
+This is documentation rendering, not signature or release admission.
 Pages only uploads/deploys the resulting static commit; it never builds products.
 """
 
@@ -14,9 +14,9 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+import html
 import re
 import shutil
-import json
 import subprocess
 import tomllib
 from pathlib import Path
@@ -51,36 +51,25 @@ def asset_version() -> str:
     return _ASSET_VERSION
 
 
-# Docs mirrored onto the site: url-slug -> (source file, nav label).
+# Canonical product docs: url-slug -> (source file, nav label).
 PAGES: dict[str, tuple[str, str]] = {
-    "adopting": ("doc/adopting.md", "adopting your dotfiles"),
-    "compare": ("doc/compare.md", "compare"),
-    "architecture": ("doc/architecture.md", "architecture"),
-    "safety": ("doc/safety.md", "safety"),
-    "modules": ("doc/modules.md", "modules"),
+    "install": ("doc/install.md", "install"),
+    "workspaces": ("doc/workspaces.md", "workspaces"),
+    "packages": ("doc/packages.md", "packages"),
     "environments": ("doc/environments.md", "environments"),
-    "workspace-migration": ("doc/workspace-migration.md", "workspace migration"),
+    "adopting": ("doc/adopting.md", "profiles & dotfiles"),
+    "builds": ("doc/builds.md", "BuildKit & OCI"),
+    "tasks": ("doc/tasks.md", "tasks & checks"),
+    "fetchers": ("doc/fetchers.md", "sources & locks"),
+    "safety": ("doc/safety.md", "safety & recovery"),
     "settings": ("doc/settings.md", "settings"),
     "settings/reference": ("doc/settings/reference.md", "settings reference"),
     "runs": ("doc/runs.md", "run logs"),
-    "fetchers": ("doc/fetchers.md", "fetchers"),
-    "fetchers/apt": ("doc/fetchers/apt.md", "apt"),
-    "linters": ("doc/linters.md", "linters"),
-    "skills": ("doc/skills.md", "skills"),
-    "roadmap": ("doc/roadmap.md", "roadmap"),
-    # The changelog remains with the selected core source, not a second mirror.
+    "skills": ("doc/skills.md", "agent guidance"),
+    "compare": ("doc/compare.md", "where it fits"),
+    "architecture": ("doc/architecture.md", "architecture"),
     "changelog": ("doc/changelog.md", "what's new"),
 }
-
-# Links inside the mirrored docs that point at files we do NOT mirror:
-# send them to the blob/tree on GitHub instead.
-GITHUB_LINKS: dict[str, str] = {
-    "../plan/": f"{REPO}/tree/main/plan/",
-    "plan/": f"{REPO}/tree/main/plan/",
-}
-
-# Doc-local SVG diagrams: inlined and re-themed alongside the logo.
-DOC_ASSETS = {"architecture.svg", "linters-flow.svg", "fetchers-flow.svg"}
 
 # Palette hexes -> site CSS vars, so inlined SVGs re-theme with the
 # palette picker (an <img> can't inherit page CSS).
@@ -147,15 +136,19 @@ PALETTE_DOTS = [
 
 
 def rail(active: str, toc: list[tuple[str, str]], root: str = "../") -> str:
-    # nested slugs (fetchers/apt) render indented under their parent
-    links = "".join(
-        f'    <a{" class=\"active child\"" if href == active else ""}'
-        f'{" class=\"child\"" if href != active else ""}'
-        f' href="{root}{href}">{"↳ " if href.count("/") > 1 else ""}{label}</a>\n'
-        if href.count("/") > 1
-        else f'    <a{" class=\"active\"" if href == active else ""} href="{root}{href}">{label}</a>\n'
-        for href, label in RAIL_LINKS
-    )
+    # Nested canonical pages render indented under their parent.
+    entries = []
+    for href, label in RAIL_LINKS:
+        child = href.count("/") > 1
+        classes = " ".join(name for name, enabled in (
+            ("active", href == active), ("child", child),
+        ) if enabled)
+        current = ' aria-current="page"' if href == active else ""
+        entries.append(
+            f'    <a class="{classes}"{current} href="{root}{href}">'
+            f'{"↳ " if child else ""}{html.escape(label)}</a>\n'
+        )
+    links = "".join(entries)
     toc_html = "".join(f'    <a href="#{anchor}">{label}</a>\n' for label, anchor in toc)
     toc_block = (
         f'  <span class="rail-head">on this page</span>\n  <div class="rail-toc">\n{toc_html}  </div>\n'
@@ -172,9 +165,8 @@ def rail(active: str, toc: list[tuple[str, str]], root: str = "../") -> str:
     <img src="{root}assets/icon.svg" alt="gripsack icon"><span class="wordmark">gripsack</span>
   </a>
   <span class="rail-head">menu</span>
-  <nav>
+  <nav aria-label="Documentation">
 {links}    <a class="gh" href="{REPO}">github ↗</a>
-    <a href="{root}docs/roadmap.html#supported-platforms">Linux &amp; WSL support</a>
   </nav>
 {toc_block}  <span class="rail-head">theme</span>
   <div class="rail-palettes">
@@ -190,18 +182,17 @@ def page(title: str, body: str, active: str, toc: list[tuple[str, str]], root: s
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{title}</title>
-<meta name="description" content="gripsack for Linux and WSL — your whole environment in one bag. Packages from any source plus your dotfiles, with generations and rollback.">
+<meta name="description" content="Declare user-space packages, native environments and personal profiles. Build with BuildKit, export OCI images and retain managed generations.">
 <link rel="icon" href="{root}assets/favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="{root}assets/site.css?v={asset_version()}">
 <script src="{root}assets/site.js?v={asset_version()}" defer></script>
 </head>
 <body class="docs">
+<a class="skip-link" href="#main">Skip to content</a>
 <div class="shell">
 {rail(active, toc, root)}
-<main class="content">
+<main class="content" id="main">
 <article class="md">
-<p class="note">Documentation for core/SDK v{site_version()}.
-<a href="{root}docs/roadmap.html#release-qualification">Release and verification scope</a>.</p>
 {body}
 </article>
 <footer>
@@ -228,9 +219,7 @@ def extract_toc(md_body: str) -> list[tuple[str, str]]:
 
 
 def rewrite(body: str, slugs: set[str], root: str = "../") -> str:
-    """Fix links/images in converted doc HTML for their new home."""
-    for name in DOC_ASSETS:
-        body = body.replace(f'src="{name}"', f'src="{root}assets/{name}"')
+    """Resolve canonical doc links from any page depth."""
     for slug in slugs:
         # `slug.md` and `slug.md#anchor` both land on the built page;
         # anchors previously survived un-rewritten and 404'd.
@@ -239,8 +228,6 @@ def rewrite(body: str, slugs: set[str], root: str = "../") -> str:
             lambda m: f'href="{root}docs/{slug}.html{m.group(1) or ""}"',
             body,
         )
-    for src, dst in GITHUB_LINKS.items():
-        body = body.replace(f'href="{src}', f'href="{dst}')
     return body
 
 
@@ -248,55 +235,21 @@ def rewrite(body: str, slugs: set[str], root: str = "../") -> str:
 
 def build_docs() -> None:
     slugs = set(PAGES)
-    destinations = {slug: slug for slug in PAGES}
-    destinations.update({"apt": "fetchers/apt", "settings-reference": "settings/reference"})
-    for destination, slug in destinations.items():
-        src, _ = PAGES[slug]
-        root = "../" * (1 + destination.count("/"))
-        path = ROOT / src
-        if slug == "changelog":
-            text = RELEASE_FILES["CHANGELOG.md"].decode("utf-8")
-        else:
-            text = path.read_text()
+    for slug, (src, _) in PAGES.items():
+        root = "../" * (1 + slug.count("/"))
+        text = (ROOT / src).read_text()
         text = text.replace("{release_source}", RELEASE["source"]["commit"])
+        text = text.replace("{core_version}", site_version())
         body = markdown.markdown(
             text, extensions=["fenced_code", "tables", "toc", "sane_lists"]
         )
         body = rewrite(body, slugs, root)
-        # Inline + theme doc-local SVG diagrams.
-        for name in DOC_ASSETS:
-            if name.endswith(".svg"):
-
-                def inline_svg(m: re.Match, name: str = name) -> str:
-                    alt = re.search(r'alt="([^"]*)"', m.group(0))
-                    label = alt.group(1) if alt else name
-                    return (
-                        f'<div class="diagram" role="img" aria-label="{label}">'
-                        f"{themed_svg(ROOT / 'doc' / name)}</div>"
-                    )
-
-                body = re.sub(
-                    rf'<img [^>]*src="\.\./assets/{re.escape(name)}"[^>]*>',
-                    inline_svg,
-                    body,
-                )
         title = re.match(r"# (.+)", text).group(1).strip()
         toc = extract_toc(body)
-        dst = OUT / "docs" / f"{destination}.html"
+        dst = OUT / "docs" / f"{slug}.html"
         dst.parent.mkdir(parents=True, exist_ok=True)
-        rendered = page(f"gripsack — {title.lower()}", body, f"docs/{slug}.html", toc, root)
-        if destination != slug:
-            # Meta refresh drops fragments. Keep the full page usable without
-            # JavaScript; normal navigation preserves queries and deep links.
-            canonical = f"{root}docs/{slug}.html"
-            redirect = (
-                f'<link rel="canonical" href="{canonical}">'
-                f'<script>location.replace({json.dumps(canonical)}'
-                '+location.search+location.hash)</script>'
-            )
-            rendered = rendered.replace("</head>", redirect + "</head>")
-        dst.write_text(rendered)
-        print(f"built docs/{destination}.html from {src} ({len(toc)} toc entries)")
+        dst.write_text(page(f"gripsack — {title.lower()}", body, f"docs/{slug}.html", toc, root))
+        print(f"built docs/{slug}.html from {src} ({len(toc)} toc entries)")
 
 
 def assemble() -> None:
@@ -321,18 +274,11 @@ def assemble() -> None:
     for name in ("icon.svg", "favicon.svg", "site.css", "site.js"):
         shutil.copy(ROOT / "website" / "assets" / name, OUT / "assets" / name)
     shutil.copy(ROOT / "doc" / "logo.svg", OUT / "assets" / "logo.svg")
-    # Historical media URLs remain valid, although the homepage no longer loads them.
-    (OUT / "img").mkdir(exist_ok=True)
-    for gif in (ROOT / "img").glob("*.gif"):
-        shutil.copy(gif, OUT / "img" / gif.name)
-    # the PEP 503 index for griplint-* packages, served at /simple —
-    # and mirrored at /packages: some content-filtering egress blocks
-    # /simple/* paths specifically (observed: Bloomberg's proxy)
+    # Independently supported griplint distribution endpoints stay outside
+    # product navigation; /packages also serves clients that block /simple.
     if (ROOT / "simple").exists():
         shutil.copytree(ROOT / "simple", OUT / "simple", dirs_exist_ok=True)
         shutil.copytree(ROOT / "simple", OUT / "packages", dirs_exist_ok=True)
-    for name in DOC_ASSETS:
-        shutil.copy(ROOT / "doc" / name, OUT / "assets" / name)
     print("copied landing page + assets")
 
 
@@ -346,7 +292,7 @@ def local_core_inputs(core: Path, reference: str) -> tuple[dict, dict[str, bytes
         return subprocess.check_output(["git", "-C", str(core), "show", f"{commit}:{name}"])
 
     manifest = tomllib.loads(blob("Cargo.toml").decode("utf-8"))
-    files = {name: blob(name) for name in ("CHANGELOG.md", "install.sh")}
+    files = {"install.sh": blob("install.sh")}
     return {"version": manifest["workspace"]["package"]["version"],
             "source": {"commit": commit}}, files
 

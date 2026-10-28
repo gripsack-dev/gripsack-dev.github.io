@@ -1,232 +1,51 @@
-# Fetchers
+# Sources and locks
 
-How gripsack gets bytes. Two tiers: in-tree fetchers maintained in the
-core, and `gripfetch-*` plugins for everything else. Version pinning
-always lands in the lockfile (`grip update` re-resolves; `apply`
-verifies).
-![the fetcher plugin flow: a module's pluginFetch call with opaque args → the core discovers the executable (env.toml path → the plugin store → PATH) and sends one JSON request on stdin → the gripfetch-artifactory plugin writes bytes and streams NDJSON back → the core hash-verifies the bytes against the lockfile before anything enters the store, with the in-tree fetchers below](fetchers-flow.svg)
+A source describes where package or recipe input bytes come from. A provider package wraps the source directly; a recipe transforms source into a new output. Source resolution and personal deployment are separate operations.
 
-## In-tree (first-class)
+## Choose an input
 
-| fetcher | status | pinning |
+| Source | Use | Frozen identity |
 |---|---|---|
-| `fileFetch(path)` | live | content hash |
-| `tarball(url, sha256)` | live | pinned sha256, verified before the store |
-| `git(url, rev?)` | live | shallow-fetched and pinned to the resolved commit. No rev follows the default branch at update; a named branch/tag is also frozen to its resolved commit for apply. An explicit commit ID remains fixed |
-| `githubRelease({ repo, asset, version?, base_url? })` | live | resolved release and verified asset hash, locked; `version` pins the tag. `base_url` accepts a bare GHE base URL (`/api/v3` is appended). Private/GHE assets use the API endpoint when a token is explicitly bound to its host; see authentication below |
-| `brew(...)` (bottles) | live | update resolves the current stable formula and pins its bottle URL, version and digest. A declared version is a tripwire against that resolution, not a range. Cold apply reuses the locked bottle without asking for today's stable version. Raw bottle layout remains: install paths look like `jq/{version}/bin/jq` |
+| `fileFetch(path)` | Captured local payload or source directory | Captured content |
+| `tarball(url, sha256)` | An explicitly pinned HTTP archive | Declared SHA-256 |
+| `git(url, rev?)` | A source repository, optionally selecting a revision | Resolved commit |
+| `githubRelease({ repo, asset, version? })` | A release asset | Resolved release and verified asset hash |
+| `conda.environment(...)` | One coherent native Conda solve | Complete selected archive closure and policy |
+| `pixi.fromLock(...)` | An explicit captured manifest/lock import | Selected external locked environment |
 
-`mise` is deliberately not a fetcher: its GitHub-backed releases can use
-`githubRelease` directly.
+Use [packages](packages.md) for a complete archive example, [environments](environments.md) for Conda and Pixi declarations, and [BuildKit](builds.md) for source recipes. Platform support is Linux x86_64 and WSL2, not every platform represented by upstream metadata.
 
-A gzipped *single file* (`.gz` that isn't a tar) stages decompressed as
-one executable, named for the asset minus the suffix — alongside
-`.tar.gz`/`.tar.xz`/`.zip` archives and bare uncompressed binaries.
+`git` without a revision follows the default branch during update; a named branch or tag is then frozen to its resolved commit. An explicit commit remains fixed. A GitHub `version` selects an exact tag. Source declarations do not make arbitrary upstream payloads trustworthy.
 
-## Coherent Conda and Pixi environments
-
-Since 0.44, workspace package providers use `conda.environment(...)` to solve a
-coherent environment, or `pixi.fromLock(...)` to import a selected environment
-from an explicitly captured Pixi manifest and lock. These are workspace sources,
-not single-package fetchers. The old callable `pixi(...)` SDK constructor is
-removed; retained legacy IR keeps its original meaning.
-
-The lock binds the complete selected closure, channel/platform policy and
-original archive URLs and digests. A cold frozen build acquires those exact
-archives without solving again. Native prefixes and image prefixes are
-materialized independently from the same locked records.
-
-Native `packages` values use Conda matchspec syntax: for example,
-`"==25.07.1"` pins a version; bare `"25.07.1"` is not a supported range.
-`pixi.fromLock` imports the external solve without upgrading its packages.
-Update that lock with its solver when an upgrade is intended.
-
-Source update preflights exact Conda archives for unsupported package lifecycle
-scripts before prefix materialization. Refused scripts must not be deleted or
-bypassed. Workspace hooks are a separate, supported lifecycle; they do not grant
-permission to execute package scripts.
-
-See the [workspace SDK reference](https://github.com/gripsack-dev/gripsack/blob/core-v0.48.0/typescript/README.md#a-workspace-is-a-function-ir-v8)
-and the [coherent environment example](https://github.com/gripsack-dev/example-env-typescript/tree/main/workspaces/conda).
-Current release support is Linux x86_64, including WSL2's Linux environment,
-not native Windows. Earlier Linux qualification of the BuildKit production
-backend and coherent Conda runtime is not qualification of every package or
-deployment host. ARM, macOS, the Mac VM worker and the Mac Conda journey are
-outside active support scope; they are not pending release blockers.
-
-Use the [current release's installation instructions](https://github.com/gripsack-dev/gripsack/releases/tag/core-v0.48.0):
-0.48 ships unsigned archives, not a new signed-installer or npm registry release.
-Keep the SDK compatible with the core; installing an SDK does not upgrade the
-binary. Historical artifacts are not a current platform-support promise.
-
-## Complete source pins
-
-Since 0.37.0, `grip update` acquires and verifies sources, captures the selected
-repo overlay and writes completed pins once after all selected modules succeed.
-Source-only merged trees are cached without creating destinations or a generation.
-Build recipes and activation hooks do not run. The first warm or cold apply leaves
-the completed lockfile unchanged; a failed update preserves its previous bytes.
-“One commit” means one user lockfile diff — grip does not make git commits.
-
-Archive downloads are bounded private spools and their full transport digest is
-verified before extraction. Decoded bytes, entry counts, metadata and decoder
-working memory are admitted separately. Traversal, link escape and unsupported
-entries fail before publication. See [acquisition limits](settings/reference.md).
-Trusted runtime provisioning captures host network policy before repo build-env
-injection; artifact clients capture it afterwards. Pools are shared only within
-that command and environment phase.
-
-### Read-only surveys and layout evidence
-
-`grip update --check` surveys the selected modules even when an individual source
-fails. Each module is unchanged, would change, failed, or inapplicable; the final
-summary says incomplete when any source failed. Exits are **0** complete/current,
-**1** complete/changes available, **2** incomplete or operational failure.
-Neither source cache nor lockfile is published by a check.
-
-Source-only install/config and payload-verification paths are checked against the
-captured, merged stage **before** normal update publishes its cache or lock.
-Known missing paths fail with the original pattern, raw locked tag, expanded path
-and observed top-level entries. Recipes and verification programs never run during
-update. Recipe-produced layout is deferred until its output exists; `check` and
-`plan` use matching cached artifacts without downloading and say when evidence is
-unavailable.
-
-### Authentication and request failures
-
-Gripsack retains explicit host-bound credentials. `GITHUB_TOKEN` takes precedence
-over `GH_TOKEN` and goes only to github.com/api.github.com. Enterprise credentials
-use `GITHUB_ENTERPRISE_TOKEN`, then `GH_ENTERPRISE_TOKEN`, and require
-`GH_HOST` (or `GITHUB_HOST`) naming the intended enterprise host:
+## Update deliberately
 
 ```sh
-export GH_HOST=ghe.example.com
-# Supply GH_ENTERPRISE_TOKEN through your trusted secret environment.
-grip update --check --host laptop
+grip update --check
+grip update
 ```
 
-The module's `base_url` is a destination, **not a token grant**. This is stricter
-than gh's ability to infer a host from its command/repository context; it is not
-exact gh-CLI parity. Missing, unbound/mismatched and rejected bound credentials
-get different hints for resolution and locked cold downloads. Correct binding
-also determines whether the API asset URL or browser URL is attempted.
-Cross-host and HTTPS-to-HTTP redirects do not forward authorization.
+`--check` surveys without publishing sources or writing `gripsack.lock`. Exit 0 means complete/current, 1 means complete with changes, and 2 means incomplete or operational failure. Network access, evaluator provisioning and run logging can still occur.
 
-An unauthenticated GitHub API primary quota is shared by an egress IP (60/hour),
-not by a grip process. A local throttle cannot restore that quota. Confirmed
-403/429 rate failures name the reset/cooldown and suggest a public token when
-none is bound; other 403s can be permissions or secondary limits. A token is not
-a promise to bypass every network/SSO/rate policy.
+`grip update` resolves and verifies sources, records complete platform-keyed pins and captures frontend/import identities. It does not run build recipes or activation hooks, and it does not deploy destinations. Review the lock diff and renew exact source/policy approval when required before the next frozen consumer.
 
-Grip inherits the caller's environment. Non-interactive SSH does not necessarily
-load `/etc/profile.d`; supply secrets explicitly in the calling provisioning
-script. Grip never sources profiles, reads gh's credential store, or logs tokens
-to compensate for missing environment.
+A changed Pixi manifest or lock must be imported explicitly with `grip update`; that operation does not re-solve or rewrite the external lock. Use your Pixi workflow first when you intend to change packages.
 
-First-party HTTP GETs retry classified transient 500/502/503/504, connection and
-interrupted-body failures. The limits are **three policy attempts total**, one
-**600s operation deadline**, and at most **30s retry waiting** (normally 1s, then
-2s). Server Retry-After/reset lower bounds are never shortened to fit; long or
-unknown cooldowns stop with an explanation. Partial transfers restart at zero
-without resetting the byte budget. Auth, certificate, invalid metadata,
-checksum, archive-safety and local I/O failures are not blindly retried.
+## Asset selection
 
-Errors identify the URL, policy attempts and stopping reason; URI credentials
-and query material are redacted. Pooled-connection recovery inside the HTTP
-library is not counted as a separate policy attempt. Built-in local pacing is
-30/min for api.github.com and ghcr.io, 60/min for formulae.brew.sh; release CDN
-downloads have no built-in domain bucket. User `[throttle]` overrides still win.
+GitHub asset patterns support explicit placeholders such as `{version}`, `{version.bare}`, `{system}`, `{target}`, `{arch}`, `{arch.go}`, `{arch.x64}` and `{os}`. `version.bare` removes one leading lowercase `v`; the lock keeps the actual tag. Direct archive URLs can use platform placeholders, not a version they have not resolved.
 
-## Placeholders
+Package command and artifact selectors are literal. For a single versioned archive directory, declare `archiveRoot: { kind: "single_directory" }` and use root-relative selectors instead of repeating that version. See [package roots](packages.md#roots-and-layouts).
 
-GitHub **asset patterns** accept the tokens below. Legacy module
-install/config/verify paths also interpolate version tokens; **workspace
-command and artifact selectors remain literal**. For versioned archive directory
-names, select `archiveRoot: { kind: "single_directory" }` on a relocatable
-package, then use root-relative selectors. The root must be one unambiguous real
-directory; see the [SDK contract](https://github.com/gripsack-dev/gripsack/blob/core-v0.48.0/typescript/README.md#captured-files-trees-and-stable-package-roots).
+## Authentication
 
-Direct tarball URLs support platform tokens, not a version they have not
-resolved. This is an explicit placeholder set, not path guessing:
+Credentials are explicitly host-bound. `GITHUB_TOKEN` takes precedence over `GH_TOKEN` and goes only to github.com/api.github.com. Enterprise credentials use `GITHUB_ENTERPRISE_TOKEN`, then `GH_ENTERPRISE_TOKEN`, with `GH_HOST` or `GITHUB_HOST` naming the intended enterprise host.
 
-| placeholder | expands to | example |
-|---|---|---|
-| `{version}` | raw locked tag in paths; legacy raw-first, then stripped asset search | `ripgrep-{version}-{target}/rg` |
-| `{version.bare}` | exactly one leading lowercase `v` removed | `rootle-{version.bare}-{target}/rootle` |
-| `{system}` | flake-style platform | `x86_64-linux` |
-| `{target}` | the rust triple | `x86_64-unknown-linux-musl` |
-| `{arch}` | rust arch | `x86_64` |
-| `{arch.go}` | goreleaser arch | `amd64` |
-| `{arch.x64}` | node-style arch | `x64` |
-| `{os}` | `linux` / `darwin` | `linux` |
+A source's `base_url` selects a destination; it is not a token grant. Cross-host and HTTPS-to-HTTP redirects do not forward authorization. Supply secrets through the trusted calling environment, not captured TypeScript; non-interactive SSH may not load your shell profile. Gripsack does not read gh's credential store or source profiles to compensate.
 
-For tag `v0.12.1`, `{version}` in a payload path means `v0.12.1`, while
-`{version.bare}` means `0.12.1`. A bare token in an asset pattern has only that
-exact spelling; it never adds `v` back. Missing/empty required versions and
-unsafe expanded paths are errors. Lockfiles still record the raw tag.
+API quotas can be shared by an egress IP. Local pacing cannot restore upstream quota. Review rate/authentication diagnostics rather than treating every 403 as a retryable outage. Corporate certificates and proxy settings are covered in [settings](settings.md).
 
-In legacy modules, use `{version.bare}` in the asset pattern and payload key when
-upstream v-prefixes tags but not archive names/directories. That behavior was
-introduced in 0.39; current IR8 retains the versioned legacy contract. Unknown
-tokens are E114 errors, including in explicit steps.
+## Verification and resource bounds
 
-## Out-of-tree (plugins)
+Downloads are hashed into private disk spools and verified before extraction/publication. Archive path safety, expansion size, entry count and decoder memory limits remain enforced; a hash match does not waive them. Failed acquisition does not publish a partial package.
 
-A `gripfetch-<name>` executable — declared in `env.toml` and
-provisioned by grip's plugin lifecycle, or hand-placed on `PATH` —
-speaking NDJSON over stdio:
-
-<div class="plugin-cards">
-  <a class="plugin-card" href="fetchers/apt.html">
-    <span class="pc-name">apt</span>
-    <span class="pc-blurb">distro packages via the host's apt — wraps, never reimplements; enterprise mirrors inherit free</span>
-  </a>
-</div>
-
-- `fetch {args, dest_dir, locked}` → bytes into `dest_dir`, responds
-  `{sha256}`
-- `capabilities` → `{"capabilities": {"throttle": {"registry.example.com":
-  "60/min"}}}` — the fetcher declares its registry's rate budget; the
-  engine runs a token bucket per domain and throttles to it. Budgets
-  live in fetchers because the fetcher knows its registry; `[throttle]`
-  in env.toml outranks any declaration. A plugin that predates the op
-  is tolerated (no declared budgets) but must not pretend success.
-
-Protocol hosts bound serialized requests (4 MiB), stdout lines (1 MiB),
-cumulative stdout/stderr (16 MiB each), retained stderr (64 KiB), and diagnostics
-(1,024). Fetch, capability and linter exchanges retain their own success policies.
-Deadlines include cleanup; a response never hides later output/exit failures.
-The host owns the process group and closes inherited pipes. Prompt OS scheduling
-and SIGKILL/reaping are assumptions; descendants deliberately leaving the group
-are not a sandbox guarantee. Cleanup failures are reported, never detached.
-
-The core hash-verifies every returned byte against the lockfile before
-it enters the store — a plugin cannot poison the store. Be precise
-about what that means: **a `gripfetch-*` executable is
-trusted code running with your user privileges.** Hash verification
-protects store contents, not the host — the plugin process can read
-files, inherit environment variables, and open network connections.
-Treat a fetcher plugin exactly as you would any binary you install.
-Writing one? The contract made executable:
-[gripfetch-conformance](https://github.com/gripsack-dev/gripfetch-conformance)
-— the suite every plugin runs against.
-
-The reference implementation is
-[gripfetch-apt](https://github.com/gripsack-dev/gripfetch-apt) —
-distro packages via the host's apt (wraps, never reimplements; honors
-the host's mirrors), conformance-gated, and provisionable through the
-plugin lifecycle (`package = "gripsack-dev/gripfetch-apt@0.1.0"`).
-
-This is also the home for internal company registries and anything
-bespoke. If the transport is fine but *resolution* isn't ("latest
-artifact X" → pinned URL + hash), that is planned as its own plugin
-kind — `gripresolve-*` executables, specified in
-[plan/0013 D8](https://github.com/gripsack-dev/gripsack/blob/main/plan/0013-constrained-evaluation.md)
-and built next; today the built-ins resolve at lock/update time.
-
-## The ladder, always
-
-1. built-in fetcher arguments (`base_url` covers GitHub Enterprise),
-2. `gripfetch-*` plugin (bespoke transport).
-
-Full design: [plan/0002](https://github.com/gripsack-dev/gripsack/blob/main/plan/0002-sourcing.md).
+First-party HTTP requests use bounded retries for classified transient failures. Authentication, certificate, checksum, invalid metadata and unsafe-archive errors are not blindly retried. See the [settings reference](settings/reference.md) for acquisition budgets and [safety](safety.md) for trusted native execution.

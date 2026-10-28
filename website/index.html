@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>gripsack — your environment, in one workspace</title>
-<meta name="description" content="Typed workspaces for packages, development environments and personal profiles. Linux and WSL2, with reviewed inputs, generations and rollback.">
+<meta name="description" content="Declare user-space packages, development environments and dotfiles in TypeScript. Build from source with BuildKit, export OCI images, and deploy personal profiles with generations and rollback.">
 <meta property="og:title" content="gripsack — your environment, in one workspace">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://gripsack.dev/">
@@ -13,22 +13,34 @@
 <script src="./assets/site.js" defer></script>
 </head>
 <body class="home">
+<a class="skip-link" href="#main">Skip to content</a>
 <header class="topbar">
   <a class="brand" href="./index.html"><img src="./assets/icon.svg" alt=""><span class="wordmark">gripsack</span></a>
-  <nav aria-label="Primary"><a href="#start">start</a><a href="#install">install</a><a href="#docs">docs</a><a href="https://github.com/gripsack-dev/gripsack">github ↗</a></nav>
+  <nav aria-label="Primary"><a href="#capabilities">what it does</a><a href="#start">start</a><a href="#install">install</a><a href="#docs">docs</a></nav>
 </header>
-<main class="content">
+<main class="content" id="main">
 <section class="hero">
   <div class="logo" role="img" aria-label="gripsack"><!--LOGO--></div>
-  <p class="kicker">personal environment manager · alpha</p>
+  <p class="kicker">declarative user-space environments · alpha</p>
   <h1 class="tagline">your environment,<br>in <span class="accent">one workspace</span>.</h1>
-  <p class="sub">Describe packages, development environments and personal profiles in typed TypeScript. Review the inputs, plan the change, and keep generations you can roll back to.</p>
-  <p class="alt">Linux x86_64 and WSL2. No native Windows, macOS or ARM support.</p>
-  <div class="cta"><a class="primary" href="#start">one small example →</a><a href="./docs/workspace-migration.html">workspace guide</a></div>
+  <p class="sub">Make the tools and configuration you depend on explicit. Declare packages, development environments and personal profiles in TypeScript. Use the same package graph for native commands, source builds and OCI images.</p>
+  <div class="cta"><a class="primary" href="./docs/workspaces.html">build your workspace →</a><a href="./docs/builds.html">BuildKit &amp; OCI images</a></div>
+  <p class="alt">Linux x86_64 and WSL2 · keep your OS package manager</p>
+</section>
+<section id="capabilities">
+  <h2 class="section">one graph, useful outputs</h2>
+  <div class="grid">
+    <article class="card"><h3><a href="./docs/packages.html">User-space packages</a></h3><p>Pin release archives, captured sources or coherent Conda environments. Declare commands and runtime dependencies, not global installs.</p></article>
+    <article class="card"><h3><a href="./docs/environments.html">Native environments</a></h3><p>Run project commands in a selected environment. Expose the commands you want through managed profile launchers.</p></article>
+    <article class="card"><h3><a href="./docs/adopting.html">Profiles &amp; dotfiles</a></h3><p>Compose captured trees, templates and shared text blocks. Review a deployment plan, preserve local drift, retain generations.</p></article>
+    <article class="card"><h3><a href="./docs/builds.html#source-builds">BuildKit source builds</a></h3><p>Build against a digest-pinned toolchain in an isolated Linux worker. Retain published outputs independently of builder cache.</p></article>
+    <article class="card"><h3><a href="./docs/builds.html#oci-images">OCI image exports</a></h3><p>Place declared packages into scratch or a pinned base. Export an admitted OCI archive with an explicit entrypoint and runtime configuration.</p></article>
+    <article class="card"><h3><a href="./docs/tasks.html">Manual tasks &amp; checks</a></h3><p>Name repeatable commands, prerequisites and postconditions. Validate profile files at explicit lifecycle stages.</p></article>
+  </div>
 </section>
 <section id="start">
-  <h2 class="section">one workspace, named outputs</h2>
-  <p class="lede">A workspace exports the things you use. Packages and environments serve development commands; profiles deploy your personal files through the generation transaction. Start with a single managed block:</p>
+  <h2 class="section">start with one useful change</h2>
+  <p class="lede">A file-only workspace needs no package build or Docker service. Save this as <code>gripsack.ts</code> in its own repository:</p>
   <div class="window">
     <div class="titlebar"><span class="wtitle">gripsack.ts</span></div>
 <pre><code class="language-typescript">import {
@@ -44,34 +56,32 @@ const dotfiles = profile("dotfiles", {
 
 export default defineWorkspace(() =&gt; workspace({ outputs: [dotfiles] }));</code></pre>
   </div>
-  <p>Save as <code>gripsack.ts</code> in a repository. Use matching core and SDK bytes; review the source and policy when prompted.</p>
-<pre>grip check
+  <p>After <a href="./docs/install.html">installing <code>grip</code></a>, review the captured source and policy when prompted:</p>
+<pre><code class="language-bash">grip check
 grip plan dotfiles
-grip apply dotfiles</pre>
-  <p class="note">Review the plan before applying. <code>grip generations</code> lists retained generations; <code>grip rollback</code> restores a previous managed state. <a href="./docs/safety.html">Read the ownership and recovery boundaries</a>.</p>
+grip apply dotfiles</code></pre>
+  <p class="note">Review the plan before applying. <code>grip generations</code> lists retained states; <code>grip rollback</code> restores a previous managed generation. Keep independent backups of irreplaceable files. <a href="./docs/safety.html">Understand ownership and recovery →</a></p>
 </section>
 <section id="install">
   <h2 class="section">install</h2>
-  <p><a class="primary" href="https://github.com/gripsack-dev/gripsack/releases/tag/core-v{version}">download v<!--VERSION--> for Linux / WSL →</a></p>
-  <p>The release includes the binary, matching SDK, checksums and manual installation instructions. Check its notes for the exact verification scope; current 0.48 assets are unsigned.</p>
-  <p class="note">The frontend is embedded. A separate SDK is optional for editor support or an explicit frontend pin. <a href="./docs/roadmap.html#release-qualification">Release scope</a> · <a href="./docs/settings.html#the-frontend">frontend selection</a>.</p>
+  <p class="lede">One core binary with its TypeScript frontend embedded. Start with files or native packages; add Docker when you need BuildKit recipes and image exports.</p>
+  <p><a href="https://github.com/gripsack-dev/gripsack/releases/tag/core-v{version}">Download v<!--VERSION--> for Linux / WSL</a> · <a href="./docs/install.html">Installation &amp; prerequisites</a></p>
 </section>
 <section id="docs">
-  <h2 class="section">go deeper when you need to</h2>
+  <h2 class="section">make it yours</h2>
   <ul>
-    <li><a href="./docs/workspace-migration.html">Workspace and profile migration</a> — move from legacy modules without losing ownership.</li>
-    <li><a href="./docs/adopting.html">Adopt existing dotfiles</a> — choose links, tracked copies or managed blocks.</li>
-    <li><a href="./docs/environments.html">Packages and development environments</a> — build, run and launch tools.</li>
-    <li><a href="./docs/safety.html">Safety and recovery</a> — review source, preserve drift and recover interrupted changes.</li>
-    <li><a href="https://github.com/gripsack-dev/gripsack/blob/{release_source}/typescript/README.md">SDK reference on GitHub</a> — complete declarations and advanced contracts at the selected core source.</li>
-    <li><a href="./docs/roadmap.html">Release scope and roadmap</a> · <a href="./docs/changelog.html">changelog</a>.</li>
+    <li><a href="./docs/workspaces.html">Workspace guide</a> — how packages, environments, profiles and tasks fit together.</li>
+    <li><a href="./docs/fetchers.html">Sources &amp; locks</a> — choose inputs, review updates, import a Pixi lock explicitly.</li>
+    <li><a href="./docs/settings.html">Settings &amp; source capture</a> — control the inputs you approve.</li>
+    <li><a href="./docs/safety.html">Safety &amp; recovery</a> — ownership, drift and retained recovery data.</li>
+    <li><a href="https://github.com/gripsack-dev/gripsack/blob/{release_source}/typescript/README.md">Complete SDK reference</a> · <a href="https://github.com/gripsack-dev/gripsack/tree/{release_source}/examples/workspaces">Workspace examples</a>.</li>
   </ul>
 </section>
 <section id="compare">
-  <h2 class="section">where it fits</h2>
-  <p>Keep your OS package manager. Gripsack manages user-space tools and personal configuration with explicit ownership and rollback. <a href="./docs/compare.html">Compare the trade-offs →</a></p>
+  <h2 class="section">your tools, not a new operating system</h2>
+  <p>Keep system packages with your existing manager. Bring the user-space tools, project commands and personal files you want to manage into a reviewable workspace. <a href="./docs/compare.html">Where gripsack fits →</a></p>
 </section>
-<footer><span>MIT licensed · <a href="https://github.com/gripsack-dev/gripsack">source</a></span><a href="./docs/architecture.html">architecture</a></footer>
+<footer><span>MIT licensed · <a href="https://github.com/gripsack-dev/gripsack">source</a></span><a href="./docs/architecture.html">architecture</a><a href="./docs/changelog.html">what's new</a></footer>
 </main>
 </body>
 </html>
