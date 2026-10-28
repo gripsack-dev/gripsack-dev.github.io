@@ -3,47 +3,45 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>gripsack — skills</title>
-<meta name="description" content="gripsack for Linux and WSL — your whole environment in one bag. Packages from any source plus your dotfiles, with generations and rollback.">
+<title>gripsack — agent guidance</title>
+<meta name="description" content="Declare user-space packages, native environments and personal profiles. Build with BuildKit, export OCI images and retain managed generations.">
 <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
-<link rel="stylesheet" href="../assets/site.css?v=d59cbc70">
-<script src="../assets/site.js?v=d59cbc70" defer></script>
+<link rel="stylesheet" href="../assets/site.css?v=0055d231">
+<script src="../assets/site.js?v=0055d231" defer></script>
 </head>
 <body class="docs">
+<a class="skip-link" href="#main">Skip to content</a>
 <div class="shell">
 <aside class="rail">
   <a class="brand" href="../index.html">
     <img src="../assets/icon.svg" alt="gripsack icon"><span class="wordmark">gripsack</span>
   </a>
   <span class="rail-head">menu</span>
-  <nav>
-    <a href="../index.html">home</a>
-    <a href="../docs/adopting.html">adopting your dotfiles</a>
-    <a href="../docs/compare.html">compare</a>
-    <a href="../docs/architecture.html">architecture</a>
-    <a href="../docs/safety.html">safety</a>
-    <a href="../docs/modules.html">modules</a>
-    <a href="../docs/environments.html">environments</a>
-    <a href="../docs/workspace-migration.html">workspace migration</a>
-    <a href="../docs/settings.html">settings</a>
+  <nav aria-label="Documentation">
+    <a class="" href="../index.html">home</a>
+    <a class="" href="../docs/install.html">install</a>
+    <a class="" href="../docs/workspaces.html">workspaces</a>
+    <a class="" href="../docs/packages.html">packages</a>
+    <a class="" href="../docs/environments.html">environments</a>
+    <a class="" href="../docs/adopting.html">profiles &amp; dotfiles</a>
+    <a class="" href="../docs/builds.html">BuildKit &amp; OCI</a>
+    <a class="" href="../docs/tasks.html">tasks &amp; checks</a>
+    <a class="" href="../docs/fetchers.html">sources &amp; locks</a>
+    <a class="" href="../docs/safety.html">safety &amp; recovery</a>
+    <a class="" href="../docs/settings.html">settings</a>
     <a class="child" href="../docs/settings/reference.html">↳ settings reference</a>
-    <a href="../docs/runs.html">run logs</a>
-    <a href="../docs/fetchers.html">fetchers</a>
-    <a class="child" href="../docs/fetchers/apt.html">↳ apt</a>
-    <a href="../docs/linters.html">linters</a>
-    <a class="active" href="../docs/skills.html">skills</a>
-    <a href="../docs/roadmap.html">roadmap</a>
-    <a href="../docs/changelog.html">what's new</a>
+    <a class="" href="../docs/runs.html">run logs</a>
+    <a class="active" aria-current="page" href="../docs/skills.html">agent guidance</a>
+    <a class="" href="../docs/compare.html">where it fits</a>
+    <a class="" href="../docs/architecture.html">architecture</a>
+    <a class="" href="../docs/changelog.html">what&#x27;s new</a>
     <a class="gh" href="https://github.com/gripsack-dev/gripsack">github ↗</a>
-    <a href="../docs/roadmap.html#supported-platforms">Linux &amp; WSL support</a>
   </nav>
   <span class="rail-head">on this page</span>
   <div class="rail-toc">
-    <a href="#gripsack-debug">gripsack-debug</a>
-    <a href="#gripsack-adopt">gripsack-adopt</a>
-    <a href="#griplint-author">griplint-author</a>
-    <a href="#gripfetch-author">gripfetch-author</a>
-    <a href="#install">Install</a>
+    <a href="#workspace-adoption">Workspace adoption</a>
+    <a href="#debugging">Debugging</a>
+    <a href="#use-with-your-agent">Use with your agent</a>
   </div>
   <span class="rail-head">theme</span>
   <div class="rail-palettes">
@@ -61,66 +59,19 @@
   </div>
   <span class="palette-name" data-palette-name>catppuccin-mocha</span>
 </aside>
-<main class="content">
+<main class="content" id="main">
 <article class="md">
-<p class="note">Documentation for core/SDK v0.48.0.
-<a href="../docs/roadmap.html#release-qualification">Release and verification scope</a>.</p>
-<h1 id="skills">Skills</h1>
-<p>Installable agent guidance for reading and operating gripsack, not
-executable enforcement or proof that a deployment is safe. Prefer new
-IR8 workspaces; use the
-<a href="https://github.com/gripsack-dev/gripsack/blob/core-v0.48.0/typescript/README.md">0.48 SDK reference</a>
-as API authority when a skill contains older examples.</p>
-<h2 id="gripsack-debug">gripsack-debug</h2>
-<p>Read structured run logs: run IDs, span chains, jq filters and diagnostic
-codes. The default state location is <code>~/.local/share/gripsack/runs/</code>;
-use the actual <code>GRIPSACK_HOME</code> when configured. Logs are diagnostic
-evidence, not proof that every requested effect completed.</p>
-<h2 id="gripsack-adopt">gripsack-adopt</h2>
-<p>The <a href="https://github.com/gripsack-dev/gripsack/blob/d8d233c0738634fa79ae734bfdb76ad79c9917a4/skills/gripsack-adopt/SKILL.md">current adoption guide</a>
-is workspace-first, with explicit notes for existing legacy repositories. It
-inventories the executable, version, configuration and ownership before choosing
-packages, profiles, file policies, launchers and verification.</p>
-<p>The tagged 0.48 source still contains the older legacy-oriented guide. Use the
-reviewed postrelease documentation revision below for the updated instructions;
-this does not change the released binary. Review the plan, exercise the actual
-consumer and retain a tested recovery path. A successful command alone does not
-prove full migration or reversibility.</p>
-<h2 id="griplint-author">griplint-author</h2>
-<p>Author a config linter as a <strong>data pack</strong> in <code>crates/griplint/packs/</code>:
-research the tool's config surface end to end (official docs first,
-schemas and parser source over memory — never guess a key), write the
-versioned key table as TOML data, and pin behavior with the golden
-fixture corpus. The reference pack is <code>helix.toml</code>. Exotic formats
-(RON, KDL, custom) stay external plugins — prove those against
-<a href="https://github.com/gripsack-dev/griplint-conformance">griplint-conformance</a>,
-the contract made executable; the suite drives your plugin exactly
-like the core does.</p>
-<h2 id="gripfetch-author">gripfetch-author</h2>
-<p>Author a <code>gripfetch-*</code> transport plugin — an internal registry, a
-distro mirror, anything with an mTLS or credentialed dance. The skill
-teaches the protocol contract: one JSON request on stdin (<code>locked</code>
-present = reproduce exactly, absent = resolve and pin), NDJSON
-progress/diagnostics/response on stdout, and the reproducibility bar
-the store's hash verification enforces. Prove it:
-<a href="https://github.com/gripsack-dev/gripfetch-conformance">gripfetch-conformance</a>
-— the contract made executable; the suite drives your plugin exactly
-like the core does.</p>
-<h2 id="install">Install</h2>
-<p>Copy the skill directories from this reviewed documentation revision into your
-agent harness's skills path (for example Claude Code). Read their contents
-before granting execution authority. Installing guidance does not install or
-upgrade the core.</p>
-<pre><code class="language-bash">skill_source=$(mktemp -d)
-git -C &quot;$skill_source&quot; init --quiet
-git -C &quot;$skill_source&quot; fetch --depth 1 https://github.com/gripsack-dev/gripsack d8d233c0738634fa79ae734bfdb76ad79c9917a4
-git -C &quot;$skill_source&quot; checkout --detach FETCH_HEAD
-mkdir -p ~/.claude/skills
-cp -r &quot;$skill_source/skills/gripsack-debug&quot; ~/.claude/skills/
-cp -r &quot;$skill_source/skills/gripsack-adopt&quot; ~/.claude/skills/
-cp -r &quot;$skill_source/.agents/skills/griplint-author&quot; ~/.claude/skills/
-cp -r &quot;$skill_source/.agents/skills/gripfetch-author&quot; ~/.claude/skills/
-</code></pre>
+<h1 id="agent-guidance">Agent guidance</h1>
+<p>Gripsack's source repository includes reusable guidance for agents that help inspect or operate a workspace. Guidance is not executable enforcement and does not grant permission to approve source, overwrite files or discard recovery data.</p>
+<h2 id="workspace-adoption">Workspace adoption</h2>
+<p>The <a href="https://github.com/gripsack-dev/gripsack/tree/d060e1fef80f83212210e66bf65a8f1d62631bd0/skills/gripsack-adopt">gripsack-adopt skill</a> starts from the installed tools, configuration and ownership. Use it to choose package declarations, profiles, file policies, launchers and real consumer checks.</p>
+<p>The <a href="../docs/workspaces.html">workspace guide</a> and <a href="https://github.com/gripsack-dev/gripsack/blob/d060e1fef80f83212210e66bf65a8f1d62631bd0/typescript/README.md">SDK reference</a> are the public API reference. An agent should not invent constructor names or assume a successful plan has deployed anything.</p>
+<h2 id="debugging">Debugging</h2>
+<p>The <a href="https://github.com/gripsack-dev/gripsack/tree/d060e1fef80f83212210e66bf65a8f1d62631bd0/skills/gripsack-debug">gripsack-debug skill</a> explains structured logs, span chains and diagnostic codes. Give the agent the failing command and exact run-log filename rather than only <code>latest</code>, which another invocation may replace.</p>
+<p>Logs are diagnostic evidence, not recovery authority. Keep journals, generation manifests and retained state intact while investigating. See <a href="../docs/runs.html">run logs</a> and <a href="../docs/safety.html">safety</a>.</p>
+<h2 id="use-with-your-agent">Use with your agent</h2>
+<p>Review the skill contents at the selected source revision, then copy the chosen skill directory into your harness's configured skill path. For Claude Code, for example, that can be <code>~/.claude/skills/</code>. Installing guidance does not install or upgrade <code>grip</code>.</p>
+<p>Require the agent to review captured source and policy, inspect a plan before applying, and report only checks it actually ran. A task receipt, evaluation result and application-level consumer test answer different questions.</p>
 </article>
 <footer>
   <span><span class="blink"></span> © 2026 <a href="https://github.com/tknawara">Tarek Nawara</a></span>
@@ -128,7 +79,7 @@ cp -r &quot;$skill_source/.agents/skills/gripfetch-author&quot; ~/.claude/skills
   <a href="https://github.com/gripsack-dev">gripsack-dev</a>
   <a href="https://github.com/gripsack-dev/gripsack">source</a>
   <a href="../index.html">home</a>
-  <span style="margin-left:auto"><span class="fversion">v0.48.0</span> · eleven palettes</span>
+  <span style="margin-left:auto"><span class="fversion">v0.50.0</span> · eleven palettes</span>
 </footer>
 </main>
 </div>

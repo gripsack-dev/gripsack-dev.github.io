@@ -3,48 +3,48 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>gripsack — adopting your dotfiles</title>
-<meta name="description" content="gripsack for Linux and WSL — your whole environment in one bag. Packages from any source plus your dotfiles, with generations and rollback.">
+<title>gripsack — profiles and dotfiles</title>
+<meta name="description" content="Declare user-space packages, native environments and personal profiles. Build with BuildKit, export OCI images and retain managed generations.">
 <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
-<link rel="stylesheet" href="../assets/site.css?v=d59cbc70">
-<script src="../assets/site.js?v=d59cbc70" defer></script>
+<link rel="stylesheet" href="../assets/site.css?v=0055d231">
+<script src="../assets/site.js?v=0055d231" defer></script>
 </head>
 <body class="docs">
+<a class="skip-link" href="#main">Skip to content</a>
 <div class="shell">
 <aside class="rail">
   <a class="brand" href="../index.html">
     <img src="../assets/icon.svg" alt="gripsack icon"><span class="wordmark">gripsack</span>
   </a>
   <span class="rail-head">menu</span>
-  <nav>
-    <a href="../index.html">home</a>
-    <a class="active" href="../docs/adopting.html">adopting your dotfiles</a>
-    <a href="../docs/compare.html">compare</a>
-    <a href="../docs/architecture.html">architecture</a>
-    <a href="../docs/safety.html">safety</a>
-    <a href="../docs/modules.html">modules</a>
-    <a href="../docs/environments.html">environments</a>
-    <a href="../docs/workspace-migration.html">workspace migration</a>
-    <a href="../docs/settings.html">settings</a>
+  <nav aria-label="Documentation">
+    <a class="" href="../index.html">home</a>
+    <a class="" href="../docs/install.html">install</a>
+    <a class="" href="../docs/workspaces.html">workspaces</a>
+    <a class="" href="../docs/packages.html">packages</a>
+    <a class="" href="../docs/environments.html">environments</a>
+    <a class="active" aria-current="page" href="../docs/adopting.html">profiles &amp; dotfiles</a>
+    <a class="" href="../docs/builds.html">BuildKit &amp; OCI</a>
+    <a class="" href="../docs/tasks.html">tasks &amp; checks</a>
+    <a class="" href="../docs/fetchers.html">sources &amp; locks</a>
+    <a class="" href="../docs/safety.html">safety &amp; recovery</a>
+    <a class="" href="../docs/settings.html">settings</a>
     <a class="child" href="../docs/settings/reference.html">↳ settings reference</a>
-    <a href="../docs/runs.html">run logs</a>
-    <a href="../docs/fetchers.html">fetchers</a>
-    <a class="child" href="../docs/fetchers/apt.html">↳ apt</a>
-    <a href="../docs/linters.html">linters</a>
-    <a href="../docs/skills.html">skills</a>
-    <a href="../docs/roadmap.html">roadmap</a>
-    <a href="../docs/changelog.html">what's new</a>
+    <a class="" href="../docs/runs.html">run logs</a>
+    <a class="" href="../docs/skills.html">agent guidance</a>
+    <a class="" href="../docs/compare.html">where it fits</a>
+    <a class="" href="../docs/architecture.html">architecture</a>
+    <a class="" href="../docs/changelog.html">what&#x27;s new</a>
     <a class="gh" href="https://github.com/gripsack-dev/gripsack">github ↗</a>
-    <a href="../docs/roadmap.html#supported-platforms">Linux &amp; WSL support</a>
   </nav>
   <span class="rail-head">on this page</span>
   <div class="rail-toc">
-    <a href="#start-with-one-directory-not-your-whole-setup">Start with one directory, not your whole setup</a>
-    <a href="#move-one-real-tool-over">Move one real tool over</a>
-    <a href="#the-safety-net-under-all-of-it">The safety net under all of it</a>
-    <a href="#the-ownership-question-is-the-whole-game">The ownership question is the whole game</a>
-    <a href="#what-stays-outside-on-purpose">What stays outside (on purpose)</a>
-    <a href="#when-it-breaks">When it breaks</a>
+    <a href="#choose-file-ownership">Choose file ownership</a>
+    <a href="#capture-a-tree-and-an-executable-template">Capture a tree and an executable template</a>
+    <a href="#adopt-existing-files-deliberately">Adopt existing files deliberately</a>
+    <a href="#guided-adoption">Guided adoption</a>
+    <a href="#drift-and-retained-generations">Drift and retained generations</a>
+    <a href="#package-artifacts-and-launchers">Package artifacts and launchers</a>
   </div>
   <span class="rail-head">theme</span>
   <div class="rail-palettes">
@@ -62,115 +62,97 @@
   </div>
   <span class="palette-name" data-palette-name>catppuccin-mocha</span>
 </aside>
-<main class="content">
+<main class="content" id="main">
 <article class="md">
-<p class="note">Documentation for core/SDK v0.48.0.
-<a href="../docs/roadmap.html#release-qualification">Release and verification scope</a>.</p>
-<h1 id="adopting-your-dotfiles">Adopting your dotfiles</h1>
-<p>Start with a small, reviewable set of files. New configurations should use a
-root <code>gripsack.ts</code> workspace; the host/module model remains supported as legacy.</p>
-<h2 id="start-with-one-directory-not-your-whole-setup">Start with one directory, not your whole setup</h2>
-<p>Use the <a href="../docs/workspace-migration.html">workspace migration guide</a> and
-<a href="../docs/environments.html">persistent environments</a> for current authoring. A file-only
-profile needs no package producer or build worker: captured repository files
-can become symlinks, tracked copies or managed blocks. Keep a backup of the
-original config before starting.</p>
-<p>Install core 0.48 and, only if deliberately pinning the SDK, its matching
-archive using the <a href="https://github.com/gripsack-dev/gripsack/releases/tag/core-v0.48.0">release instructions</a>.
-This is a public <strong>unsigned</strong> release, not an npm or crates.io publication;
-the signed installer/updater does not select it. The binary embeds the
-frontend and provisions a pinned, SHA-256-verified Deno for evaluation.
-Supported hosts are Linux and WSL2 on x86_64.</p>
-<p>Approval is for exact captured source and policy, not a one-time blessing of
-a directory. Review <code>grip trust inspect</code> and the approval prompt; editing
-source, changing the SDK pin or refreshing lock inputs can require approval
-again. See <a href="../docs/safety.html">source trust</a>.</p>
-<p>For an existing <strong>legacy</strong> workflow, this still creates a host/module repo:</p>
-<pre><code class="language-bash">grip init my-env &amp;&amp; cd my-env
-grip check &amp;&amp; grip apply
+<h1 id="profiles-and-dotfiles">Profiles and dotfiles</h1>
+<p>A profile declares the files and environment launchers you want to deploy. Start with one tool's configuration, keep an independent backup, and review the plan before applying. You can manage dotfiles while leaving packages with your existing OS package manager.</p>
+<h2 id="choose-file-ownership">Choose file ownership</h2>
+<table>
+<thead>
+<tr>
+<th>Destination</th>
+<th>Use it for</th>
+<th>Boundary</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>symlinkTo(path)</code></td>
+<td>Store-owned configuration that the application only reads</td>
+<td>The destination links to retained read-only content</td>
+</tr>
+<tr>
+<td><code>trackedCopyTo(path)</code></td>
+<td>Real files the application may rewrite; trees requiring physical sibling layout</td>
+<td>Local byte or mode drift is detected and preserved by default</td>
+</tr>
+<tr>
+<td><code>managedBlock(path, marker)</code></td>
+<td>One delimited section of a shared text file</td>
+<td>Gripsack reconciles its block, not the whole file</td>
+</tr>
+</tbody>
+</table>
+<p>Destinations must be normalized absolute or <code>~/</code>-prefixed paths outside the workspace repository. They use your privileges, not an implicit elevation mechanism.</p>
+<h2 id="capture-a-tree-and-an-executable-template">Capture a tree and an executable template</h2>
+<p>Create <code>dotfiles/editor/</code> with your configuration and a captured executable <code>scripts/editor-theme.sh.tmpl</code> containing:</p>
+<pre><code class="language-sh">#!/bin/sh
+printf '%s\n' '{{ theme }}'
 </code></pre>
-<p>It writes <code>env.toml</code>, a machine-named host, a <code>hello</code> module and editor
-configuration. The hello file deploys under <code>~/.config/hello/</code>. <code>grip init</code>
-does not scaffold a workspace; its generated package version is not evidence
-of registry availability. Use the embedded frontend or the matching release
-SDK archive rather than assuming <code>npm install</code> can fetch 0.48.</p>
-<h2 id="move-one-real-tool-over">Move one real tool over</h2>
-<p><strong>Workspace:</strong> copy the intended config into the repository and declare its
-profile files with <code>repoFile</code> or <code>repoTree</code>, <code>identity()</code> or <code>templateFile</code>,
-and a destination such as <code>trackedCopyTo</code>. Review source approval and
-<code>grip plan &lt;profile&gt;</code>, then use <code>grip apply &lt;profile&gt; --take-over</code> only after
-reviewing every destination the selected profile would take over. Start with
-a profile containing just the files you intend to adopt. <code>grip adopt</code> does
-not edit workspace profiles in 0.48; it refuses that operation explicitly.
-The <a href="https://github.com/gripsack-dev/gripsack/blob/core-v0.48.0/typescript/README.md#captured-files-trees-and-stable-package-roots">released SDK reference</a>
-shows captured files and trees without evaluation-time filesystem reads.</p>
-<p><strong>Legacy host/module repo:</strong> <code>grip adopt</code> inventories a live path, asks about
-ownership, copies the payload into <code>configs/</code>, and generates module and host
-source. <code>tracked_copy</code> is the conservative default; choose <code>owned</code> only for
-configs the application does not rewrite.</p>
-<pre><code class="language-bash">grip adopt ~/.config/helix
-# Review and approve generated source if requested. To resume afterward:
-grip adopt ~/.config/helix --resume
+<p>Set its executable bit in the repository with <code>chmod +x scripts/editor-theme.sh.tmpl</code>. Then declare:</p>
+<pre><code class="language-typescript">import {
+  defineWorkspace, file, identity, profile, repoFile, repoTree,
+  templateFile, trackedCopyTo, workspace,
+} from &quot;@gripsack/core&quot;;
+
+const dotfiles = profile(&quot;dotfiles&quot;, {
+  files: [
+    file({
+      source: repoTree(&quot;dotfiles/editor&quot;),
+      content: identity(),
+      destination: trackedCopyTo(&quot;~/.config/editor&quot;),
+    }),
+    file({
+      source: repoFile(&quot;scripts/editor-theme.sh.tmpl&quot;),
+      content: templateFile({ theme: &quot;dark&quot; }),
+      destination: trackedCopyTo(&quot;~/.local/bin/editor-theme&quot;),
+    }),
+  ],
+});
+
+export default defineWorkspace(() =&gt; workspace({ outputs: [dotfiles] }));
 </code></pre>
-<p>Generation happens before deployment confirmation: it writes repository
-files, not the destination configs. <code>--yes</code> skips only apply confirmation,
-not source approval. Resume omits <code>--mode</code>: the approved module supplies it,
-without regenerating source. Takeover is scoped to the requested target;
-unrelated destinations do not gain takeover permission.</p>
-<p>Legacy adopt records an empty generation 0 on a fresh store. Subsequent
-rollback can restore the prior files when their deployed state is intact.
-This is not a promise that every workspace starts with that baseline.</p>
-<h2 id="the-safety-net-under-all-of-it">The safety net under all of it</h2>
-<ol>
-<li><strong>Foreign-path refusal</strong> — deployment refuses foreign destinations unless
-   takeover is authorized.</li>
-<li><strong>Prior capture</strong> — takeover records original bytes and permission bits
-   in the private store.</li>
-<li><strong>Drift guards</strong> — tracked-copy and template edits are preserved by
-   default. Managed blocks intentionally reconcile their own content; see
-   <a href="../docs/modules.html#ownership-modes">ownership modes</a>.</li>
-<li><strong>Failed transitions</strong> — journaled destination compensation is attempted
-   before commit. If the filesystem prevents recovery, the journal blocks
-   further mutation; arbitrary commands and external effects are not undone.</li>
-<li><strong>Generation rollback</strong> — <code>grip rollback</code> returns to a retained generation,
-   subject to ownership and drift checks. It does not rebuild current source.</li>
-<li><strong>Crash recovery</strong> — durable journals let subsequent mutation recover or
-   fail closed. Recovery preserves intervening user edits rather than treating
-   them as intact managed output. Late activation failure needs explicit
-   recovery; it is not automatic rollback.</li>
-</ol>
-<p>Keep the retained generations, prior blobs and private state needed for undo.
-Pruning history removes recovery choices; a lockfile alone is not a backup.
-Read <a href="../docs/safety.html">the safety contract</a> before relying on rollback.</p>
-<h2 id="the-ownership-question-is-the-whole-game">The ownership question is the whole game</h2>
-<p>For each file, ask whether the application rewrites it:</p>
-<ul>
-<li><strong>Never:</strong> workspace <code>symlinkTo</code> (legacy <code>symlink</code> / <code>owned</code>).</li>
-<li><strong>Sometimes:</strong> <code>trackedCopyTo</code> (legacy <code>trackedCopy</code> / <code>tracked_copy</code>),
-  preserving a real file and detecting drift.</li>
-<li><strong>Shared text file:</strong> <code>managedBlock</code> (legacy <code>merge</code>) owns a delimited
-  block, not the surrounding text. Use only a format that accepts the markers;
-  strict JSON does not accept comments.</li>
-<li><strong>Per-machine values:</strong> <code>templateFile</code> or <code>templateText</code>, combined with
-  a destination. Legacy <code>template(to, vars)</code> computes variables in the host
-  entrypoint. Both models can use injected facts rather than ambient reads.</li>
-</ul>
-<p>Choose per file, not by application name alone. Templates are rendering, not
-a separate promise that an application cannot edit the result.</p>
-<h2 id="what-stays-outside-on-purpose">What stays outside (on purpose)</h2>
-<p>Existing system and language package managers can keep managing binaries.
-Add workspace packages and environments only when their pinned inputs and
-runtime policy are useful to you. Shell state, caches and application-written
-state need not enter your profile; adopting a directory does not mean claiming
-all future children.</p>
-<h2 id="when-it-breaks">When it breaks</h2>
-<p>Use <code>grip doctor</code> for runtime and editor wiring, <code>grip why-owns &lt;path&gt;</code> for
-ownership, and <a href="../docs/runs.html">run logs</a> for diagnostics. Inspect the failed stage
-before deciding whether to roll back. Advisory config lint is not a required
-workspace check: required checks can block publication or activation.</p>
-<p>For an agent-assisted inventory and ownership interview, see
-<a href="../docs/skills.html">skills</a>. Review its proposed declarations and source approvals;
-an agent is not a substitute for the ownership decision or a backup.</p>
+<p><code>templateFile</code> renders the captured body once; you do not duplicate it inside TypeScript. Source executability survives rendering. <code>literalText</code> has no executable source and produces a 0644 file; <code>file</code> has no arbitrary mode option.</p>
+<p><code>repoTree</code> can select literal relative prefixes with <code>include</code> and <code>exclude</code>; these are <strong>not globs</strong>. Each expanded file is owned separately. Foreign siblings are not replaced, and safe internal aliases use captured target bytes. Whole-source capture rejects escapes and cycles before tree selection; use <a href="../docs/settings.html#source-capture">capture exclusions</a> for irrelevant unsafe trees.</p>
+<h2 id="adopt-existing-files-deliberately">Adopt existing files deliberately</h2>
+<p>Copy the configuration you want to keep into the workspace source first. Declare its file policy, then run:</p>
+<pre><code class="language-sh">grip check
+grip plan dotfiles
+grip apply dotfiles
+</code></pre>
+<p>For an existing foreign regular file that you deliberately want to manage as a tracked copy, review the explicit takeover plan before authorizing it:</p>
+<pre><code class="language-sh">grip plan dotfiles --take-over
+grip apply dotfiles --take-over
+</code></pre>
+<p>Keep the selected profile small: takeover is permission over the selected destinations, not a substitute for inspecting them. It is not a general symlink repair or cross-identity ownership transfer. Recorded ownership and unresolved recovery state must be respected; do not erase journals or manifests to force a deployment.</p>
+<h2 id="guided-adoption">Guided adoption</h2>
+<p>From a workspace, <code>grip adopt</code> can inventory an existing path, copy its payload into <code>configs/</code>, and generate a named profile under <code>profiles/</code> plus its root import:</p>
+<pre><code class="language-sh">grip adopt ~/.config/editor --name editor --mode tracked_copy
+</code></pre>
+<p>The first invocation deliberately stops with exit status 1 for source review; it does not deploy the destination. Read the generated source, confirm the ownership policy and approve it, then resume:</p>
+<pre><code class="language-sh">grip trust add .
+grip adopt ~/.config/editor --name editor --resume
+</code></pre>
+<p>Resume uses the approved profile; do not pass <code>--mode</code> again. <code>--yes</code> skips apply confirmation, not source approval. The interview modes are <code>tracked_copy</code> for mutable real files, <code>owned</code> for store-owned links, and <code>merge</code> for managed text blocks. Keep backups and inspect the plan regardless of which route you choose.</p>
+<h2 id="drift-and-retained-generations">Drift and retained generations</h2>
+<p>A tracked copy is user-owned mutable content. If the application changes it, ordinary apply and rollback preserve the drift rather than silently overwrite it. To make that change your new desired state, deliberately copy it back into the repository, review and approve the new captured source, then apply again. <code>grip update</code> refreshes external source pins; it does not capture live destination content.</p>
+<pre><code class="language-sh">grip generations
+grip rollback
+</code></pre>
+<p>Rollback uses retained content without rerendering today's source or rebuilding packages. Keep predecessor generations and prior-state data until the actual application works with the deployed files. Journaled file transitions are not a whole-machine snapshot, and late hook failures do not automatically roll back; see <a href="../docs/safety.html">safety and recovery</a>.</p>
+<h2 id="package-artifacts-and-launchers">Package artifacts and launchers</h2>
+<p><code>artifactFile</code> and <code>artifactTree</code> select retained package content. Tree deployment still owns individual files, not the destination directory. Use tracked copies for consumers needing real filenames, extensions or sibling resources; per-file store symlinks do not promise those properties.</p>
+<p>For command exports, prefer a profile's explicit <code>environment</code> and <code>launchers</code> declaration rather than maintaining shell wrappers. <a href="../docs/environments.html#personal-launchers">Environments</a> covers PATH, the installed core location and same-UID operation. Attach named <a href="../docs/tasks.html#profile-file-checks">checks</a> when a configuration should be validated before deployment.</p>
 </article>
 <footer>
   <span><span class="blink"></span> © 2026 <a href="https://github.com/tknawara">Tarek Nawara</a></span>
@@ -178,7 +160,7 @@ an agent is not a substitute for the ownership decision or a backup.</p>
   <a href="https://github.com/gripsack-dev">gripsack-dev</a>
   <a href="https://github.com/gripsack-dev/gripsack">source</a>
   <a href="../index.html">home</a>
-  <span style="margin-left:auto"><span class="fversion">v0.48.0</span> · eleven palettes</span>
+  <span style="margin-left:auto"><span class="fversion">v0.50.0</span> · eleven palettes</span>
 </footer>
 </main>
 </div>

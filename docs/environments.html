@@ -3,50 +3,47 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>gripsack — persistent environments</title>
-<meta name="description" content="gripsack for Linux and WSL — your whole environment in one bag. Packages from any source plus your dotfiles, with generations and rollback.">
+<title>gripsack — environments</title>
+<meta name="description" content="Declare user-space packages, native environments and personal profiles. Build with BuildKit, export OCI images and retain managed generations.">
 <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
-<link rel="stylesheet" href="../assets/site.css?v=d59cbc70">
-<script src="../assets/site.js?v=d59cbc70" defer></script>
+<link rel="stylesheet" href="../assets/site.css?v=0055d231">
+<script src="../assets/site.js?v=0055d231" defer></script>
 </head>
 <body class="docs">
+<a class="skip-link" href="#main">Skip to content</a>
 <div class="shell">
 <aside class="rail">
   <a class="brand" href="../index.html">
     <img src="../assets/icon.svg" alt="gripsack icon"><span class="wordmark">gripsack</span>
   </a>
   <span class="rail-head">menu</span>
-  <nav>
-    <a href="../index.html">home</a>
-    <a href="../docs/adopting.html">adopting your dotfiles</a>
-    <a href="../docs/compare.html">compare</a>
-    <a href="../docs/architecture.html">architecture</a>
-    <a href="../docs/safety.html">safety</a>
-    <a href="../docs/modules.html">modules</a>
-    <a class="active" href="../docs/environments.html">environments</a>
-    <a href="../docs/workspace-migration.html">workspace migration</a>
-    <a href="../docs/settings.html">settings</a>
+  <nav aria-label="Documentation">
+    <a class="" href="../index.html">home</a>
+    <a class="" href="../docs/install.html">install</a>
+    <a class="" href="../docs/workspaces.html">workspaces</a>
+    <a class="" href="../docs/packages.html">packages</a>
+    <a class="active" aria-current="page" href="../docs/environments.html">environments</a>
+    <a class="" href="../docs/adopting.html">profiles &amp; dotfiles</a>
+    <a class="" href="../docs/builds.html">BuildKit &amp; OCI</a>
+    <a class="" href="../docs/tasks.html">tasks &amp; checks</a>
+    <a class="" href="../docs/fetchers.html">sources &amp; locks</a>
+    <a class="" href="../docs/safety.html">safety &amp; recovery</a>
+    <a class="" href="../docs/settings.html">settings</a>
     <a class="child" href="../docs/settings/reference.html">↳ settings reference</a>
-    <a href="../docs/runs.html">run logs</a>
-    <a href="../docs/fetchers.html">fetchers</a>
-    <a class="child" href="../docs/fetchers/apt.html">↳ apt</a>
-    <a href="../docs/linters.html">linters</a>
-    <a href="../docs/skills.html">skills</a>
-    <a href="../docs/roadmap.html">roadmap</a>
-    <a href="../docs/changelog.html">what's new</a>
+    <a class="" href="../docs/runs.html">run logs</a>
+    <a class="" href="../docs/skills.html">agent guidance</a>
+    <a class="" href="../docs/compare.html">where it fits</a>
+    <a class="" href="../docs/architecture.html">architecture</a>
+    <a class="" href="../docs/changelog.html">what&#x27;s new</a>
     <a class="gh" href="https://github.com/gripsack-dev/gripsack">github ↗</a>
-    <a href="../docs/roadmap.html#supported-platforms">Linux &amp; WSL support</a>
   </nav>
   <span class="rail-head">on this page</span>
   <div class="rail-toc">
-    <a href="#a-profile-with-a-real-toolchain">A profile with a real toolchain</a>
-    <a href="#activation-profilesh">Activation: profile.sh</a>
-    <a href="#destinations-personal-and-shared">Destinations: personal and shared</a>
-    <a href="#release-trees-that-locate-their-siblings">Release trees that locate their siblings</a>
-    <a href="#matchspec-version-constraints">MatchSpec version constraints</a>
-    <a href="#complete-closures">Complete closures</a>
+    <a href="#a-coherent-conda-toolchain">A coherent Conda toolchain</a>
     <a href="#solve-baselines">Solve baselines</a>
-    <a href="#hooks-and-checks">Hooks and checks</a>
+    <a href="#import-a-pixi-lock-explicitly">Import a Pixi lock explicitly</a>
+    <a href="#personal-launchers">Personal launchers</a>
+    <a href="#generations-and-rollback">Generations and rollback</a>
   </div>
   <span class="rail-head">theme</span>
   <div class="rail-palettes">
@@ -64,515 +61,84 @@
   </div>
   <span class="palette-name" data-palette-name>catppuccin-mocha</span>
 </aside>
-<main class="content">
+<main class="content" id="main">
 <article class="md">
-<p class="note">Documentation for core/SDK v0.48.0.
-<a href="../docs/roadmap.html#release-qualification">Release and verification scope</a>.</p>
-<h1 id="persistent-environments">Persistent environments</h1>
-<p>A workspace <code>profile</code> can deploy a solved toolchain — coherent Conda
-or Pixi packages, command wrappers, config files — through the same
-generation/rollback transaction module repos use, and expose it to any
-shell through one plain file.</p>
-<p>In core/SDK 0.48 (IR8), profile-managed launchers replace handwritten
-activation/PATH wrappers: select <code>environment</code>, <code>launchers.directory</code> and
-<code>launchers.commands</code> explicitly. Captured <code>repoTree</code>, <code>templateFile</code> and package
-<code>archiveRoot</code> remove tree manifests, duplicate template bodies and versioned
-selector plumbing.
-Use the <a href="https://github.com/gripsack-dev/gripsack/blob/core-v0.48.0/typescript/README.md#managed-profile-launchers">0.48 SDK guide</a>
-and the <a href="../docs/workspace-migration.html#upgrading-the-evaluated-frontend">upgrade procedure</a>.
-The complete examples below retain supported explicit file/activation APIs;
-handwritten wrappers are an alternative, not a requirement for new profiles.</p>
-<h2 id="a-profile-with-a-real-toolchain">A profile with a real toolchain</h2>
-<p>This complete declaration uses core/SDK 0.48 APIs: node
-26.10.0 from conda-forge, with an explicit Linux/glibc solve baseline and a
-<code>node</code> command. Historical runtime observations below are labeled separately;
-they are not qualification of the current release on every host.</p>
-<div class="window">
-  <div class="titlebar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="wtitle">gripsack.ts</span></div>
+<h1 id="environments">Environments</h1>
+<p>An environment selects packages and command exports for native execution. A profile can expose that same environment to your shell and editor through managed launchers. Neither requires a BuildKit worker when all packages have native providers.</p>
+<h2 id="a-coherent-conda-toolchain">A coherent Conda toolchain</h2>
+<p><code>conda.environment</code> solves one coherent environment, including its transitive dependencies. This complete workspace exposes ripgrep both to project commands and to a personal profile:</p>
 <pre><code class="language-typescript">import {
-  defineWorkspace, environment, pkg, profile, provider, conda,
+  conda, defineWorkspace, environment, pkg, profile, provider,
   targetPlatform, workspace,
-} from "@gripsack/core";
+} from &quot;@gripsack/core&quot;;
 
-const target = targetPlatform({ os: "linux", arch: "x86_64", abi: "gnu" });
-const node = pkg("node", {
+const target = targetPlatform({ os: &quot;linux&quot;, arch: &quot;x86_64&quot;, abi: &quot;gnu&quot; });
+const tools = pkg(&quot;tools&quot;, {
   producer: provider(conda.environment({
-    channels: ["conda-forge"],
-    packages: { nodejs: "=26.10.0" },
+    channels: [&quot;conda-forge&quot;],
+    packages: { ripgrep: &quot;*&quot; },
     systemRequirements: {
-      libc: { family: "glibc", version: "2.28" },
-      linux: "4.18",
+      libc: { family: &quot;glibc&quot;, version: &quot;2.28&quot; },
+      linux: &quot;4.18&quot;,
     },
   })),
-  commands: { node: "bin/node" },
+  commands: { rg: &quot;bin/rg&quot; },
   target,
-  layout: { kind: "prefix_materialized" },
+  layout: { kind: &quot;prefix_materialized&quot; },
 });
-const tools = environment("tools", { packages: ["node"], target });
-
-export default defineWorkspace(() => workspace({
-  outputs: [node, tools, profile("with-node", { environment: "tools" })],
-}));</code></pre>
-</div>
-
-<p>The pieces: <code>conda.environment</code> solves one coherent environment (a
-frozen Pixi lock works the same way through
-<a href="../docs/workspace-migration.html#removed-pixipackage">pixi.fromLock</a>); <code>pkg</code>
-turns it into named commands over a materialized prefix;
-<code>environment</code> is a process-scoped selection of packages — it deploys
-no personal profile by itself; <code>profile</code> ties the environment (plus
-optional config files) into the generation transaction.</p>
-<p>The promoted 0.45.0 Linux binary was also exercised with real Node
-26.10.0 and pyright 1.1.414: personal-bin activation on glibc 2.39,
-and <code>/usr/local/bin</code> activation inside disposable UBI 8 userspace
-(glibc 2.28), including a second generation and actual rollback.
-Both used the same reviewed frozen Pixi closure described below.</p>
-<h2 id="activation-profilesh">Activation: profile.sh</h2>
-<p><code>grip apply</code> generates <code>$GRIPSACK_HOME/current/env/profile.sh</code>
-(default <code>$GRIPSACK_HOME</code>: <code>~/.local/share/gripsack</code>). Source it from
-any POSIX shell:</p>
-<pre><code class="language-sh">. &quot;$GRIPSACK_HOME/current/env/profile.sh&quot;
-command -v node &amp;&amp; node --version   # the wrapper is on PATH — 26.10.0
-</code></pre>
-<p>The contract is deliberately boring:</p>
-<ul>
-<li><strong>plain <code>/bin/sh</code></strong> — no shell-specific features required. Verified
-  sourcing with cwd <code>/</code> and an initial <code>PATH=/usr/bin:/bin</code>.</li>
-<li><strong>wrappers on <code>PATH</code></strong> — each declared command is exposed after
-  sourcing (<code>node --version</code> prints <code>26.10.0</code>).</li>
-<li><strong>second apply is satisfied</strong> — a repeat <code>grip apply</code> reports
-  already satisfied without re-solving.</li>
-</ul>
-<p>gripsack does not edit shell startup files automatically. A login-shell
-profile may source this file explicitly; noninteractive <code>/bin/sh</code> does
-not read <code>~/.profile</code>, so use an explicit source command or the launcher
-below. <code>grip run --env tools …</code> and <code>grip shell tools</code> are process-scoped
-alternatives, not changes to an already running parent shell.</p>
-<p>Apply and rollback change <code>current</code>, not the environment of existing
-processes. Use a fresh shell/environment afterward. Re-sourcing prepends
-the selected paths and sets declared variables; it does not remove old
-PATH entries or unset variables omitted by the restored generation.
-The launchers below source the current selection afresh on every call.</p>
-<p>For package closures explicitly using
-<a href="../docs/safety.html#explicit-host-runtime-dependence"><code>hostRuntime</code></a>, generated
-wrappers additionally depend on the absolute installed core executable
-and original private state path. Keep both stable: the managed runner
-revalidates the retained closure and host libraries at each launch,
-rather than bypassing admission through a raw loader command.</p>
-<p>If the core moves, invoke it at its new absolute path and reapply the profile,
-then start a fresh shell or source the refreshed activation file. An old
-wrapper deliberately does not search <code>PATH</code> for a replacement core. This
-recovery was exercised with a retained host-dependent profile on glibc 2.28;
-moving the private state itself is not covered by that recovery recipe.</p>
-<h2 id="destinations-personal-and-shared">Destinations: personal and shared</h2>
-<p>Profile files declare destinations with the same ownership semantics
-as module configs: <code>symlinkTo(path)</code> (store-owned, read-only),
-<code>trackedCopyTo(path)</code> (copied, drift detected), <code>managedBlock(path,
-marker)</code> (one delimited block in a shared file). A destination path is
-<strong>absolute or <code>~/</code>-prefixed, with normalized segments</strong> —
-<code>~/.local/bin/my-tool</code> and <code>/usr/local/bin/my-tool</code> are both admitted,
-and the rule is enforced at authoring time, mirroring the core's
-runtime admission, so an escaping path fails in your editor rather
-than mid-apply.</p>
-<p>These are <strong>file destination rules</strong>, not permission to project files
-from an arbitrary Conda prefix. For a persistent toolchain, use the
-generated <code>current/env/profile.sh</code>: it selects the retained
-generation's command wrappers. Do not hard-code a store hash or
-symlink directly to the prefix's <code>bin/node</code>.</p>
-<h3 id="initialize-and-approve">Initialize and approve</h3>
-<p>For a new personal workspace, run as the UID that will run the tools:</p>
-<pre><code class="language-sh">set -eu
-umask 077
-export GRIPSACK_HOME=&quot;$HOME/.local/share/gripsack&quot;
-mkdir -p &quot;$GRIPSACK_HOME&quot;
-grip init &quot;$HOME/node-workspace&quot;
-cd &quot;$HOME/node-workspace&quot;
-</code></pre>
-<p>Save the complete <code>gripsack.ts</code> above at this root. It supersedes the
-generated legacy host entrypoint; you do not need a host shim. Before
-the first solve, inspect and review the capture, then use the exact
-values from that review (not an automatic assignment from <code>inspect</code>):</p>
-<pre><code class="language-sh">grip trust inspect --json
-# After review, load reviewed_bundle and reviewed_policy out-of-band.
-: &quot;${reviewed_bundle:?review the initial source first}&quot;
-: &quot;${reviewed_policy:?review the initial policy first}&quot;
-grip trust add --bundle &quot;$reviewed_bundle&quot; --policy &quot;$reviewed_policy&quot;
-grip update
-</code></pre>
-<p>The lock write changes the captured bundle. Review the resulting
-<code>gripsack.lock</code> and inventory, then use the
-<a href="../docs/safety.html#unattended-approval">expected-digest comparison</a> with the
-<strong>new</strong> reviewed values before <code>grip apply with-node</code>. On a machine
-receiving an already frozen, reviewed checkout, skip <code>grip update</code>:
-compare, approve and apply without re-solving.</p>
-<h3 id="profile-managed-personal-command">Profile-managed personal command</h3>
-<p>For new profiles, prefer the
-<a href="https://github.com/gripsack-dev/gripsack/blob/core-v0.48.0/typescript/README.md#managed-profile-launchers">managed launcher API</a>.
-The explicit-file alternative below remains supported and demonstrates the
-ownership and activation mechanics. Its <strong>source file's executable bit</strong>
-supplies executability. <code>file(...)</code> has no <code>mode</code> option, and origin-free
-<code>literalText(...)</code> does not supply an executable bit.</p>
-<p>From the initialized workspace, create this reviewed repository
-source <strong>before</strong> source approval:</p>
-<pre><code class="language-sh">set -eu
-: &quot;${GRIPSACK_HOME:?initialize the private state path first}&quot;
-mkdir -p launchers
-test ! -e launchers/gripsack-node
-test ! -L launchers/gripsack-node
-printf '#!/bin/sh\nset -eu\n. &quot;%s/current/env/profile.sh&quot;\nexec node &quot;$@&quot;\n' \
-  &quot;$GRIPSACK_HOME&quot; &gt; launchers/gripsack-node
-chmod 755 launchers/gripsack-node
-</code></pre>
-<p>Review the generated shell text and retain its executable bit in
-version control. The example initialization uses an absolute state
-path; keep that path stable. The launcher does not need an inherited
-<code>HOME</code>, a login shell or a particular working directory.</p>
-<p>This complete workspace replaces the first card and adds the explicit
-launcher file to the same profile (it does not use <code>profile.launchers</code>):</p>
-<div class="window">
-  <div class="titlebar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="wtitle">gripsack.ts — managed launcher</span></div>
-<pre><code class="language-typescript">import {
-  conda, defineWorkspace, environment, file, identity, pkg, profile,
-  provider, repoFile, symlinkTo, targetPlatform, workspace,
-} from "@gripsack/core";
-
-const target = targetPlatform({ os: "linux", arch: "x86_64", abi: "gnu" });
-const node = pkg("node", {
-  producer: provider(conda.environment({
-    channels: ["conda-forge"],
-    packages: { nodejs: "=26.10.0" },
-    systemRequirements: {
-      libc: { family: "glibc", version: "2.28" },
-      linux: "4.18",
-    },
-  })),
-  commands: { node: "bin/node" },
-  target,
-  layout: { kind: "prefix_materialized" },
+const search = environment(&quot;search&quot;, { packages: [&quot;tools&quot;], target });
+const personal = profile(&quot;personal&quot;, {
+  environment: &quot;search&quot;,
+  launchers: { directory: &quot;~/.local/bin&quot;, commands: [&quot;rg&quot;] },
 });
-const tools = environment("tools", { packages: ["node"], target });
 
-export default defineWorkspace(() => workspace({
-  outputs: [node, tools, profile("with-node", {
-    environment: "tools",
-    files: [file({
-      source: repoFile("launchers/gripsack-node"),
-      content: identity(),
-      destination: symlinkTo("~/.local/bin/gripsack-node"),
-    })],
-  })],
-}));</code></pre>
-</div>
-
-<p>Use the review/approve/update/review/reapprove sequence above, then:</p>
-<pre><code class="language-sh">grip apply with-node
-launcher=&quot;$HOME/.local/bin/gripsack-node&quot;
-env -i PATH=/usr/bin:/bin /bin/sh -c 'cd / &amp;&amp; &quot;$1&quot; --version' sh &quot;$launcher&quot;
+export default defineWorkspace(() =&gt; workspace({ outputs: [tools, search, personal] }));
 </code></pre>
-<p>The distinct command name avoids claiming an unrelated <code>node</code>;
-ordinary destination ownership checks still apply. The launcher
-bytes, executable intent and destination now participate in the
-profile transaction, including prune and rollback. Its source of
-runtime selection remains <code>current/env/profile.sh</code>, not a copied
-Conda executable or a hard-coded store hash.</p>
-<h3 id="noninteractive-service-command">Noninteractive service command</h3>
-<p>For <code>/usr/local/bin/gripsack-node</code>, change only the file destination
-to <code>symlinkTo("/usr/local/bin/gripsack-node")</code> and use the same
-review/approval/apply sequence. Try system destinations <strong>inside a
-disposable container</strong>, not in the host's system directories.
-Initialize and deploy as the runtime UID, with a private mode-0700
-<code>GRIPSACK_HOME</code> outside the checkout and permission to create the
-destination. Provision these paths deliberately before unattended
-approval; noninteractive shells do not initialize them for you.</p>
-<p>An absolute launcher location does <strong>not</strong> provide multi-user access
-to a private store. Do not widen permissions on <code>GRIPSACK_HOME</code>.
-The <a href="../docs/safety.html#the-destination-boundary">destination boundary</a> still
-applies. Earlier UBI 8 evidence used a manually installed launcher
-under UID 0; the newly exercised profile-managed launcher was a
-personal destination on Linux/WSL, not a new multi-user qualification.</p>
-<h3 id="rollback-through-the-same-launcher">Rollback through the same launcher</h3>
-<p>To make a second generation observable, import <code>lit</code> in the complete
-workspace above and add <code>env: { MIGRATION_REVISION: lit("second") }</code>
-to <code>environment("tools", …)</code>. Review/approve the changed source, run
-<code>grip update</code>, review any changed lock and approve its exact capture,
-then:</p>
-<pre><code class="language-sh">grip apply with-node
-env -i PATH=/usr/bin:/bin /bin/sh -c \
-  'cd / &amp;&amp; &quot;$1&quot; -p &quot;process.env.MIGRATION_REVISION || '\''initial'\''&quot;' sh &quot;$launcher&quot;
-grip rollback
-env -i PATH=/usr/bin:/bin /bin/sh -c \
-  'cd / &amp;&amp; &quot;$1&quot; -p &quot;process.env.MIGRATION_REVISION || '\''initial'\''&quot;' sh &quot;$launcher&quot;
+<pre><code class="language-sh">grip update
+grip run --env search -- rg --version
+grip plan personal
+grip apply personal
 </code></pre>
-<p>The two invocations print <code>second</code>, then <code>initial</code>; <code>--version</code>
-continues to print <code>v26.10.0</code>. This explicit-file launcher was
-exercised with public 0.45.0 and the already reviewed frozen Pixi
-Node/pyright closure below, reusing its verified archives without
-re-solving. It ran from <code>/</code> with only <code>PATH=/usr/bin:/bin</code>, no <code>HOME</code>
-and no inherited activation. The second apply and actual rollback
-changed the selected environment through the same launcher.
-That evidence covers the explicit-file mechanism, not the newer
-<code>profile.launchers</code> API or every future Conda solve.</p>
-<h2 id="release-trees-that-locate-their-siblings">Release trees that locate their siblings</h2>
-<p><code>artifactTree(...)</code> expands into <strong>individually owned files</strong>.
-With <code>symlinkTo(...)</code>, each destination links to its own retained
-content object; it is not one symlink to a directory tree. A program
-which resolves its executable's physical path (for example with
-<code>realpath</code> or <code>/proc/self/exe</code>) can therefore lose its expected
-<code>../lib</code>, <code>../share</code> or adjacent-resource relationship even though
-the destination directory looks correct.</p>
-<p>For release trees that require this physical relationship, deploy
-the required tree with <code>trackedCopyTo(...)</code>. Each selected regular
-file then physically occupies its declared relative location. Include
-the runtime data/libraries as well as the executable; copied files
-remain individually owned and drift-protected, not an exclusively
-owned directory.</p>
-<p><code>hostRuntime</code> authorizes reviewed host libraries; it does not repair an
-application's self-location logic. LuaLS 3.19.2 still fails its sealed bootstrap
-when it looks for <code>/main.lua</code>. A complete tracked-copy tree with a captured
-executable template and an explicit deployed-host check passed an isolated
-development-core smoke; this is not a sealed-bootstrap fix. Neovim 0.12.5
-resource/parser loading and tree-sitter 0.27.1 version/help passed sealed
-smokes with explicitly reviewed <code>/usr/lib/x86_64-linux-gnu</code> authority.
-None of those observations qualifies a private deployment host.
-See the <a href="https://github.com/gripsack-dev/gripsack/blob/core-v0.48.0/typescript/README.md#reviewer-migration-delete-plumbing-keep-verification">SDK migration guide</a>
-for current captured-template/tree, tracked-copy and profile-selection guidance;
-keep deployed-host verification explicit.</p>
-<p>This complete local example demonstrates the supported layout
-without downloading an unreviewed release. In a fresh workspace,
-create these captured source files:</p>
-<pre><code class="language-sh">set -eu
-mkdir -p release/bin release/lib
-cat &gt; release/bin/sibling-tool &lt;&lt;'SH'
-#!/bin/sh
-set -eu
-self=$(readlink -f &quot;$0&quot;)
-base=$(dirname &quot;$self&quot;)
-cat &quot;$base/../lib/message&quot;
-SH
-chmod 755 release/bin/sibling-tool
-printf 'physical-siblings-ok\n' &gt; release/lib/message
-</code></pre>
-<div class="window">
-  <div class="titlebar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="wtitle">gripsack.ts — physical release layout</span></div>
-<pre><code class="language-typescript">import {
-  artifactTree, defineWorkspace, file, fileFetch, identity, pkg,
-  profile, provider, targetPlatform, trackedCopyTo, workspace,
-} from "@gripsack/core";
-
-const release = pkg("release", {
-  producer: provider(fileFetch("release")),
-  commands: {},
-  target: targetPlatform({ os: "linux", arch: "x86_64" }),
-  layout: { kind: "relocatable" },
-});
-export default defineWorkspace(() => workspace({
-  outputs: [release, profile("release-files", { files: [file({
-    source: artifactTree("release", { include: ["bin", "lib"] }),
-    content: identity(),
-    destination: trackedCopyTo("~/.local/lib/sibling-release"),
-  })] })],
-}));</code></pre>
-</div>
-
-<p>Review/approve the source, <code>grip update</code>, review/reapprove the
-resulting capture, then <code>grip apply release-files</code>. Invoke
-<code>"$HOME/.local/lib/sibling-release/bin/sibling-tool"</code> from <code>/</code>:
-it prints <code>physical-siblings-ok</code>. This positive workflow was
-exercised with public 0.45.0 on Linux/WSL; both selected destinations
-were regular files, and the executable bit was retained.</p>
-<p>For a real <code>githubRelease</code> producer, review the archive's actual
-layout and select its required files instead. Selectors retain paths:
-selecting <code>bin</code> deploys <code>bin/sibling-tool</code>, not a flattened filename.
-This is <strong>not</strong> arbitrary projection out of a Conda prefix, a
-relocation engine for fixed-prefix software, or a promise that any
-release can run as a sealed package command. Here <code>commands: {}</code>
-exports no such command; execution is of the deployed profile file.
-Untracked files in the destination directory are not pruned.</p>
-<h2 id="matchspec-version-constraints">MatchSpec version constraints</h2>
-<p><code>conda.environment({ packages: ... })</code> maps each package name to a
-<strong>MatchSpec version constraint</strong>, not a bare version string. The
-native helper parses the package name plus that constraint with
-Rattler's strict MatchSpec parser:</p>
-<table>
-<thead>
-<tr>
-<th>value</th>
-<th>meaning</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>"==25.07.1"</code></td>
-<td>exact version</td>
-</tr>
-<tr>
-<td><code>"=25.07"</code></td>
-<td>version-prefix match (the 25.07 series), not exact equality</td>
-</tr>
-<tr>
-<td><code>"&gt;=25.07.1,&lt;26"</code></td>
-<td>intersection of lower and upper version bounds</td>
-</tr>
-<tr>
-<td><code>"*"</code></td>
-<td>any version at solve time</td>
-</tr>
-</tbody>
-</table>
-<p>Do not write <code>"25.07.1"</code>: a bare version is rejected. Put the package
-name only in the object key, for example <code>packages: { nodejs: "==26.10.0" }</code>.
-Use <code>==</code> when exact equality is intended; <code>=26.10.0</code> in the older
-examples is a prefix constraint. The resulting lock records exact
-archives even when the declaration uses a range or wildcard; changing
-the constraint requires an explicit reviewed update.</p>
-<h2 id="complete-closures">Complete closures</h2>
-<p>A frozen prefix must carry its whole runtime — that is the point.
-pyright 1.1.414 with an explicit glibc 2.28 target failed activation
-exactly as intended:</p>
-<pre><code class="language-text">Conda prefix requires &quot;libX11.so.6&quot; outside the explicit OS runtime; include that library in the frozen package closure
-</code></pre>
-<p>That is intentional, default fail-closed missing-library detection,
-not a new pyright bug or permission to use arbitrary host libraries.
-Declare the missing runtime library explicitly — for libX11 the
-conda-forge <code>xorg-libx11</code> package — so it and its dependencies enter
-the reviewed frozen closure. Native declarations use, for example,
-<code>packages: { pyright: "*", "xorg-libx11": "*" }</code>. The exercised Pixi
-manifest used:</p>
-<pre><code class="language-toml">[workspace]
-name = &quot;gripsack-pixi-gate&quot;
-channels = [&quot;conda-forge&quot;]
-platforms = [&quot;linux-64&quot;]
-
-[system-requirements]
-libc = { family = &quot;glibc&quot;, version = &quot;2.28&quot; }
-
-[dependencies]
-pyright = &quot;*&quot;
-&quot;xorg-libx11&quot; = &quot;*&quot;
-</code></pre>
-<p>The reviewed Pixi v7 lock, not the wildcard, fixes the deployed
-versions: it selected nodejs 26.10.0, pyright 1.1.414, xorg-libx11
-1.8.13 and the transitive X11 libraries. It was imported with
-<code>pixi.fromLock</code>, explicit <code>abi: "gnu"</code>, commands <code>node: "bin/node"</code>
-and <code>pyright: "bin/pyright"</code>, a materialized-prefix package, an
-environment selecting it, and a profile selecting that environment.</p>
-<p>On 2026-10-08 the <strong>same 42 exact archives</strong> ran real <code>node --version</code>
-and <code>pyright --version</code> on modern Linux (glibc 2.39) and in UBI 8
-userspace (glibc 2.28). The UBI run had networking disabled and reused
-the verified archive cache, not an updater's fresh solve. It recorded
-<code>__glibc=2.28</code> and <code>__linux=4.18</code> in the frozen assumptions. Both
-runtimes shared the available WSL2 6.18 kernel: this is not testing
-the external reviewer's el9 5.14 kernel or private repository, and
-does not qualify all possible packages.</p>
+<p>Review and approve the source and changed lock when prompted. <code>grip run</code> executes without deploying the personal profile; <code>grip apply</code> deploys its explicit launchers through a generation.</p>
+<p>Package constraints are Conda MatchSpecs: <code>"*"</code>, <code>"==25.07.1"</code> for exact equality, <code>"=25.07"</code> for a prefix or <code>"&gt;=25.07.1,&lt;26"</code> for a range. A bare <code>"25.07.1"</code> is not a valid constraint. The lock fixes exact archive identities regardless of the authored range.</p>
 <h2 id="solve-baselines">Solve baselines</h2>
-<p>Native <code>conda.environment</code> accepts <code>systemRequirements</code> alongside
-<code>channels</code> and <code>packages</code>. For example, add
-<code>systemRequirements: { libc: { family: "glibc", version: "2.28" }, linux: "4.18" }</code>
-to the source declaration to solve for that Linux baseline.
-<code>linux</code> and <code>libc.version</code> are dotted-decimal version strings; the
-supported family is exactly <code>"glibc"</code>. Unsupported keys/families
-and null values diagnose rather than silently using the host.</p>
-<ul>
-<li><strong>Declared capabilities replace the corresponding measured solve
-  virtuals.</strong> Omitted libc/kernel requirements still use the
-  updater's measured values. With neither field present, the native
-  solve remains host-relative. <code>target: ... abi: "gnu"</code> declares
-  command ABI compatibility; it is <strong>not</strong> a libc/kernel baseline.</li>
-<li><strong>The baseline is part of the frozen source contract.</strong> Changing
-  it requires <code>grip update</code>, review of the resulting lock and renewed
-  exact-capture approval. A frozen consumer does not silently solve
-  against the new value.</li>
-<li><strong>The platform-keyed <code>gripsack.lock</code> records identity.</strong> It retains
-  exact archives and the recorded <code>system_requirements</code> and
-  <code>virtual_packages</code>. A measured updater value such as
-  <code>__glibc=2.39</code> is not, by itself, every archive's minimum runtime
-  glibc. Do not confuse solve provenance with an archive requirement.</li>
-<li><strong>Pixi imports retain their manifest baseline.</strong> Declare it in
-  the manifest before external lock generation, then import the
-  reviewed manifest and lock with <code>pixi.fromLock</code>:</li>
-</ul>
-<pre><code class="language-toml">[system-requirements]
-libc = { family = &quot;glibc&quot;, version = &quot;2.28&quot; }
-linux = &quot;4.18&quot;
+<p><code>systemRequirements</code> selects Linux solve virtuals explicitly. Without a declared libc/kernel capability the updater uses measured host facts. The recorded policy is checked on frozen use, alongside actual archive, CPU and runtime admission. A baseline is not a guarantee that every selected archive runs on every distribution.</p>
+<p>Keep required libraries in the complete closure. For example, a pyright environment can need an explicit <code>xorg-libx11</code> dependency. A successful version command alone does not prove editor, language-server or graphical behavior. Exercise the actual consumer on the host where you deploy it.</p>
+<p>Unsupported Conda lifecycle scripts and payload policies fail before publication; importing a lock does not bypass those checks.</p>
+<h2 id="import-a-pixi-lock-explicitly">Import a Pixi lock explicitly</h2>
+<p>Use <code>pixi.fromLock</code> when another workflow owns the solve. Capture both the existing manifest and its lock as named inputs, then select the lock's environment. This complete declaration expects a <code>default</code> environment exporting ripgrep in those files:</p>
+<pre><code class="language-typescript">import {
+  defineWorkspace, environment, inputFile, pixi, pkg, provider,
+  targetPlatform, workspace,
+} from &quot;@gripsack/core&quot;;
+
+const target = targetPlatform({ os: &quot;linux&quot;, arch: &quot;x86_64&quot;, abi: &quot;gnu&quot; });
+const inputs = [
+  inputFile(&quot;pixi-manifest&quot;, &quot;pixi.toml&quot;),
+  inputFile(&quot;pixi-lock&quot;, &quot;pixi.lock&quot;),
+];
+const tools = pkg(&quot;tools&quot;, {
+  producer: provider(pixi.fromLock({
+    manifest: &quot;pixi-manifest&quot;,
+    lock: &quot;pixi-lock&quot;,
+    environment: &quot;default&quot;,
+  })),
+  commands: { rg: &quot;bin/rg&quot; },
+  target,
+  layout: { kind: &quot;prefix_materialized&quot; },
+});
+const search = environment(&quot;search&quot;, { packages: [&quot;tools&quot;], target });
+
+export default defineWorkspace(() =&gt; workspace({ inputs, outputs: [tools, search] }));
 </code></pre>
-<p>A baseline is not universal portability proof. The selected
-archives' actual dependencies/constraints, CPU requirements, explicit
-system requirements and sealed-loader admission remain independent
-runtime checks. The bound GNU loader is probed for its required
-controls; a loader missing a control fails closed, naming it.
-Make a deliberate baseline decision before cross-host reuse or
-re-solving, and qualify the actual resulting closure on those hosts.</p>
-<p>The external reviewer reports successful prior profile/Pixi/loader
-and hook workflows on WSL Ubuntu 24.04 (glibc 2.39) and RHEL 8.10
-(glibc 2.28, el9 5.14 kernel, Landlock). That is <strong>external reviewer
-evidence</strong>, not our own private-host qualification. The local
-public-0.45.0 smoke results above exercise existing APIs; they do not
-claim to exercise the new native <code>systemRequirements</code> field.</p>
-<h2 id="hooks-and-checks">Hooks and checks</h2>
-<p>Since 0.45.0, profile hooks execute on supported runtimes instead of
-unconditionally refusing with the unavailable-A2-capability error:</p>
-<table>
-<thead>
-<tr>
-<th>capability</th>
-<th>status</th>
-<th>notes</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>profile hooks <code>post_link</code>, <code>post_activate</code>, <code>on_remove</code></td>
-<td><strong>execute</strong>, through the durable activation ledger</td>
-<td>per-intent identity, durable terminal outcomes, ambiguous-crash replay handling, <strong>no automatic rollback</strong> after a post-activation failure</td>
-</tr>
-<tr>
-<td>hook commands</td>
-<td>literal <code>exec</code>, explicit <code>packageCommand</code>/<code>runBash</code>, artifact/input arguments, declared <code>env</code> and <code>cwd</code></td>
-<td>hooks do <strong>not</strong> implicitly source the newly activated <code>profile.sh</code>; default cwd follows the legacy hook temp-directory convention</td>
-</tr>
-<tr>
-<td>task <code>checks</code></td>
-<td>ordered postconditions after successful task steps</td>
-<td>once per invocation, stopping at the first failure; <code>sourcePath</code> resolves against the immutable check subject</td>
-</tr>
-<tr>
-<td>recipe publication checks</td>
-<td>unchanged</td>
-<td>as before</td>
-</tr>
-</tbody>
-</table>
-<p>In 0.48, attached profile file checks and manual task prerequisites are
-supported. Profile hooks have executed since 0.45.0; the task-check row above
-describes the current contract, not a claim about 0.45.0. See the
-<a href="https://github.com/gripsack-dev/gripsack/blob/core-v0.48.0/typescript/README.md#file-checks-and-manual-tasks">file-check and task contract</a>.
-Use <code>grip task list</code>, <code>grip task plan NAME</code>, <code>grip task run NAME --closed-stdin</code>,
-then <code>grip task status INVOCATION_ID</code> and <code>grip task log INVOCATION_ID</code>.
-<code>deps</code> are unordered prerequisites, <code>steps</code> ordered, and <code>checks</code> invocation
-postconditions. Declare live mutation paths and shared locks explicitly.
-Schedules remain declaration-only: no registration or executing timers.</p>
-<p><code>grip check</code> and <code>grip plan</code> stay read-only: declared executable checks run
-at their explicit execution boundary (for example, recipe publication,
-attached profile-file validation or manual-task postconditions), never as
-side effects of a preview.</p>
-<div class="window">
-  <div class="titlebar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="wtitle">gripsack.ts — a profile hook</span></div>
-<pre><code class="language-typescript">import { exec, hook, lit } from "@gripsack/core";
-
-// selected with profile(…, { hooks: ["after"] }) — executes on apply
-export const after = hook("after", {
-  trigger: "post_link",
-  run: exec({ argv: [lit("/usr/bin/true")] }),
-});</code></pre>
-</div>
-
-<p>On the wire, activation plans, pending pointers and outcome records
-advanced to version 2 (version 1 remains readable; legacy actions keep
-byte-identical serialization). Generation manifests carrying workspace
-hooks use an explicit <code>{version: 2, …}</code> envelope that older binaries
-reject before any effects; ordinary manifests keep the historical
-shape. The downgrade boundary is measured and documented in
-<a href="../docs/workspace-migration.html#downgrade-boundary">workspace migration</a>.</p>
+<p><code>grip update</code> imports the selected lock; it does <strong>not</strong> run Pixi, upgrade packages or rewrite <code>pixi.lock</code>. To change the solve, update the manifest/lock with your Pixi workflow first, review them, run <code>grip update</code>, then review and approve the resulting captured state. Frozen consumers refuse changed imported inputs until that explicit update. Gripsack's import and materialization do not require a <code>pixi</code> executable on <code>PATH</code>.</p>
+<h2 id="personal-launchers">Personal launchers</h2>
+<p>A profile's <code>launchers.directory</code> and <code>launchers.commands</code> are explicit. Only uniquely resolved exports from its selected environment become launchers; missing or ambiguous commands fail before mutation. Add the chosen directory to your shell, editor or SSH session's <code>PATH</code> yourself. Gripsack does not modify those programs' environments implicitly.</p>
+<p>Launchers use the absolute installed core path and retained private state. They re-admit the package/runtime contract on invocation. Keep both available; if the binary moves, restore it or reapply using the replacement core. Do not hand-edit generated launchers.</p>
+<p>Use the same UID that owns the state. An explicit <code>/usr/local/bin</code> destination does not turn a private store into a multi-user installation; do not make trust records or journals world-accessible.</p>
+<h2 id="generations-and-rollback">Generations and rollback</h2>
+<p><code>grip generations</code> lists retained generations; <code>grip rollback</code> restores a previous managed state, including retained package roots and launcher bindings. It does not re-solve the environment or rebuild packages. Keep recovery data until you have exercised the deployed commands and configuration.</p>
+<p>For scoped project execution, use <code>grip run --env search -- COMMAND</code> or <code>grip shell search</code>. For source-built packages or OCI deployment, continue with <a href="../docs/builds.html">BuildKit and images</a>. For files alongside a toolchain, see <a href="../docs/adopting.html">profiles and dotfiles</a>.</p>
 </article>
 <footer>
   <span><span class="blink"></span> © 2026 <a href="https://github.com/tknawara">Tarek Nawara</a></span>
@@ -580,7 +146,7 @@ shape. The downgrade boundary is measured and documented in
   <a href="https://github.com/gripsack-dev">gripsack-dev</a>
   <a href="https://github.com/gripsack-dev/gripsack">source</a>
   <a href="../index.html">home</a>
-  <span style="margin-left:auto"><span class="fversion">v0.48.0</span> · eleven palettes</span>
+  <span style="margin-left:auto"><span class="fversion">v0.50.0</span> · eleven palettes</span>
 </footer>
 </main>
 </div>

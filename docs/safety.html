@@ -3,52 +3,50 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>gripsack — safety</title>
-<meta name="description" content="gripsack for Linux and WSL — your whole environment in one bag. Packages from any source plus your dotfiles, with generations and rollback.">
+<title>gripsack — safety and recovery</title>
+<meta name="description" content="Declare user-space packages, native environments and personal profiles. Build with BuildKit, export OCI images and retain managed generations.">
 <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
-<link rel="stylesheet" href="../assets/site.css?v=d59cbc70">
-<script src="../assets/site.js?v=d59cbc70" defer></script>
+<link rel="stylesheet" href="../assets/site.css?v=0055d231">
+<script src="../assets/site.js?v=0055d231" defer></script>
 </head>
 <body class="docs">
+<a class="skip-link" href="#main">Skip to content</a>
 <div class="shell">
 <aside class="rail">
   <a class="brand" href="../index.html">
     <img src="../assets/icon.svg" alt="gripsack icon"><span class="wordmark">gripsack</span>
   </a>
   <span class="rail-head">menu</span>
-  <nav>
-    <a href="../index.html">home</a>
-    <a href="../docs/adopting.html">adopting your dotfiles</a>
-    <a href="../docs/compare.html">compare</a>
-    <a href="../docs/architecture.html">architecture</a>
-    <a class="active" href="../docs/safety.html">safety</a>
-    <a href="../docs/modules.html">modules</a>
-    <a href="../docs/environments.html">environments</a>
-    <a href="../docs/workspace-migration.html">workspace migration</a>
-    <a href="../docs/settings.html">settings</a>
+  <nav aria-label="Documentation">
+    <a class="" href="../index.html">home</a>
+    <a class="" href="../docs/install.html">install</a>
+    <a class="" href="../docs/workspaces.html">workspaces</a>
+    <a class="" href="../docs/packages.html">packages</a>
+    <a class="" href="../docs/environments.html">environments</a>
+    <a class="" href="../docs/adopting.html">profiles &amp; dotfiles</a>
+    <a class="" href="../docs/builds.html">BuildKit &amp; OCI</a>
+    <a class="" href="../docs/tasks.html">tasks &amp; checks</a>
+    <a class="" href="../docs/fetchers.html">sources &amp; locks</a>
+    <a class="active" aria-current="page" href="../docs/safety.html">safety &amp; recovery</a>
+    <a class="" href="../docs/settings.html">settings</a>
     <a class="child" href="../docs/settings/reference.html">↳ settings reference</a>
-    <a href="../docs/runs.html">run logs</a>
-    <a href="../docs/fetchers.html">fetchers</a>
-    <a class="child" href="../docs/fetchers/apt.html">↳ apt</a>
-    <a href="../docs/linters.html">linters</a>
-    <a href="../docs/skills.html">skills</a>
-    <a href="../docs/roadmap.html">roadmap</a>
-    <a href="../docs/changelog.html">what's new</a>
+    <a class="" href="../docs/runs.html">run logs</a>
+    <a class="" href="../docs/skills.html">agent guidance</a>
+    <a class="" href="../docs/compare.html">where it fits</a>
+    <a class="" href="../docs/architecture.html">architecture</a>
+    <a class="" href="../docs/changelog.html">what&#x27;s new</a>
     <a class="gh" href="https://github.com/gripsack-dev/gripsack">github ↗</a>
-    <a href="../docs/roadmap.html#supported-platforms">Linux &amp; WSL support</a>
   </nav>
   <span class="rail-head">on this page</span>
   <div class="rail-toc">
-    <a href="#the-guarantee-table">The guarantee table</a>
-    <a href="#journaled-transitions">Journaled transitions</a>
-    <a href="#what-recovery-restores-exactly">What recovery restores exactly</a>
-    <a href="#the-gc-safety-model">The GC safety model</a>
-    <a href="#corrupt-persisted-state">Corrupt persisted state</a>
-    <a href="#plugin-and-tool-trust">Plugin and tool trust</a>
+    <a href="#what-is-protected">What is protected</a>
+    <a href="#source-approval">Source approval</a>
     <a href="#unattended-approval">Unattended approval</a>
-    <a href="#the-destination-boundary">The destination boundary</a>
-    <a href="#explicit-host-runtime-dependence">Explicit host-runtime dependence</a>
-    <a href="#what-gripsack-is-not">What gripsack is not</a>
+    <a href="#file-ownership-and-journal-recovery">File ownership and journal recovery</a>
+    <a href="#hooks-and-checks">Hooks and checks</a>
+    <a href="#host-runtime-dependencies">Host runtime dependencies</a>
+    <a href="#retention-and-garbage-collection">Retention and garbage collection</a>
+    <a href="#further-technical-detail">Further technical detail</a>
   </div>
   <span class="rail-head">theme</span>
   <div class="rail-palettes">
@@ -66,146 +64,59 @@
   </div>
   <span class="palette-name" data-palette-name>catppuccin-mocha</span>
 </aside>
-<main class="content">
+<main class="content" id="main">
 <article class="md">
-<p class="note">Documentation for core/SDK v0.48.0.
-<a href="../docs/roadmap.html#release-qualification">Release and verification scope</a>.</p>
-<h1 id="safety">Safety</h1>
-<p>The boundaries below describe the 0.48 transaction and execution model,
-not a claim that every assurance gate passed. The public
-<a href="https://github.com/gripsack-dev/gripsack/releases/tag/core-v0.48.0">core 0.48.0 release</a>
-is <strong>unsigned</strong>: 17 practical local gates and 96 persistence partitions
-passed; <strong>TLC, TLAPS and Verus remain explicitly unqualified</strong> for this
-release. Existing proof sources and historical runs are not current
-release qualification. 0.47 remains an unsigned, unverified prerelease.</p>
-<p>The detailed admission boundaries and trusted components are recorded in
-<a href="https://github.com/gripsack-dev/gripsack/blob/core-v0.48.0/verification/guarantees.md"><code>verification/guarantees.md</code></a>.
-Linux and WSL2 on x86_64 are the supported host scope; this does not
-qualify macOS or every Linux distribution. Report discrepancies between
-these documented boundaries and the binary you use.</p>
-<h2 id="the-guarantee-table">The guarantee table</h2>
+<h1 id="safety-and-recovery">Safety and recovery</h1>
+<p>Gripsack makes source approval, file ownership and retained state explicit. Review the plan, keep independent backups of irreplaceable configuration, and exercise the actual consumer before discarding recovery data. It is alpha software, not a whole-machine backup system.</p>
+<h2 id="what-is-protected">What is protected</h2>
 <table>
 <thead>
 <tr>
 <th>Surface</th>
-<th>Guarantee</th>
+<th>Boundary</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>Store object publication</td>
-<td>atomic final-name rename; payloads land read-only</td>
+<td>Store publication</td>
+<td>Verified content is sealed read-only and published by final-name rename</td>
 </tr>
 <tr>
 <td>Generation selection</td>
-<td>one atomic <code>current</code> flip (the link is validated to resolve under <code>$GRIPSACK_HOME/generations/</code>)</td>
+<td>One atomic <code>current</code> flip selects the generation</td>
 </tr>
 <tr>
-<td>Generation contents</td>
-<td>immutable once published (manifest + profile stage and rename in together); IDs are never reused, even across gc</td>
+<td>Managed destination changes</td>
+<td>Journaled prior/intended state with postcondition checks and crash recovery</td>
 </tr>
 <tr>
-<td>Destination deploy / prune / rollback</td>
-<td>journaled, postcondition-verified, crash-recovered; ownership lineage does not promote drift into managed content</td>
-</tr>
-<tr>
-<td>Failed apply or rollback</td>
-<td>compensation is attempted immediately; if the filesystem prevents it, the durable journal blocks further mutation until recovery completes</td>
+<td>Failed pre-commit transition</td>
+<td>Compensation is attempted; unresolved recovery blocks further mutation</td>
 </tr>
 <tr>
 <td>Tracked-copy drift</td>
-<td>detected and <strong>preserved by default</strong>, in apply AND rollback</td>
+<td>Preserved by default in apply and rollback</td>
 </tr>
 <tr>
-<td>External tools and package-manager effects</td>
-<td>adapter-dependent; effects outside journaled destinations are not automatically rolled back</td>
+<td>Retained generations</td>
+<td>Keep their package roots and prior-state blobs available</td>
 </tr>
 <tr>
-<td>Activation intents (caches, services, custom hooks)</td>
-<td>durable intent before the flip; ambiguous interrupted delivery may run again with the same identity, so hooks must be idempotent; durable terminal outcomes are not automatically retried; post-activation failure never rolls back. Explicit rollback is a new activation and may execute the retained generation's hooks</td>
-</tr>
-<tr>
-<td>Arbitrary <code>run</code> steps</td>
-<td>not automatically reversible (plan output says so)</td>
+<td>Native tasks, hooks and external tools</td>
+<td>Effects outside journaled destinations are not automatically undone</td>
 </tr>
 </tbody>
 </table>
-<h2 id="journaled-transitions">Journaled transitions</h2>
-<p>Every mutation of a managed destination — deploy, prune-on-undeclare,
-rollback — records its prior state AND its intended end state, durably,
-before the mutation. After the mutation, the destination is re-read
-through the same pinned directory handle and must equal the intent, or
-the run fails and compensation restores the prior. The generation flip
-is the single commit point; nothing commits unverified.</p>
-<p>Recovery is exact-equality: a run is committed iff <code>current</code> equals
-its target generation, uncommitted iff it equals the previous one —
-anything else is corruption and blocks, with the journal retained.</p>
-<h2 id="what-recovery-restores-exactly">What recovery restores exactly</h2>
-<ul>
-<li><strong>File bytes</strong> — from the content-addressed prior store (deduped,
-  write-once).</li>
-<li><strong>Unix mode</strong> — the recorded mode rides the restore (a 0600 secret
-  replaced by a symlink mid-run comes back 0600, not umask-default).</li>
-<li><strong>Symlink targets</strong> — verbatim. A non-UTF-8 target cannot be
-  journaled: gripsack refuses the mutation instead of recording a link
-  it could not restore.</li>
-<li><strong>Nothing else</strong> — mtimes, ownership, xattrs are outside the model
-  by design.</li>
-</ul>
-<p>A crash between a mutation and its commit, followed by <em>your</em> edit,
-keeps your edit. The drift guard reads three ways: landed-intact →
-restore prior, never-landed → nothing to do, anything else → yours.</p>
-<h2 id="the-gc-safety-model">The GC safety model</h2>
-<p><code>grip gc</code> never removes the current generation or anything any
-retained generation references (store paths AND prior blobs). It
-fails closed: an unreadable generations inventory, a corrupt manifest,
-or a current generation missing from disk all abort before the first
-deletion. Uncertainty means do nothing. <code>--dry-run</code> previews the exact
-deletion plan.</p>
-<h2 id="corrupt-persisted-state">Corrupt persisted state</h2>
-<p>A generation is validated when read, not trusted because it parses:
-embedded number must equal its directory, destinations must be unique
-(case-folded), hashes well-formed, store paths confined to
-<code>$GRIPSACK_HOME/store</code>. A current generation whose manifest is
-unreadable blocks every mutating command. Corrupt journal entries
-quarantine into <code>journal/quarantine/</code> and block mutation until
-inspected — recovery metadata is never silently discarded.</p>
-<h2 id="plugin-and-tool-trust">Plugin and tool trust</h2>
-<p><code>gripfetch-*</code>, external <code>griplint-*</code> plugins and native tools are
-<strong>trusted code running with your privileges</strong>. Fetched payload identity
-checks do not make a malicious plugin harmless, and a checksum supplied
-alongside a release is not an authenticated signature.</p>
-<p>TypeScript evaluation uses a captured source bundle and provisioned Deno,
-with restricted reads and no environment, network or subprocess grants.
-This is not a sandbox for later native execution. Source approval binds
-captured content and policy; it does not protect against privileged or
-same-UID modification of trusted runtime storage. Fetching can access
-credentials and host configuration.</p>
-<p>Workspace file checks, task commands and profile hooks have distinct
-lifecycle stages. A deployed <code>pre_flip</code> check can trigger journal
-compensation; <code>post_link</code> and <code>post_activate</code> failures do not roll back
-the committed generation. Native host commands can have effects beyond
-managed files. See the
-<a href="https://github.com/gripsack-dev/gripsack/blob/core-v0.48.0/typescript/README.md#file-checks-and-manual-tasks">0.48 SDK lifecycle reference</a>.</p>
+<p>Destination changes are not atomic across a whole profile. Stop dependent consumers when a transition requires uninterrupted file or command availability. The generation flip is a commit boundary, not a guarantee that no intermediate destination state was observable.</p>
+<h2 id="source-approval">Source approval</h2>
+<p>Evaluation uses a captured source bundle and provisioned Deno with restricted reads and no environment, network or subprocess grants. Approval binds the <strong>exact bundle and policy</strong>, including captured inputs, frontend/runtime identity and capture exclusions.</p>
+<pre><code class="language-sh">grip trust inspect --json
+grip trust add
+</code></pre>
+<p>Interactive approval displays inventory and policy for review; inspect actual changed content too. Profile selection and <code>--focus</code> narrow deployment or display, not approval authority. A lockfile write or an out-of-focus source change still requires review. Inspection and approval themselves do not evaluate workspace code.</p>
+<p>The evaluator restriction is not a sandbox for later native execution. Package tools, explicit host commands and helper executables run with their declared authority and your privileges. A checksum does not make malicious code safe. Same-UID or privileged modification of trusted runtime storage is outside this protection.</p>
 <h2 id="unattended-approval">Unattended approval</h2>
-<p>Approval binds the <strong>exact captured source bundle and policy</strong> — the
-digests, not the directory. A fresh ephemeral machine has no TTY and
-no interactive history, and that is fine: the decision moves
-out-of-band, the machine only compares digests.</p>
-<p>The workflow:</p>
-<ol>
-<li><strong>Keep the reviewed source immutable</strong> — a commit, or an archive
-   you reviewed and kept. Review the inventory it captures: the
-   generated lockfile, captured untracked files,
-   <a href="../docs/settings/reference.html#capture-envtoml-only">capture exclusions</a>.</li>
-<li><strong>Record the expected digests out-of-band</strong> — the <code>.bundle_digest</code>
-   and <code>.policy_digest</code> of exactly what you reviewed.</li>
-<li><strong>On the machine, compare before approving</strong>, using the recipe below.</li>
-<li><strong>Stop on mismatch.</strong> A differing digest means the captured source
-   changed since review — re-review the changed inventory, then
-   approve the exact new digests. Never auto-approve whatever
-   <code>inspect</code> returns.</li>
-</ol>
+<p>Record expected bundle and policy digests <strong>separately from the machine operation</strong>, after reviewing the source. Compare both before approving:</p>
 <pre><code class="language-sh">set -eu
 : &quot;${expected_bundle:?load the separately reviewed bundle digest}&quot;
 : &quot;${expected_policy:?load the separately reviewed policy digest}&quot;
@@ -216,117 +127,29 @@ source=$(grip trust inspect --json)
 grip trust add --bundle &quot;$expected_bundle&quot; --policy &quot;$expected_policy&quot;
 grip check
 </code></pre>
-<p>The shell recipe requires <code>jq</code>; the two expected values must arrive
-through your reviewed deployment configuration, <strong>not</strong> assignments
-from the <code>inspect</code> command in this script. Keep that configuration
-outside the captured checkout. Compare the policy as well as the
-bundle: frontend/runtime identity and capture policy are part of the
-approval decision. A reviewed source edit permits evaluation; it
-does not waive the separate frozen-input check. For example, after
-reviewing a changed Pixi manifest or lock, <code>grip check</code> still refuses
-its stale imported identity until an explicit <code>grip update</code>, review
-of the resulting <code>gripsack.lock</code>, and renewed exact-digest approval.</p>
-<p>Measured with the promoted 0.45.0 binary: a separately recorded
-reviewed pair matched and allowed <code>check</code>; byte changes to
-<code>gripsack.lock</code>, <code>pixi.lock</code>, or <code>[capture].exclude</code> stopped before
-<code>trust add</code> or evaluation. Trust records and evaluation receipts
-remained byte-identical on each mismatch. A wrong expected policy
-also stopped even when the expected bundle still matched. These are
-fixture-level observations, not blanket fleet-deployment
-qualification.</p>
-<p>Boundaries that hold everywhere:</p>
-<ul>
-<li>Never <code>GRIPSACK_TRUST_ALL</code> — <code>=1</code> is refused, not an approval workflow.</li>
-<li>No repo-wide or floating approval exists. One approval at the repo
-  root covers nested directories, but changed captured content is a
-  new approval decision — including a lockfile write between updates.</li>
-<li>Inspection and approval themselves evaluate nothing; a change
-  between inspect and approve fails approval rather than blessing
-  newer bytes.</li>
-</ul>
-<p>This is still a human decision per content change — "unattended"
-means no prompt, not unreviewed.</p>
-<h2 id="the-destination-boundary">The destination boundary</h2>
-<p>gripsack enforces one hard boundary: nothing may deploy INTO the env
-repo checkout. Destinations are otherwise your paths at your
-privileges — absolute paths outside <code>$HOME</code> (e.g. <code>/usr/local/bin</code>)
-are allowed and in real use. The residual race we know about: there is
-no portable atomic content-compare-and-swap (<code>renameat2
-RENAME_EXCHANGE</code> is Linux-only), so between a drift decision and the
-write there is a microsecond window — every journaled mutation
-re-validates the live object at that boundary and aborts retryably on
-mismatch rather than clobbering it.</p>
-<p>Putting a launcher in <code>/usr/local/bin</code> does not make its private
-package store a multi-user installation. The documented
-<a href="../docs/environments.html#destinations-personal-and-shared">environment launchers</a>
-run as the same UID that owns and deploys the environment. Do not
-make all of <code>GRIPSACK_HOME</code> world-readable or writable to let another
-UID reach it: trust records, journals and retained generations remain
-private authoritative state.</p>
-<p>Recorded destination ownership does not migrate merely because a new
-workspace wants the same path. <code>--take-over</code> is not a cross-identity
-ownership transfer. For a current legacy generation <code>N</code>, 0.48 supports
-an explicit reviewed <code>grip plan personal --migrate-from N</code>, followed by
-<code>grip apply personal --migrate-from N</code>. Follow the
-<a href="../docs/workspace-migration.html">migration guidance</a> for its admission limits
-and the separate legacy-prune alternative. Do not edit journals or
-delete managed files to force migration.</p>
-<h2 id="explicit-host-runtime-dependence">Explicit host-runtime dependence</h2>
-<p>A Linux GNU package may explicitly declare
-<code>hostRuntime: { libraryDirectories: ["/opt/bb/lib64"] }</code> in <code>pkg(...)</code>.
-This is a <strong>package-scoped trust decision</strong>, not a global filesystem
-grant and not permission for evaluator code to read those directories.
-A package closure with no such declaration retains the closed default,
-including refusal of an undeclared absolute ELF RUNPATH.</p>
-<p>Review both the package bytes and who controls the named host
-directories. Roots compose only over the selected package's explicit
-runtime-package dependency closure, in deterministic traversal and
-declaration order. For example, a retained dependency library may use
-its own declared host root; an unrelated package selected for the
-same invocation cannot lend its policy to this closure. Directories
-must be existing normalized absolute paths; canonical duplicate aliases
-are refused. A dependency symlink may not escape its declared root.
-Transitive ELF dependencies, ABI and search paths still undergo
-admission. The existing narrow glibc SONAME allowance remains separate;
-arbitrary <code>ld.so.cache</code>, <code>PATH</code> and ambient <code>LD_*</code> fallback are not
-enabled. This is not an unsealed-execution switch or a substitute for
-the <a href="../docs/environments.html#complete-closures">complete Conda closure</a>.</p>
-<p>The fetched artifact's identity and the package's runtime-policy
-identity remain distinct. Host libraries are host prerequisites, not
-retained portable artifact content: declaring them does not copy them
-into an OCI closure or authorize mounting them into BuildKit. Packages
-with this policy are refused for portable image placement.</p>
-<p>Persistent environment/profile wrappers for a package closure using
-<code>hostRuntime</code> route through the core's managed runner. Each invocation
-validates the retained package/descendant receipts and repeats native
-admission against the current host libraries before sealed execution;
-it does not persist a raw loader command as permanent authority.
-Task/check execution and retained hook replay also repeat admission.
-This does not make mutable host libraries immutable.</p>
-<p>These wrappers retain the <strong>absolute core executable location</strong> and
-the original private state path. Keep both installed and available.
-Moving or removing the core or state makes the wrapper fail closed.
-Restore the original stable core installation path, or reapply using
-the core at its new installed location to recreate the projection.
-Then use a fresh shell or explicitly source the managed profile again:
-an existing shell's <code>PATH</code> can still select the old generation's
-wrappers. Candidate0.46 qualification exercised this recovery on UBI8
-glibc2.28 under a WSL2 kernel, including stdin and exit-status preservation.
-Policy-free existing wrappers are unchanged.</p>
-<p>For the separate guarantee about temporary storage and cross-device
-store publication, see
-<a href="../docs/settings.html#temporary-files-and-store-publication">temporary files</a>.</p>
-<h2 id="what-gripsack-is-not">What gripsack is not</h2>
-<p>gripsack is alpha software with a journaled transaction core, not a
-backup system. Keep an independent backup of irreplaceable
-configuration. The store is a cache of fetchable payloads plus prior
-blobs — it is not the only copy of anything you cannot re-derive.</p>
-<p>Read <code>grip plan</code> before applying and keep independent backups. This is
-not qualification as the sole recovery boundary for an irreplaceable
-home directory or for unattended fleet deployment. Install 0.48 manually
-from the release archives: npm/crates.io publication is not part of this
-release, and the signed installer/updater still fails closed on unsigned
-artifacts.</p>
+<p>This requires <code>jq</code>. Do not derive the expected values from the inspection being approved. Keep deployment configuration outside the captured checkout. Stop and re-review on a mismatch; a change between inspection and approval also fails closed.</p>
+<p>There is no floating repository-wide approval. <code>GRIPSACK_TRUST_ALL=1</code> is refused. Approving a changed Pixi manifest/lock permits evaluation but does not waive frozen-input checks: explicitly import it with <code>grip update</code>, review the resulting lock, then approve the new capture.</p>
+<h2 id="file-ownership-and-journal-recovery">File ownership and journal recovery</h2>
+<p>Every journaled mutation records prior state and intended end state before changing the destination. It re-reads the result through a pinned directory handle and checks the postcondition. Before commit, failed changes trigger compensation; unresolved recovery retains the journal and blocks later mutation.</p>
+<p>Recovery covers recorded file bytes, Unix modes and symlink targets, not mtimes, ownership or extended attributes. Drift is not promoted to managed content merely because a previous transition was interrupted. A changed live file is preserved rather than blindly replaced with the prior snapshot.</p>
+<p>The current-generation pointer must equal the recorded previous or target generation for recovery to decide its state. Unexpected state blocks rather than guessing. Corrupt manifests and quarantined journal entries remain visible recovery problems, not disposable cache files.</p>
+<p>Recorded ownership does not transfer merely because another workspace wants the same path. <code>--take-over</code> is a deliberate foreign-file adoption permission, not blanket ownership reassignment. Do not delete managed files, journals or manifests to force admission. See <a href="../docs/adopting.html">profile ownership</a>.</p>
+<h2 id="hooks-and-checks">Hooks and checks</h2>
+<p>Rendered-file checks run before destination mutation. Deployed <code>pre_flip</code> checks run after candidate writes but before commit, within compensation. <code>post_link</code> and <code>post_activate</code> failures do not automatically roll back a committed generation.</p>
+<p>Hooks have durable activation intents. Ambiguous interrupted delivery can run again with the same identity, so hooks must be idempotent. Terminal outcomes are not automatically retried. Explicit rollback is a new activation and may run the retained generation's hooks. Arbitrary task, service and external-tool effects are not reversed by restoring managed files.</p>
+<p>See <a href="../docs/tasks.html">tasks and checks</a> for lifecycle stages and invocation receipts.</p>
+<h2 id="host-runtime-dependencies">Host runtime dependencies</h2>
+<p>Linux GNU packages may declare <code>hostRuntime: { libraryDirectories: ["/opt/vendor/lib64"] }</code>. Review who controls those directories as well as the package bytes. This is package-scoped runtime authority, not an evaluator read grant, arbitrary ambient loader fallback or a BuildKit mount grant.</p>
+<p>The dependency graph, ABI and search paths are re-admitted on invocation. Host libraries remain mutable trusted host inputs; they are not retained portable artifacts. Packages with this policy are refused for portable image placement. Prefer complete retained package closures when portability matters.</p>
+<p>Managed launchers retain the absolute installed core location and private state path. Keep both available. If the core moves, restore it or reapply using the replacement binary; do not edit launcher bodies. Putting a launcher in a shared directory does not make private state a multi-user installation. Run as the owning UID and keep trust, journals and retained state private.</p>
+<h2 id="retention-and-garbage-collection">Retention and garbage collection</h2>
+<pre><code class="language-sh">grip generations
+grip gc --dry-run
+</code></pre>
+<p>GC does not remove the current generation or content referenced by retained generations and recovery roots. Unreadable inventory, corrupt manifests or missing current state stop reclamation before deletion. Keep predecessor generations, captured prior blobs and unresolved recovery data until you have checked deployed behavior and recovery.</p>
+<p><code>grip rollback</code> restores retained managed state without rebuilding packages or rerendering current inputs. Tracked-copy drift remains protected. Rollback is not a reversal of every command run since that generation.</p>
+<h2 id="further-technical-detail">Further technical detail</h2>
+<p><a href="../docs/runs.html">Run logs</a> help diagnose a failure but are not recovery authority. The source repository's <a href="https://github.com/gripsack-dev/gripsack/blob/d060e1fef80f83212210e66bf65a8f1d62631bd0/verification/guarantees.md">guarantee ledger</a> records technical trust boundaries and research; release-specific verification belongs to <a href="https://github.com/gripsack-dev/gripsack/releases">release notes</a>, not a blanket assurance about your host.</p>
 </article>
 <footer>
   <span><span class="blink"></span> © 2026 <a href="https://github.com/tknawara">Tarek Nawara</a></span>
@@ -334,7 +157,7 @@ artifacts.</p>
   <a href="https://github.com/gripsack-dev">gripsack-dev</a>
   <a href="https://github.com/gripsack-dev/gripsack">source</a>
   <a href="../index.html">home</a>
-  <span style="margin-left:auto"><span class="fversion">v0.48.0</span> · eleven palettes</span>
+  <span style="margin-left:auto"><span class="fversion">v0.50.0</span> · eleven palettes</span>
 </footer>
 </main>
 </div>

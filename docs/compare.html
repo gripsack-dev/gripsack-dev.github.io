@@ -3,43 +3,45 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>gripsack — compare</title>
-<meta name="description" content="gripsack for Linux and WSL — your whole environment in one bag. Packages from any source plus your dotfiles, with generations and rollback.">
+<title>gripsack — where gripsack fits</title>
+<meta name="description" content="Declare user-space packages, native environments and personal profiles. Build with BuildKit, export OCI images and retain managed generations.">
 <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
-<link rel="stylesheet" href="../assets/site.css?v=d59cbc70">
-<script src="../assets/site.js?v=d59cbc70" defer></script>
+<link rel="stylesheet" href="../assets/site.css?v=0055d231">
+<script src="../assets/site.js?v=0055d231" defer></script>
 </head>
 <body class="docs">
+<a class="skip-link" href="#main">Skip to content</a>
 <div class="shell">
 <aside class="rail">
   <a class="brand" href="../index.html">
     <img src="../assets/icon.svg" alt="gripsack icon"><span class="wordmark">gripsack</span>
   </a>
   <span class="rail-head">menu</span>
-  <nav>
-    <a href="../index.html">home</a>
-    <a href="../docs/adopting.html">adopting your dotfiles</a>
-    <a class="active" href="../docs/compare.html">compare</a>
-    <a href="../docs/architecture.html">architecture</a>
-    <a href="../docs/safety.html">safety</a>
-    <a href="../docs/modules.html">modules</a>
-    <a href="../docs/environments.html">environments</a>
-    <a href="../docs/workspace-migration.html">workspace migration</a>
-    <a href="../docs/settings.html">settings</a>
+  <nav aria-label="Documentation">
+    <a class="" href="../index.html">home</a>
+    <a class="" href="../docs/install.html">install</a>
+    <a class="" href="../docs/workspaces.html">workspaces</a>
+    <a class="" href="../docs/packages.html">packages</a>
+    <a class="" href="../docs/environments.html">environments</a>
+    <a class="" href="../docs/adopting.html">profiles &amp; dotfiles</a>
+    <a class="" href="../docs/builds.html">BuildKit &amp; OCI</a>
+    <a class="" href="../docs/tasks.html">tasks &amp; checks</a>
+    <a class="" href="../docs/fetchers.html">sources &amp; locks</a>
+    <a class="" href="../docs/safety.html">safety &amp; recovery</a>
+    <a class="" href="../docs/settings.html">settings</a>
     <a class="child" href="../docs/settings/reference.html">↳ settings reference</a>
-    <a href="../docs/runs.html">run logs</a>
-    <a href="../docs/fetchers.html">fetchers</a>
-    <a class="child" href="../docs/fetchers/apt.html">↳ apt</a>
-    <a href="../docs/linters.html">linters</a>
-    <a href="../docs/skills.html">skills</a>
-    <a href="../docs/roadmap.html">roadmap</a>
-    <a href="../docs/changelog.html">what's new</a>
+    <a class="" href="../docs/runs.html">run logs</a>
+    <a class="" href="../docs/skills.html">agent guidance</a>
+    <a class="active" aria-current="page" href="../docs/compare.html">where it fits</a>
+    <a class="" href="../docs/architecture.html">architecture</a>
+    <a class="" href="../docs/changelog.html">what&#x27;s new</a>
     <a class="gh" href="https://github.com/gripsack-dev/gripsack">github ↗</a>
-    <a href="../docs/roadmap.html#supported-platforms">Linux &amp; WSL support</a>
   </nav>
   <span class="rail-head">on this page</span>
   <div class="rail-toc">
-    <a href="#release-status">Release status</a>
+    <a href="#choose-the-scope-you-need">Choose the scope you need</a>
+    <a href="#when-gripsack-is-useful">When gripsack is useful</a>
+    <a href="#deliberate-boundaries">Deliberate boundaries</a>
   </div>
   <span class="rail-head">theme</span>
   <div class="rail-palettes">
@@ -57,100 +59,65 @@
   </div>
   <span class="palette-name" data-palette-name>catppuccin-mocha</span>
 </aside>
-<main class="content">
+<main class="content" id="main">
 <article class="md">
-<p class="note">Documentation for core/SDK v0.48.0.
-<a href="../docs/roadmap.html#release-qualification">Release and verification scope</a>.</p>
-<h1 id="compare">Compare</h1>
-<p>Gripsack 0.48 manages user-space packages, environments and configuration,
-not the operating system. New authoring uses a root <code>gripsack.ts</code> workspace;
-legacy host/module repositories remain supported. You can leave system
-packages with apt or another manager and adopt only the files you choose.</p>
+<h1 id="where-gripsack-fits">Where gripsack fits</h1>
+<p>Gripsack manages user-space tools, project environments and personal configuration. It is not an operating-system package manager. Keep apt or another system manager for the OS; select the packages and files you want in a workspace.</p>
+<h2 id="choose-the-scope-you-need">Choose the scope you need</h2>
 <table>
 <thead>
 <tr>
-<th></th>
-<th>gripsack 0.48</th>
-<th>Nix + Home Manager</th>
-<th>chezmoi</th>
-<th>GNU Stow</th>
-<th>apt / Homebrew / mise</th>
+<th>Tool</th>
+<th>Typical focus</th>
+<th>Why choose it</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>primary scope</td>
-<td>user packages, environments and profiles</td>
-<td>declarative packages and home configuration</td>
-<td>dotfiles</td>
-<td>symlink trees</td>
-<td>system packages / packages / developer tools and tasks</td>
+<td>gripsack</td>
+<td>Typed packages, native environments, personal profiles, BuildKit recipes and OCI outputs</td>
+<td>One workspace graph with explicit source review, file ownership and retained generations</td>
 </tr>
 <tr>
-<td>existing files</td>
-<td>explicit takeover with prior-state capture</td>
-<td>declarative activation; conflicts need a migration policy</td>
-<td>import files into source state</td>
-<td>link conflicts need resolution</td>
-<td>not a shared dotfile ownership model</td>
+<td>Nix + Home Manager</td>
+<td>Declarative package graphs and home configuration in the Nix ecosystem</td>
+<td>Broad package ecosystem and established derivation/configuration workflows</td>
 </tr>
 <tr>
-<td>mutable or shared config</td>
-<td>tracked copies with drift guards; managed text blocks</td>
-<td>managed files, with application-specific escape hatches</td>
-<td>templates and modification scripts</td>
-<td>no content reconciliation</td>
-<td>tool-specific</td>
+<td>chezmoi</td>
+<td>Personal configuration source state and templates</td>
+<td>Focused dotfile management with rich templating</td>
 </tr>
 <tr>
-<td>rollback</td>
-<td>retained generations and journaled file ownership</td>
-<td>generations for managed configuration/packages</td>
-<td>source history and re-application</td>
-<td>relink another tree manually</td>
-<td>manager- and package-specific</td>
+<td>GNU Stow</td>
+<td>Symlink trees</td>
+<td>Small, direct link management without a package producer graph</td>
 </tr>
 <tr>
-<td>pinned inputs</td>
-<td>captured source, platform locks and verified archive identities</td>
-<td>dependency graph and sandboxed builds, subject to derivation policy</td>
-<td>source-controlled config; external tools need separate pinning</td>
-<td>source tree only</td>
-<td>manager-specific locks and checksums</td>
+<td>apt / other OS managers</td>
+<td>Distribution packages and system integration</td>
+<td>Operating-system dependency and installation policy</td>
 </tr>
 <tr>
-<td>authoring</td>
-<td>typed TypeScript, evaluated in a sandbox</td>
-<td>Nix language</td>
-<td>templates and scripts</td>
-<td>directory layout</td>
-<td>package manifests and tool-specific configuration</td>
+<td>mise</td>
+<td>Developer tool versions, environments and tasks</td>
+<td>Its tool ecosystem and project task workflow</td>
 </tr>
 </tbody>
 </table>
-<p>These are scope comparisons, not claims that another tool cannot be extended.
-Nix is the stronger general-purpose reproducible-build system. Gripsack's
-captured inputs and lockfiles do not make legacy shell steps hermetic or
-undo arbitrary external effects. Workspace recipes use an explicit production
-contract; the qualified owned-worker route is Linux x86_64 with Docker, not
-an unconditional “no daemon” promise.</p>
-<p>Gripsack's supported hosts are <strong>Linux and WSL2 on x86_64</strong>, not macOS or
-native Windows. File-only profiles need no build worker; provider-backed
-packages and retained outputs can also avoid a worker. A file-only adoption
-can be incremental, but taking ownership still requires a deliberate decision.
-Rollback requires retained history and respects drift; late activation failure
-is not an automatic whole-machine undo. See <a href="../docs/adopting.html">adoption</a>,
-<a href="../docs/workspace-migration.html">workspace migration</a>, and <a href="../docs/safety.html">safety</a>.</p>
-<h2 id="release-status">Release status</h2>
-<p><a href="https://github.com/gripsack-dev/gripsack/releases/tag/core-v0.48.0">Core 0.48</a>
-is the public latest release, <strong>unsigned</strong>, with 17 practical local gates
-and 96 persistence partitions passed. TLC, TLAPS and Verus remain explicitly
-unqualified; these results are not formal qualification or completion of the
-original roadmap. Core 0.47 remains an unsigned, unverified prerelease.</p>
-<p>Use the release's manual archive installation instructions: 0.48 has no npm
-or crates.io publication, and the signed core installer/updater still fails
-closed. The documentation website is built locally and does not require
-signed release artifacts; its availability is not release-authentication evidence.</p>
+<p>These are scope comparisons, not a claim that other tools cannot be extended or combined.</p>
+<h2 id="when-gripsack-is-useful">When gripsack is useful</h2>
+<ul>
+<li>You want tools from release archives, captured source or a coherent Conda solve without global user-space installs.</li>
+<li>You want a project environment and a personal command launcher to select the same packages.</li>
+<li>You want source builds and OCI exports described alongside native consumers.</li>
+<li>You want copied configuration with drift guards, store-owned links or small managed blocks rather than one ownership policy for every file.</li>
+<li>You want manual tasks and lifecycle checks to be named, inspectable outputs.</li>
+</ul>
+<p>Start with a <a href="../docs/workspaces.html">file-only workspace</a>, a <a href="../docs/packages.html">native package</a> or a <a href="../docs/builds.html">BuildKit source build</a>.</p>
+<h2 id="deliberate-boundaries">Deliberate boundaries</h2>
+<p>Current host support is Linux x86_64 and WSL2. BuildKit production needs Docker; native file profiles do not. Scheduled execution and host recipe execution are unavailable. An OCI export is an archive, not an automatic registry publication or deployment.</p>
+<p>Generations and journals protect managed state, not every effect on the machine. Tracked-copy drift is preserved by default; arbitrary tasks, services and hooks are not automatically reversible. Alpha software still needs independent backups and actual consumer checks. See <a href="../docs/safety.html">safety and recovery</a> and <a href="../docs/install.html">installation</a>.</p>
 </article>
 <footer>
   <span><span class="blink"></span> © 2026 <a href="https://github.com/tknawara">Tarek Nawara</a></span>
@@ -158,7 +125,7 @@ signed release artifacts; its availability is not release-authentication evidenc
   <a href="https://github.com/gripsack-dev">gripsack-dev</a>
   <a href="https://github.com/gripsack-dev/gripsack">source</a>
   <a href="../index.html">home</a>
-  <span style="margin-left:auto"><span class="fversion">v0.48.0</span> · eleven palettes</span>
+  <span style="margin-left:auto"><span class="fversion">v0.50.0</span> · eleven palettes</span>
 </footer>
 </main>
 </div>

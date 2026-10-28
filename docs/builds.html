@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>gripsack — buildkit and oci images</title>
+<meta name="description" content="Declare user-space packages, native environments and personal profiles. Build with BuildKit, export OCI images and retain managed generations.">
+<link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../assets/site.css?v=0055d231">
+<script src="../assets/site.js?v=0055d231" defer></script>
+</head>
+<body class="docs">
+<a class="skip-link" href="#main">Skip to content</a>
+<div class="shell">
+<aside class="rail">
+  <a class="brand" href="../index.html">
+    <img src="../assets/icon.svg" alt="gripsack icon"><span class="wordmark">gripsack</span>
+  </a>
+  <span class="rail-head">menu</span>
+  <nav aria-label="Documentation">
+    <a class="" href="../index.html">home</a>
+    <a class="" href="../docs/install.html">install</a>
+    <a class="" href="../docs/workspaces.html">workspaces</a>
+    <a class="" href="../docs/packages.html">packages</a>
+    <a class="" href="../docs/environments.html">environments</a>
+    <a class="" href="../docs/adopting.html">profiles &amp; dotfiles</a>
+    <a class="active" aria-current="page" href="../docs/builds.html">BuildKit &amp; OCI</a>
+    <a class="" href="../docs/tasks.html">tasks &amp; checks</a>
+    <a class="" href="../docs/fetchers.html">sources &amp; locks</a>
+    <a class="" href="../docs/safety.html">safety &amp; recovery</a>
+    <a class="" href="../docs/settings.html">settings</a>
+    <a class="child" href="../docs/settings/reference.html">↳ settings reference</a>
+    <a class="" href="../docs/runs.html">run logs</a>
+    <a class="" href="../docs/skills.html">agent guidance</a>
+    <a class="" href="../docs/compare.html">where it fits</a>
+    <a class="" href="../docs/architecture.html">architecture</a>
+    <a class="" href="../docs/changelog.html">what&#x27;s new</a>
+    <a class="gh" href="https://github.com/gripsack-dev/gripsack">github ↗</a>
+  </nav>
+  <span class="rail-head">on this page</span>
+  <div class="rail-toc">
+    <a href="#prerequisites">Prerequisites</a>
+    <a href="#source-builds">Source builds</a>
+    <a href="#oci-images">OCI images</a>
+    <a href="#rust-packages">Rust packages</a>
+    <a href="#worker-lifecycle-and-limits">Worker lifecycle and limits</a>
+  </div>
+  <span class="rail-head">theme</span>
+  <div class="rail-palettes">
+    <button data-set-palette="catppuccin-mocha" title="catppuccin-mocha" style="--sw:#89b4fa" aria-label="catppuccin-mocha"></button>
+    <button data-set-palette="tokyo-night" title="tokyo-night" style="--sw:#7aa2f7" aria-label="tokyo-night"></button>
+    <button data-set-palette="gruvbox-dark" title="gruvbox-dark" style="--sw:#83a598" aria-label="gruvbox-dark"></button>
+    <button data-set-palette="nord" title="nord" style="--sw:#88c0d0" aria-label="nord"></button>
+    <button data-set-palette="dracula" title="dracula" style="--sw:#bd93f9" aria-label="dracula"></button>
+    <button data-set-palette="one-dark" title="one-dark" style="--sw:#61afef" aria-label="one-dark"></button>
+    <button data-set-palette="solarized-dark" title="solarized-dark" style="--sw:#268bd2" aria-label="solarized-dark"></button>
+    <button data-set-palette="catppuccin-latte" title="catppuccin-latte" style="--sw:#1e66f5" aria-label="catppuccin-latte"></button>
+    <button data-set-palette="github-light" title="github-light" style="--sw:#0969da" aria-label="github-light"></button>
+    <button data-set-palette="one-light" title="one-light" style="--sw:#4078f2" aria-label="one-light"></button>
+    <button data-set-palette="solarized-light" title="solarized-light" style="--sw:#268bd2" aria-label="solarized-light"></button>
+  </div>
+  <span class="palette-name" data-palette-name>catppuccin-mocha</span>
+</aside>
+<main class="content" id="main">
+<article class="md">
+<h1 id="buildkit-and-oci-images">BuildKit and OCI images</h1>
+<p>Build source into a retained package, run it natively, or export the same package as an OCI image. Gripsack owns the declarations, input identities and native store; BuildKit performs isolated Linux production and OCI export.</p>
+<h2 id="prerequisites">Prerequisites</h2>
+<ul>
+<li>A supported Linux x86_64 or WSL2 host with <code>grip</code> installed.</li>
+<li>Docker installed, running and accessible to your user. In WSL2, enable access to a Linux Docker daemon in the distribution you use.</li>
+<li>Access to the declared digest-pinned toolchain image and the worker/helper artifacts on a cold build. Review registry access and Docker privileges separately from source approval.</li>
+<li>A complete source tree, including dependency bytes needed by an offline build.</li>
+</ul>
+<p>The core lazily provisions its pinned, hash-verified bridge helper and starts its owned worker when production needs them. There is no separate <code>builder start</code> step. An operator can deliberately select a helper with <code>grip build --bridge PATH</code>; a repository cannot choose that executable. Source-built cores need a matching helper artifact or override until matching release assets are available.</p>
+<p>File-only profiles, native provider packages and already-retained outputs do not need a worker. <code>grip check</code> never starts one.</p>
+<h2 id="source-builds">Source builds</h2>
+<p>Create <code>source/greeter.c</code>:</p>
+<pre><code class="language-c">#include &lt;stdio.h&gt;
+
+int main(void) {
+    puts(&quot;hello from gripsack&quot;);
+    return 0;
+}
+</code></pre>
+<p>Save this complete workspace as <code>gripsack.ts</code>. It uses the pinned toolchain from the project's <a href="https://github.com/gripsack-dev/gripsack/blob/d060e1fef80f83212210e66bf65a8f1d62631bd0/examples/workspaces/03-source-built/gripsack.ts">source-build example</a>:</p>
+<pre><code class="language-typescript">import {
+  defineWorkspace, environment, exec, fileFetch, image, lit, outputPath,
+  packageCommand, pkg, recipe, sourcePath, targetPlatform, workspace,
+} from &quot;@gripsack/core&quot;;
+
+const target = targetPlatform({ os: &quot;linux&quot;, arch: &quot;x86_64&quot;, abi: &quot;gnu&quot; });
+const build = recipe(&quot;build-greeter&quot;, {
+  source: fileFetch(&quot;source&quot;),
+  execution: {
+    kind: &quot;isolated_linux&quot;,
+    worker: &quot;buildkit&quot;,
+    platform: target,
+    toolchain: {
+      reference: &quot;docker.io/library/golang@sha256:e3665e241a474aba30bbfaf177cfa88e1913e970c83bd86889cacfb67d6e7e51&quot;,
+    },
+  },
+  output_kind: &quot;tree&quot;,
+  target,
+  steps: [
+    exec({ argv: [lit(&quot;mkdir&quot;), lit(&quot;-p&quot;), outputPath(&quot;bin&quot;)] }),
+    exec({ argv: [
+      lit(&quot;cc&quot;), lit(&quot;-static&quot;), sourcePath(&quot;greeter.c&quot;),
+      lit(&quot;-o&quot;), outputPath(&quot;bin/greeter&quot;),
+    ] }),
+  ],
+});
+const greeter = pkg(&quot;greeter&quot;, {
+  producer: &quot;build-greeter&quot;,
+  commands: { greet: &quot;bin/greeter&quot; },
+  target,
+  layout: { kind: &quot;relocatable&quot; },
+});
+const dev = environment(&quot;dev&quot;, { packages: [&quot;greeter&quot;], target });
+const container = image(&quot;greeter-image&quot;, {
+  packages: [&quot;greeter&quot;],
+  target,
+  config: { entrypoint: [packageCommand(&quot;greeter&quot;, &quot;greet&quot;)] },
+});
+
+export default defineWorkspace(() =&gt; workspace({
+  outputs: [build, greeter, dev, container],
+}));
+</code></pre>
+<pre><code class="language-sh">grip check
+grip update
+grip build greeter --json
+grip run --env dev -- greet
+</code></pre>
+<p>Review source and lock approval when prompted. <code>sourcePath</code> binds immutable captured input; <code>outputPath</code> binds writable output staging. These typed paths avoid embedding machine-specific paths in the recipe. The static link in this example makes the tiny program self-contained; arbitrary dynamically linked programs need a complete runtime closure.</p>
+<p>Builds do not activate a personal profile. Required recipe checks gate publication; a published package belongs to the native store, not the worker's disposable cache.</p>
+<h2 id="oci-images">OCI images</h2>
+<p>The workspace above also declares <code>greeter-image</code>. Export it with:</p>
+<pre><code class="language-sh">grip build greeter-image --json
+</code></pre>
+<p>The returned image path names a retained <strong>OCI archive</strong>, not a running container and not a registry push. Import or copy that archive using an OCI-capable tool in your deployment workflow. For example, with Skopeo installed, set <code>archive</code> to the returned image path and copy it into a local Docker daemon:</p>
+<pre><code class="language-sh">: &quot;${archive:?set this to the image archive path returned by grip build}&quot;
+skopeo copy &quot;oci-archive:$archive&quot; docker-daemon:gripsack-greeter:local
+docker run --rm --read-only --network none gripsack-greeter:local
+</code></pre>
+<p>This example uses scratch because no <code>base</code> is declared. An explicit base must be digest-pinned and does not contribute inherited runtime configuration. Declare your own <code>config.entrypoint</code>, <code>args</code>, <code>env</code>, absolute <code>cwd</code> and numeric <code>user: { uid, gid }</code> as needed.</p>
+<p>Packages default to <code>/opt/gripsack/&lt;name&gt;</code>. <code>destinations</code> can declare explicit paths and numeric owners. Overlapping placements and leftover base files inside package prefixes are refused. Host-runtime library declarations do not copy those host libraries into images; host-coupled packages are refused for portable image placement.</p>
+<p>Before publication, native admission checks archive descriptors, hashes, layer identities, platform/configuration and selected package bytes, links, modes and ownership, including cache hits. An admitted archive still needs application-level testing in your chosen container runtime.</p>
+<h2 id="rust-packages">Rust packages</h2>
+<p><code>cargoPackage(name, spec)</code> returns a recipe/package pair to spread into <code>workspace.outputs</code>. Supply captured source with <code>Cargo.lock</code>, vendored dependencies and <code>.cargo/config.toml</code>; the lockfile alone is not dependency bytes. Select a digest-pinned Rust toolchain with native linker tools, an explicit Linux GNU or musl target, and a mapping from command names to Cargo binary targets.</p>
+<p>The helper runs release tests/builds with <code>--frozen --offline</code>, installs only the named binaries and removes intermediate build output before export. See the <a href="https://github.com/gripsack-dev/gripsack/blob/d060e1fef80f83212210e66bf65a8f1d62631bd0/typescript/README.md">SDK cargoPackage contract</a> for the complete declaration.</p>
+<h2 id="worker-lifecycle-and-limits">Worker lifecycle and limits</h2>
+<pre><code class="language-sh">grip builder status
+grip builder stop
+grip builder cache-clean
+</code></pre>
+<p><code>status</code> observes without starting a worker. Stop/cleanup refuse active clients. <code>cache-clean</code> removes the owned worker's disposable cache, not retained native artifacts. Use <code>grip gc --dry-run</code> to inspect native retention separately.</p>
+<p><code>grip build</code> supports <code>--builder-cpus</code>, <code>--builder-memory-mib</code> and <code>--timeout-seconds</code>; the deadline covers helper preparation, execution and cleanup. The supported production worker is Linux x86_64 with Docker. Host recipe execution and scheduled execution are not available; declaring them does not grant execution. See <a href="../docs/tasks.html">tasks</a> for explicit manual actions and <a href="../docs/safety.html">safety</a> for trust boundaries.</p>
+</article>
+<footer>
+  <span><span class="blink"></span> © 2026 <a href="https://github.com/tknawara">Tarek Nawara</a></span>
+  <span>MIT license</span>
+  <a href="https://github.com/gripsack-dev">gripsack-dev</a>
+  <a href="https://github.com/gripsack-dev/gripsack">source</a>
+  <a href="../index.html">home</a>
+  <span style="margin-left:auto"><span class="fversion">v0.50.0</span> · eleven palettes</span>
+</footer>
+</main>
+</div>
+</body>
+</html>

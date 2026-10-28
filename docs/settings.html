@@ -4,49 +4,46 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>gripsack — settings</title>
-<meta name="description" content="gripsack for Linux and WSL — your whole environment in one bag. Packages from any source plus your dotfiles, with generations and rollback.">
+<meta name="description" content="Declare user-space packages, native environments and personal profiles. Build with BuildKit, export OCI images and retain managed generations.">
 <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
-<link rel="stylesheet" href="../assets/site.css?v=d59cbc70">
-<script src="../assets/site.js?v=d59cbc70" defer></script>
+<link rel="stylesheet" href="../assets/site.css?v=0055d231">
+<script src="../assets/site.js?v=0055d231" defer></script>
 </head>
 <body class="docs">
+<a class="skip-link" href="#main">Skip to content</a>
 <div class="shell">
 <aside class="rail">
   <a class="brand" href="../index.html">
     <img src="../assets/icon.svg" alt="gripsack icon"><span class="wordmark">gripsack</span>
   </a>
   <span class="rail-head">menu</span>
-  <nav>
-    <a href="../index.html">home</a>
-    <a href="../docs/adopting.html">adopting your dotfiles</a>
-    <a href="../docs/compare.html">compare</a>
-    <a href="../docs/architecture.html">architecture</a>
-    <a href="../docs/safety.html">safety</a>
-    <a href="../docs/modules.html">modules</a>
-    <a href="../docs/environments.html">environments</a>
-    <a href="../docs/workspace-migration.html">workspace migration</a>
-    <a class="active" href="../docs/settings.html">settings</a>
+  <nav aria-label="Documentation">
+    <a class="" href="../index.html">home</a>
+    <a class="" href="../docs/install.html">install</a>
+    <a class="" href="../docs/workspaces.html">workspaces</a>
+    <a class="" href="../docs/packages.html">packages</a>
+    <a class="" href="../docs/environments.html">environments</a>
+    <a class="" href="../docs/adopting.html">profiles &amp; dotfiles</a>
+    <a class="" href="../docs/builds.html">BuildKit &amp; OCI</a>
+    <a class="" href="../docs/tasks.html">tasks &amp; checks</a>
+    <a class="" href="../docs/fetchers.html">sources &amp; locks</a>
+    <a class="" href="../docs/safety.html">safety &amp; recovery</a>
+    <a class="active" aria-current="page" href="../docs/settings.html">settings</a>
     <a class="child" href="../docs/settings/reference.html">↳ settings reference</a>
-    <a href="../docs/runs.html">run logs</a>
-    <a href="../docs/fetchers.html">fetchers</a>
-    <a class="child" href="../docs/fetchers/apt.html">↳ apt</a>
-    <a href="../docs/linters.html">linters</a>
-    <a href="../docs/skills.html">skills</a>
-    <a href="../docs/roadmap.html">roadmap</a>
-    <a href="../docs/changelog.html">what's new</a>
+    <a class="" href="../docs/runs.html">run logs</a>
+    <a class="" href="../docs/skills.html">agent guidance</a>
+    <a class="" href="../docs/compare.html">where it fits</a>
+    <a class="" href="../docs/architecture.html">architecture</a>
+    <a class="" href="../docs/changelog.html">what&#x27;s new</a>
     <a class="gh" href="https://github.com/gripsack-dev/gripsack">github ↗</a>
-    <a href="../docs/roadmap.html#supported-platforms">Linux &amp; WSL support</a>
   </nav>
   <span class="rail-head">on this page</span>
   <div class="rail-toc">
-    <a href="#a-minimal-envtoml">A minimal env.toml</a>
     <a href="#the-frontend">The frontend</a>
-    <a href="#source-capture-and-caches">Source capture and caches</a>
-    <a href="#build-time-environment">Build-time environment</a>
-    <a href="#custom-sources-fetchers">Custom sources (fetchers)</a>
-    <a href="#housekeeping">Housekeeping</a>
-    <a href="#temporary-files-and-store-publication">Temporary files and store publication</a>
-    <a href="#machine-local-config">Machine-local config</a>
+    <a href="#source-capture">Source capture</a>
+    <a href="#review-the-whole-capture">Review the whole capture</a>
+    <a href="#state-temporary-files-and-storage">State, temporary files and storage</a>
+    <a href="#network-and-acquisition-policy">Network and acquisition policy</a>
   </div>
   <span class="rail-head">theme</span>
   <div class="rail-palettes">
@@ -64,159 +61,40 @@
   </div>
   <span class="palette-name" data-palette-name>catppuccin-mocha</span>
 </aside>
-<main class="content">
+<main class="content" id="main">
 <article class="md">
-<p class="note">Documentation for core/SDK v0.48.0.
-<a href="../docs/roadmap.html#release-qualification">Release and verification scope</a>.</p>
 <h1 id="settings">Settings</h1>
-<p>gripsack is configured with plain TOML in two files, and that's the
-whole story:</p>
-<ul>
-<li><strong><code>env.toml</code></strong> — lives in your env repo, committed. It makes the repo
-  self-describing: any machine that clones it knows how to evaluate it.</li>
-<li><strong><code>~/.config/gripsack/config.toml</code></strong> — lives on one machine, never
-  committed. For machine-local things you don't want in git.</li>
-</ul>
-<p>If you only remember one rule: <strong>configuration is data, and it is read
-before any of your module code runs.</strong> Settings can never depend on what
-a module computes — so there's no bootstrap paradox, ever.</p>
-<p>This page covers current configuration. The
-<a href="../docs/settings/reference.html">settings reference</a> lists keys and precedence.</p>
-<h2 id="a-minimal-envtoml">A minimal env.toml</h2>
-<pre><code class="language-toml">[env]
-name = &quot;tarek&quot;
-</code></pre>
-<p>That's enough for a working repo. Everything else is optional.</p>
+<p>Workspace declarations live in <code>gripsack.ts</code>. Optional <code>env.toml</code> settings control source capture and operational policy; user defaults live in <code>~/.config/gripsack/config.toml</code>. Configuration is data read before workspace evaluation, not a result of authoring code.</p>
 <h2 id="the-frontend">The frontend</h2>
-<p>New declarations use a <code>gripsack.ts</code> workspace. Legacy <code>modules/*.ts</code> and
-<code>hosts/*.ts</code> remain supported for migration; both use the same sandboxed
-TypeScript frontend. A stale <code>frontend = "python"</code> key is refused with
-migration guidance.</p>
-<p>Eval runs sandboxed under a pinned Deno — no env vars, no network, no
-subprocesses — and the runtime provisions itself: the first eval
-downloads it once (sha256-verified, ~40MB, cached; 2.9.6 today),
-<code>grip doctor</code> checks it, and <code>GRIPSACK_DENO</code> points at your own. Eval
-platforms: glibc Linux, including WSL2's Linux environment — Deno ships no musl
-build. macOS and native Windows are not supported.</p>
-<p>The repo's installed <code>node_modules/@gripsack/core</code> shadows the embedded
-frontend. <code>grip doctor</code> reads that installed package's version, not just the
-range declared in <code>package.json</code>: a stale installed copy is a <strong>MISS</strong> even
-when the declaration is current. Use the SDK archive matching your installed
-core from the <a href="https://github.com/gripsack-dev/gripsack/releases">release downloads</a>,
-or remove the shadowing copy to use the embedded frontend. A version declaration
-alone does not install or upgrade the SDK.</p>
-<p>File permission policy needs no setting. Copies/templates follow payload
-executability, track content plus full mode, and preserve user chmod drift;
-merge markers track their host's mode. See <a href="../docs/modules.html#ownership-modes">ownership modes</a>.</p>
-<h2 id="source-capture-and-caches">Source capture and caches</h2>
-<p>Git ignore rules do not select captured source. In 0.48, explicit glob
-exclusions can keep tool caches from changing approval identity:</p>
+<p>The core embeds its matching TypeScript frontend and provisions a pinned Deno runtime. Evaluation has restricted captured-source reads and no environment, network or subprocess grants. Native fetching, build commands and explicit host execution have separate authority.</p>
+<p>An installed <code>node_modules/@gripsack/core</code> selects the repository frontend unless explicitly excluded. Use a matching SDK when deliberately pinning it. <code>grip doctor</code> checks the installed package, not just a declared package version range.</p>
+<p>For editor types without selecting a separate runtime frontend:</p>
 <pre><code class="language-toml">[capture]
-exclude = [&quot;**/__pycache__&quot;, &quot;**/.ruff_cache&quot;]
+exclude = [&quot;node_modules/@gripsack/core&quot;]
 </code></pre>
-<p>This suffix-glob form works with captured internal aliases when evaluation
-uses the embedded frontend. A global glob that could carve a repository-pinned
-SDK is refused. If the local SDK is only for your editor, add the literal
-<code>"node_modules/@gripsack/core"</code> exclusion to select the embedded frontend
-explicitly; otherwise scope cache rules to unaliased content subtrees outside
-the pin root. Prefix-scoped globs must not span symlinked ancestors.</p>
-<p>Creating/removing matching caches below existing captured directories preserves
-approval. New ordinary directories, captured bytes/modes and policy changes
-still require review. Literal exclusions retain their historical
-appearance/removal behavior. <a href="../docs/settings/reference.html#capture-envtoml-only">Full capture contract</a>.</p>
-<h2 id="build-time-environment">Build-time environment</h2>
-<pre><code class="language-toml">[eval.env]
-CARGO_NET_GIT_FETCH_WITH_CLI = &quot;true&quot;
+<p>This literal exclusion disables that runtime pin before dereference. A glob cannot carve files out of an admitted SDK root. If <code>node_modules</code> itself is symlinked, use real ancestry or exclude that whole parent deliberately. Frontend changes can require a lock refresh and renewed source approval.</p>
+<h2 id="source-capture">Source capture</h2>
+<p>Captured content, including untracked and Git-ignored files, participates in approval unless explicitly excluded. <code>.gitignore</code> is not a source authority policy.</p>
+<pre><code class="language-toml">[capture]
+exclude = [&quot;.venv&quot;, &quot;**/__pycache__&quot;, &quot;.ruff_cache/**&quot;]
 </code></pre>
-<p>Injected into the apply process for the run's duration — build steps,
-fetchers, and plugins inherit it (<code>SSL_CERT_FILE</code> for a corporate CA
-is the canonical case). The sandboxed eval itself sees no environment
-at all; what your config learns about the machine arrives through the
-host entrypoint's <code>ctx</code>.</p>
-<h2 id="custom-sources-fetchers">Custom sources (fetchers)</h2>
-<p>For transports built-ins can't do (mTLS, exotic protocols), point a
-named source at its plugin:</p>
-<pre><code class="language-toml">[fetchers.artifactory]
-plugin = &quot;gripfetch-artifactory&quot;
+<p>Literal entries exclude normalized relative subtrees. Globs support <code>*</code> within a component, <code>?</code> for one character and whole-component <code>**</code> across components. They are case-sensitive and bounded. Absolute paths, parent traversal and <code>~</code> are not valid shortcuts.</p>
+<p>Required configuration, entrypoints, lock authority and admitted SDK roots are protected. Prefix-scoped globs require real, unaliased ancestry; use a leading suffix glob such as <code>**/__pycache__</code> for aliased content trees where appropriate. Exclusions never grant access to excluded files.</p>
+<p><code>repoTree</code> selection is separate: its <code>include</code>/<code>exclude</code> prefixes are literal, not globs, and cannot bypass capture admission. Exclude an irrelevant outbound virtual-environment link at the capture boundary before evaluating tree declarations.</p>
+<h2 id="review-the-whole-capture">Review the whole capture</h2>
+<pre><code class="language-sh">grip trust inspect --json
+grip trust add
 </code></pre>
-<p>Usually you don't need this section at all — plugin discovery is
-automatic for <code>gripfetch-&lt;name&gt;</code> executables on your PATH. Declare it
-when you want an explicit path or a different name.</p>
-<h2 id="housekeeping">Housekeeping</h2>
-<pre><code class="language-toml">[settings]
-keep_generations = 20
-</code></pre>
-<p>How many generations to keep before <code>grip gc</code> reclaims store paths.
-Rollback depth vs disk. Default keeps everything until you gc manually.</p>
-<p>Acquisition has its own budget, separate from module concurrency. By default,
-at most two payloads acquire at once, with 512 MiB downloaded, 4 GiB expanded,
-100,000 entries and a 128 MiB decoder budget per payload. Downloads use private
-disk spools, not payload-sized RAM buffers. The positive integer settings
-<code>acquisition_jobs</code>, <code>download_limit_bytes</code>, <code>expanded_limit_bytes</code>,
-<code>archive_entry_limit</code> and <code>decoder_memory_bytes</code> are listed in the
-<a href="../docs/settings/reference.html#settings-envtoml-or-user-config">settings reference</a>.</p>
-<h2 id="temporary-files-and-store-publication">Temporary files and store publication</h2>
-<p><code>TMPDIR</code> selects ordinary temporary storage; when it is unset,
-Linux normally uses <code>/tmp</code>. <strong>The temporary directory need not be on
-the same filesystem as <code>GRIPSACK_HOME</code>.</strong> This is the core-owned
-publication contract, not a requirement to put all scratch under the
-store:</p>
-<table>
-<thead>
-<tr>
-<th>operation</th>
-<th>staging and final publication</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>GitHub releases and other built-in archive fetches</td>
-<td>private download/unpack staging; checked payload published into the store</td>
-</tr>
-<tr>
-<td>native <code>conda.environment</code></td>
-<td>helper solve scratch, archive spools/extraction and prefix staging use temporary storage; the core validates the frozen result before store publication</td>
-</tr>
-<tr>
-<td><code>pixi.fromLock</code></td>
-<td>parses captured manifest/lock files without running a <code>pixi</code> subprocess, then uses the same frozen archive/materialization path as native Conda</td>
-</tr>
-</tbody>
-</table>
-<p>The publisher seals and syncs staged content, then renames it. When
-that rename crosses filesystems (<code>EXDEV</code>), it streams a copy into a
-fresh sibling <strong>on the destination filesystem</strong>, preserves file
-modes and symlinks, syncs the copied files/directories, then atomically
-renames the completed sibling to the final name and syncs its parent.
-It never exposes the partially copied tree under the final store name.
-Conda's Rattler helper uses copy-only linking and patches for the final
-prefix; it does not require hard links from <code>/tmp</code> into the store.</p>
-<p>Provision sufficient space on <strong>both</strong> filesystems for staging and
-publication. Setting <code>TMPDIR</code> to suitable private scratch is a
-capacity/performance choice, not an ownership or integrity bypass.
-External <code>pixi lock</code> generation, custom fetcher plugins, and arbitrary
-user commands retain their own scratch/publication rules; this
-guarantee does not repair their cross-device rename assumptions.</p>
-<p>Measured with public 0.45.0 in an isolated Linux container: native
-Conda and Pixi import each published 42 real frozen archives with
-<code>TMPDIR</code>, <code>TMP</code> and <code>TEMP</code> unset, <code>/tmp</code> on tmpfs and the private
-state/store on a different filesystem. Both apply and retained
-reapply succeeded; retained store bytes, modes and directory/file
-identity remained unchanged. Acquisition used local fixture HTTPS,
-not external network access; materialization and retained reuse made
-no requests. No <code>pixi</code> executable was on <code>PATH</code>. The external
-reviewer's archive/GitHub separate-filesystem success is separate
-reviewer evidence. These observations do not qualify arbitrary
-filesystems or third-party commands.</p>
-<h2 id="machine-local-config">Machine-local config</h2>
-<p><code>~/.config/gripsack/config.toml</code> accepts <code>[settings]</code> and <code>[fetchers.*]</code>
-— the same keys as <code>env.toml</code> minus <code>[env]</code> and <code>[eval]</code>. Use it for
-things that shouldn't be committed: a plugin that only exists on this
-machine, a lower <code>keep_generations</code> on a small disk.</p>
-<p>When the same key is set in both files, <strong>the repo wins</strong> — a cloned
-repo behaves identically everywhere, and your local file can only fill
-gaps or add new entries. (Environment variables and CLI flags override
-both, for one-off overrides.)</p>
+<p>Interactive <code>trust add</code> shows the capture and policy before asking for approval. Review actual changed content as well as inventory paths. <code>--focus PREFIX</code> narrows the displayed changed-path list only: approval still binds the exact whole bundle and policy, and JSON stays complete. An out-of-focus change requires renewed approval too.</p>
+<p>For noninteractive execution, compare separately reviewed expected digests before approval; see <a href="../docs/safety.html#unattended-approval">unattended approval</a>.</p>
+<h2 id="state-temporary-files-and-storage">State, temporary files and storage</h2>
+<p><code>GRIPSACK_HOME</code> selects the private state root; otherwise it is <code>$XDG_DATA_HOME/gripsack</code> or <code>~/.local/share/gripsack</code>. Keep its store, trust records, journals and generations private and intact. Moving state or the installed core can invalidate managed launcher bindings.</p>
+<p>Temporary extraction and materialization can use <code>TMPDIR</code>, <code>TMP</code> or <code>TEMP</code>. Native publication stages and seals content before final rename; a cross-filesystem transfer uses a bounded copy into destination-filesystem staging before publication. Scratch cleanup is not a substitute for publication or recovery authority.</p>
+<p>External tools retain their own temporary-storage rules. Configure enough space for source archives, expanded trees, build cache and retained generations; <code>grip gc --dry-run</code> previews native reclamation, while <code>grip builder cache-clean</code> concerns the owned worker cache.</p>
+<h2 id="network-and-acquisition-policy">Network and acquisition policy</h2>
+<p>The native fetcher honors system CA roots, <code>SSL_CERT_FILE</code>, <code>HTTPS_PROXY</code> and <code>NO_PROXY</code>. Set these in the calling environment when needed. GitHub credentials remain explicitly host-bound; see <a href="../docs/fetchers.html#authentication">sources</a>.</p>
+<p>Acquisition has its own concurrency and resource budgets. Defaults are two concurrent payloads, 512 MiB downloaded, 4 GiB expanded, 100,000 entries and a 128 MiB decoder budget per payload. Downloads use disk spools rather than payload-sized RAM buffers. Limits are positive; exceeding one fails rather than truncating a package.</p>
+<p>The <a href="../docs/settings/reference.html">settings reference</a> lists values and precedence. Build worker CPU, memory and deadline flags are separate from acquisition policy; see <a href="../docs/builds.html#worker-lifecycle-and-limits">BuildKit</a>.</p>
 </article>
 <footer>
   <span><span class="blink"></span> © 2026 <a href="https://github.com/tknawara">Tarek Nawara</a></span>
@@ -224,7 +102,7 @@ both, for one-off overrides.)</p>
   <a href="https://github.com/gripsack-dev">gripsack-dev</a>
   <a href="https://github.com/gripsack-dev/gripsack">source</a>
   <a href="../index.html">home</a>
-  <span style="margin-left:auto"><span class="fversion">v0.48.0</span> · eleven palettes</span>
+  <span style="margin-left:auto"><span class="fversion">v0.50.0</span> · eleven palettes</span>
 </footer>
 </main>
 </div>

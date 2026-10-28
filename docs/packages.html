@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>gripsack — packages</title>
+<meta name="description" content="Declare user-space packages, native environments and personal profiles. Build with BuildKit, export OCI images and retain managed generations.">
+<link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../assets/site.css?v=0055d231">
+<script src="../assets/site.js?v=0055d231" defer></script>
+</head>
+<body class="docs">
+<a class="skip-link" href="#main">Skip to content</a>
+<div class="shell">
+<aside class="rail">
+  <a class="brand" href="../index.html">
+    <img src="../assets/icon.svg" alt="gripsack icon"><span class="wordmark">gripsack</span>
+  </a>
+  <span class="rail-head">menu</span>
+  <nav aria-label="Documentation">
+    <a class="" href="../index.html">home</a>
+    <a class="" href="../docs/install.html">install</a>
+    <a class="" href="../docs/workspaces.html">workspaces</a>
+    <a class="active" aria-current="page" href="../docs/packages.html">packages</a>
+    <a class="" href="../docs/environments.html">environments</a>
+    <a class="" href="../docs/adopting.html">profiles &amp; dotfiles</a>
+    <a class="" href="../docs/builds.html">BuildKit &amp; OCI</a>
+    <a class="" href="../docs/tasks.html">tasks &amp; checks</a>
+    <a class="" href="../docs/fetchers.html">sources &amp; locks</a>
+    <a class="" href="../docs/safety.html">safety &amp; recovery</a>
+    <a class="" href="../docs/settings.html">settings</a>
+    <a class="child" href="../docs/settings/reference.html">↳ settings reference</a>
+    <a class="" href="../docs/runs.html">run logs</a>
+    <a class="" href="../docs/skills.html">agent guidance</a>
+    <a class="" href="../docs/compare.html">where it fits</a>
+    <a class="" href="../docs/architecture.html">architecture</a>
+    <a class="" href="../docs/changelog.html">what&#x27;s new</a>
+    <a class="gh" href="https://github.com/gripsack-dev/gripsack">github ↗</a>
+  </nav>
+  <span class="rail-head">on this page</span>
+  <div class="rail-toc">
+    <a href="#a-release-archive">A release archive</a>
+    <a href="#roots-and-layouts">Roots and layouts</a>
+    <a href="#runtime-dependencies-are-part-of-the-package">Runtime dependencies are part of the package</a>
+    <a href="#more-producers-and-consumers">More producers and consumers</a>
+  </div>
+  <span class="rail-head">theme</span>
+  <div class="rail-palettes">
+    <button data-set-palette="catppuccin-mocha" title="catppuccin-mocha" style="--sw:#89b4fa" aria-label="catppuccin-mocha"></button>
+    <button data-set-palette="tokyo-night" title="tokyo-night" style="--sw:#7aa2f7" aria-label="tokyo-night"></button>
+    <button data-set-palette="gruvbox-dark" title="gruvbox-dark" style="--sw:#83a598" aria-label="gruvbox-dark"></button>
+    <button data-set-palette="nord" title="nord" style="--sw:#88c0d0" aria-label="nord"></button>
+    <button data-set-palette="dracula" title="dracula" style="--sw:#bd93f9" aria-label="dracula"></button>
+    <button data-set-palette="one-dark" title="one-dark" style="--sw:#61afef" aria-label="one-dark"></button>
+    <button data-set-palette="solarized-dark" title="solarized-dark" style="--sw:#268bd2" aria-label="solarized-dark"></button>
+    <button data-set-palette="catppuccin-latte" title="catppuccin-latte" style="--sw:#1e66f5" aria-label="catppuccin-latte"></button>
+    <button data-set-palette="github-light" title="github-light" style="--sw:#0969da" aria-label="github-light"></button>
+    <button data-set-palette="one-light" title="one-light" style="--sw:#4078f2" aria-label="one-light"></button>
+    <button data-set-palette="solarized-light" title="solarized-light" style="--sw:#268bd2" aria-label="solarized-light"></button>
+  </div>
+  <span class="palette-name" data-palette-name>catppuccin-mocha</span>
+</aside>
+<main class="content" id="main">
+<article class="md">
+<h1 id="packages">Packages</h1>
+<p>A package names a producer, a target platform and the commands or artifacts consumers can use. It does not install into a global prefix. Environments, profiles, tasks and images select the same package declarations.</p>
+<h2 id="a-release-archive">A release archive</h2>
+<p>This workspace exposes ripgrep from its upstream Linux musl archive:</p>
+<pre><code class="language-typescript">import {
+  defineWorkspace, environment, githubRelease, pkg, provider,
+  targetPlatform, workspace,
+} from &quot;@gripsack/core&quot;;
+
+const target = targetPlatform({ os: &quot;linux&quot;, arch: &quot;x86_64&quot;, abi: &quot;musl&quot; });
+const ripgrep = pkg(&quot;ripgrep&quot;, {
+  producer: provider(githubRelease({
+    repo: &quot;BurntSushi/ripgrep&quot;,
+    asset: &quot;ripgrep-{version.bare}-x86_64-unknown-linux-musl.tar.gz&quot;,
+  })),
+  archiveRoot: { kind: &quot;single_directory&quot; },
+  commands: { rg: &quot;rg&quot; },
+  target,
+  layout: { kind: &quot;relocatable&quot; },
+});
+const search = environment(&quot;search&quot;, { packages: [&quot;ripgrep&quot;], target });
+
+export default defineWorkspace(() =&gt; workspace({ outputs: [ripgrep, search] }));
+</code></pre>
+<pre><code class="language-sh">grip update
+grip build ripgrep
+grip run --env search -- rg --version
+</code></pre>
+<p>Review source approval prompts and the lockfile change between commands. <code>update</code> fixes the resolved release and archive identity; later consumers use those pins. This is an authoring example, not a promise about every upstream release or host. To request a particular release, set <code>githubRelease.version</code> to its exact tag.</p>
+<h2 id="roots-and-layouts">Roots and layouts</h2>
+<p><code>archiveRoot: { kind: "single_directory" }</code> selects exactly one real top-level payload directory. Multiple roots, root-level metadata siblings and symlink roots are refused. Commands and <code>artifactFile</code>/<code>artifactTree</code> selectors are literal paths relative to that selected root: version placeholders belong in source asset patterns, not selectors.</p>
+<p>Choose the layout that matches the producer:</p>
+<ul>
+<li><code>relocatable</code> for an archive or build result that can run from its retained package root.</li>
+<li><code>prefix_materialized</code> for a coherent Conda or imported Pixi environment whose prefix is materialized by the core.</li>
+<li><code>fixed_prefix</code> with an explicit <code>prefix</code> when the package requires that location; an environment selecting it must declare the matching prefix.</li>
+</ul>
+<p>Native provider packages need no synthetic recipe or build worker. A source-built package instead names a recipe as its <code>producer</code>; see <a href="../docs/builds.html#source-builds">BuildKit source builds</a>.</p>
+<h2 id="runtime-dependencies-are-part-of-the-package">Runtime dependencies are part of the package</h2>
+<p>Declare required package edges with <code>runtime: ["runtime-package"]</code>. A selected ABI identifies compatibility and loader behavior; it does not grant arbitrary host library access. Keep libraries and sibling resources in the retained closure when the tool needs them.</p>
+<p>A Linux GNU package can explicitly opt into reviewed host libraries with <code>hostRuntime: { libraryDirectories: ["/opt/vendor/lib64"] }</code>. Those directories remain mutable trusted host inputs, not portable package content or a BuildKit mount grant. Such a package cannot be silently placed into an OCI image. See <a href="../docs/safety.html#host-runtime-dependencies">runtime safety</a>.</p>
+<p>Some tools locate resources through their resolved executable pathname. A managed launcher does not promise the original <code>/proc/self/exe</code> pathname. For tools requiring a real sibling tree, use an explicit tracked-copy deployment and captured executable wrapper rather than assuming a launcher can repair the upstream layout. <a href="../docs/adopting.html#choose-file-ownership">File policies</a> explain the difference.</p>
+<h2 id="more-producers-and-consumers">More producers and consumers</h2>
+<ul>
+<li><a href="../docs/environments.html">Native Conda and explicit Pixi imports</a></li>
+<li><a href="../docs/fetchers.html">Sources, authentication and lock updates</a></li>
+<li><a href="../docs/environments.html#personal-launchers">Managed launchers</a></li>
+<li><a href="../docs/builds.html">BuildKit and OCI image exports</a></li>
+<li><a href="https://github.com/gripsack-dev/gripsack/blob/d060e1fef80f83212210e66bf65a8f1d62631bd0/typescript/README.md">SDK package contracts</a></li>
+</ul>
+</article>
+<footer>
+  <span><span class="blink"></span> © 2026 <a href="https://github.com/tknawara">Tarek Nawara</a></span>
+  <span>MIT license</span>
+  <a href="https://github.com/gripsack-dev">gripsack-dev</a>
+  <a href="https://github.com/gripsack-dev/gripsack">source</a>
+  <a href="../index.html">home</a>
+  <span style="margin-left:auto"><span class="fversion">v0.50.0</span> · eleven palettes</span>
+</footer>
+</main>
+</div>
+</body>
+</html>

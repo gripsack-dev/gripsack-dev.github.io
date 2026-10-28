@@ -13,10 +13,9 @@
     }
     var buttons = document.querySelectorAll("[data-set-palette]");
     for (var i = 0; i < buttons.length; i++) {
-      buttons[i].classList.toggle(
-        "active",
-        buttons[i].getAttribute("data-set-palette") === (name || DEFAULT)
-      );
+      var selected = buttons[i].getAttribute("data-set-palette") === (name || DEFAULT);
+      buttons[i].classList.toggle("active", selected);
+      buttons[i].setAttribute("aria-pressed", String(selected));
     }
     /* the readout on docs rails is plain text — keep it in sync too */
     var labels = document.querySelectorAll("[data-palette-name]");

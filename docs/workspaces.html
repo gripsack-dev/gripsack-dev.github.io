@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>gripsack — workspaces</title>
+<meta name="description" content="Declare user-space packages, native environments and personal profiles. Build with BuildKit, export OCI images and retain managed generations.">
+<link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../assets/site.css?v=0055d231">
+<script src="../assets/site.js?v=0055d231" defer></script>
+</head>
+<body class="docs">
+<a class="skip-link" href="#main">Skip to content</a>
+<div class="shell">
+<aside class="rail">
+  <a class="brand" href="../index.html">
+    <img src="../assets/icon.svg" alt="gripsack icon"><span class="wordmark">gripsack</span>
+  </a>
+  <span class="rail-head">menu</span>
+  <nav aria-label="Documentation">
+    <a class="" href="../index.html">home</a>
+    <a class="" href="../docs/install.html">install</a>
+    <a class="active" aria-current="page" href="../docs/workspaces.html">workspaces</a>
+    <a class="" href="../docs/packages.html">packages</a>
+    <a class="" href="../docs/environments.html">environments</a>
+    <a class="" href="../docs/adopting.html">profiles &amp; dotfiles</a>
+    <a class="" href="../docs/builds.html">BuildKit &amp; OCI</a>
+    <a class="" href="../docs/tasks.html">tasks &amp; checks</a>
+    <a class="" href="../docs/fetchers.html">sources &amp; locks</a>
+    <a class="" href="../docs/safety.html">safety &amp; recovery</a>
+    <a class="" href="../docs/settings.html">settings</a>
+    <a class="child" href="../docs/settings/reference.html">↳ settings reference</a>
+    <a class="" href="../docs/runs.html">run logs</a>
+    <a class="" href="../docs/skills.html">agent guidance</a>
+    <a class="" href="../docs/compare.html">where it fits</a>
+    <a class="" href="../docs/architecture.html">architecture</a>
+    <a class="" href="../docs/changelog.html">what&#x27;s new</a>
+    <a class="gh" href="https://github.com/gripsack-dev/gripsack">github ↗</a>
+  </nav>
+  <span class="rail-head">on this page</span>
+  <div class="rail-toc">
+    <a href="#create-a-workspace">Create a workspace</a>
+    <a href="#choose-your-outputs">Choose your outputs</a>
+    <a href="#a-complete-file-only-workspace">A complete file-only workspace</a>
+    <a href="#select-without-deploying-everything">Select without deploying everything</a>
+    <a href="#separate-production-execution-and-deployment">Separate production, execution and deployment</a>
+    <a href="#authoring-and-execution">Authoring and execution</a>
+  </div>
+  <span class="rail-head">theme</span>
+  <div class="rail-palettes">
+    <button data-set-palette="catppuccin-mocha" title="catppuccin-mocha" style="--sw:#89b4fa" aria-label="catppuccin-mocha"></button>
+    <button data-set-palette="tokyo-night" title="tokyo-night" style="--sw:#7aa2f7" aria-label="tokyo-night"></button>
+    <button data-set-palette="gruvbox-dark" title="gruvbox-dark" style="--sw:#83a598" aria-label="gruvbox-dark"></button>
+    <button data-set-palette="nord" title="nord" style="--sw:#88c0d0" aria-label="nord"></button>
+    <button data-set-palette="dracula" title="dracula" style="--sw:#bd93f9" aria-label="dracula"></button>
+    <button data-set-palette="one-dark" title="one-dark" style="--sw:#61afef" aria-label="one-dark"></button>
+    <button data-set-palette="solarized-dark" title="solarized-dark" style="--sw:#268bd2" aria-label="solarized-dark"></button>
+    <button data-set-palette="catppuccin-latte" title="catppuccin-latte" style="--sw:#1e66f5" aria-label="catppuccin-latte"></button>
+    <button data-set-palette="github-light" title="github-light" style="--sw:#0969da" aria-label="github-light"></button>
+    <button data-set-palette="one-light" title="one-light" style="--sw:#4078f2" aria-label="one-light"></button>
+    <button data-set-palette="solarized-light" title="solarized-light" style="--sw:#268bd2" aria-label="solarized-light"></button>
+  </div>
+  <span class="palette-name" data-palette-name>catppuccin-mocha</span>
+</aside>
+<main class="content" id="main">
+<article class="md">
+<h1 id="workspaces">Workspaces</h1>
+<p>A workspace describes the user-space environment you want, not a sequence of machine setup commands. Put a root <code>gripsack.ts</code> in your repository and export <code>defineWorkspace(() =&gt; workspace({ outputs }))</code>.</p>
+<h2 id="create-a-workspace">Create a workspace</h2>
+<p>After <a href="../docs/install.html">installing grip</a>, scaffold a small workspace:</p>
+<pre><code class="language-sh">grip init my-env
+cd my-env
+grip check
+grip plan hello
+grip apply hello
+</code></pre>
+<p><code>init</code> writes a root <code>gripsack.ts</code>, a file-only <code>hello</code> profile, captured sample configuration and editor settings. Review the generated files and source approval before applying. Its sample deploys under <code>~/.config/hello/</code>; replace it with the files or packages you want. You can also write the complete example below directly without scaffolding.</p>
+<h2 id="choose-your-outputs">Choose your outputs</h2>
+<table>
+<thead>
+<tr>
+<th>Output</th>
+<th>Purpose</th>
+<th>Use it with</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>pkg</code></td>
+<td>A named package with a producer, commands and runtime contract</td>
+<td><code>grip build</code>, an environment or an image</td>
+</tr>
+<tr>
+<td><code>recipe</code></td>
+<td>A source build with an explicit toolchain and steps</td>
+<td><code>grip build</code> or a package producer</td>
+</tr>
+<tr>
+<td><code>environment</code></td>
+<td>A process-scoped selection of packages and environment values</td>
+<td><code>grip run</code>, <code>grip shell</code> or a profile</td>
+</tr>
+<tr>
+<td><code>profile</code></td>
+<td>Personal files and selected environment launchers</td>
+<td><code>grip plan</code>, <code>grip apply</code></td>
+</tr>
+<tr>
+<td><code>image</code></td>
+<td>Packages and configuration exported as an OCI archive</td>
+<td><code>grip build</code></td>
+</tr>
+<tr>
+<td><code>task</code></td>
+<td>A manually invoked command graph</td>
+<td><code>grip task</code></td>
+</tr>
+<tr>
+<td><code>check</code></td>
+<td>An explicit validation command</td>
+<td>File validation, build validation or task postconditions</td>
+</tr>
+<tr>
+<td><code>hook</code></td>
+<td>An explicit profile lifecycle action</td>
+<td>Profile activation</td>
+</tr>
+</tbody>
+</table>
+<p>These are ordinary typed values. Reuse a function to produce declarations; include every referenced output in <code>workspace.outputs</code>. Names are unique across the catalog. Invalid references and dependency cycles are errors, not an implicit execution order.</p>
+<h2 id="a-complete-file-only-workspace">A complete file-only workspace</h2>
+<pre><code class="language-typescript">import {
+  defineWorkspace, file, identity, profile, repoFile, trackedCopyTo, workspace,
+} from &quot;@gripsack/core&quot;;
+
+const dotfiles = profile(&quot;dotfiles&quot;, {
+  files: [file({
+    source: repoFile(&quot;config/editor.toml&quot;),
+    content: identity(),
+    destination: trackedCopyTo(&quot;~/.config/editor/config.toml&quot;),
+  })],
+});
+
+export default defineWorkspace(() =&gt; workspace({ outputs: [dotfiles] }));
+</code></pre>
+<p>Create <code>config/editor.toml</code> with the configuration you want to deploy. The destination must be outside the workspace repository. No Docker, package producer or <code>env.toml</code> is needed for this example.</p>
+<pre><code class="language-sh">grip check
+grip plan dotfiles
+grip apply dotfiles
+</code></pre>
+<p>Review the captured source and policy when prompted, then inspect the plan before applying. <code>trackedCopyTo</code> deploys a real file and preserves local drift by default. An existing foreign destination needs an explicit ownership decision; see <a href="../docs/adopting.html">profiles and dotfiles</a>.</p>
+<h2 id="select-without-deploying-everything">Select without deploying everything</h2>
+<p><code>grip plan dotfiles</code> and <code>grip apply dotfiles</code> select that profile; they do not apply or prune unselected profiles. With no selection, apply processes the declared profile graph. Keep frequently edited configuration in its own profile to make the deployment scope clear.</p>
+<p>Selection is not a trust bypass: approval still covers the exact whole captured source bundle and policy. Changes outside the selected profile remain part of review.</p>
+<h2 id="separate-production-execution-and-deployment">Separate production, execution and deployment</h2>
+<ul>
+<li><a href="../docs/packages.html">Packages</a> describe how tools are produced and exposed.</li>
+<li><a href="../docs/environments.html">Environments</a> select tools for project commands without deploying personal files.</li>
+<li><a href="../docs/adopting.html">Profiles</a> deploy files and launchers through the generation transaction.</li>
+<li><a href="../docs/builds.html">BuildKit and OCI</a> use packages in source builds and portable image exports.</li>
+<li><a href="../docs/tasks.html">Tasks and checks</a> make explicit actions and validation discoverable.</li>
+</ul>
+<p><code>grip update</code> refreshes external source and frontend/import pins in <code>gripsack.lock</code>. Review its diff and approve the changed capture before frozen consumers run. File-only declarations use the approved repository snapshot and need no external package solve.</p>
+<p><code>grip check</code> validates declarations; it does not execute recipes or register scheduled jobs. <code>grip build</code> realizes outputs without personal activation. A cold <code>grip apply</code> realizes required packages before changing destinations; a separate pre-build is optional.</p>
+<h2 id="authoring-and-execution">Authoring and execution</h2>
+<p>Evaluation runs in provisioned Deno with restricted captured-source reads and no environment, network or subprocess grants. Use <code>repoFile</code>, <code>repoTree</code> and named <code>inputFile</code> declarations for source data instead of evaluation-time filesystem walks. Host facts come from the injected context.</p>
+<p>Use the frontend embedded in your installed core, or a deliberately selected matching SDK. See <a href="../docs/install.html">installation</a>, <a href="../docs/settings.html">source capture</a> and the <a href="https://github.com/gripsack-dev/gripsack/blob/d060e1fef80f83212210e66bf65a8f1d62631bd0/typescript/README.md">complete SDK reference</a>. The <a href="https://github.com/gripsack-dev/gripsack/tree/d060e1fef80f83212210e66bf65a8f1d62631bd0/examples/workspaces">workspace examples</a> show complete repositories, including captured executable files.</p>
+</article>
+<footer>
+  <span><span class="blink"></span> © 2026 <a href="https://github.com/tknawara">Tarek Nawara</a></span>
+  <span>MIT license</span>
+  <a href="https://github.com/gripsack-dev">gripsack-dev</a>
+  <a href="https://github.com/gripsack-dev/gripsack">source</a>
+  <a href="../index.html">home</a>
+  <span style="margin-left:auto"><span class="fversion">v0.50.0</span> · eleven palettes</span>
+</footer>
+</main>
+</div>
+</body>
+</html>

@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>gripsack — tasks and checks</title>
+<meta name="description" content="Declare user-space packages, native environments and personal profiles. Build with BuildKit, export OCI images and retain managed generations.">
+<link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../assets/site.css?v=0055d231">
+<script src="../assets/site.js?v=0055d231" defer></script>
+</head>
+<body class="docs">
+<a class="skip-link" href="#main">Skip to content</a>
+<div class="shell">
+<aside class="rail">
+  <a class="brand" href="../index.html">
+    <img src="../assets/icon.svg" alt="gripsack icon"><span class="wordmark">gripsack</span>
+  </a>
+  <span class="rail-head">menu</span>
+  <nav aria-label="Documentation">
+    <a class="" href="../index.html">home</a>
+    <a class="" href="../docs/install.html">install</a>
+    <a class="" href="../docs/workspaces.html">workspaces</a>
+    <a class="" href="../docs/packages.html">packages</a>
+    <a class="" href="../docs/environments.html">environments</a>
+    <a class="" href="../docs/adopting.html">profiles &amp; dotfiles</a>
+    <a class="" href="../docs/builds.html">BuildKit &amp; OCI</a>
+    <a class="active" aria-current="page" href="../docs/tasks.html">tasks &amp; checks</a>
+    <a class="" href="../docs/fetchers.html">sources &amp; locks</a>
+    <a class="" href="../docs/safety.html">safety &amp; recovery</a>
+    <a class="" href="../docs/settings.html">settings</a>
+    <a class="child" href="../docs/settings/reference.html">↳ settings reference</a>
+    <a class="" href="../docs/runs.html">run logs</a>
+    <a class="" href="../docs/skills.html">agent guidance</a>
+    <a class="" href="../docs/compare.html">where it fits</a>
+    <a class="" href="../docs/architecture.html">architecture</a>
+    <a class="" href="../docs/changelog.html">what&#x27;s new</a>
+    <a class="gh" href="https://github.com/gripsack-dev/gripsack">github ↗</a>
+  </nav>
+  <span class="rail-head">on this page</span>
+  <div class="rail-toc">
+    <a href="#manual-tasks">Manual tasks</a>
+    <a href="#dependencies-and-mutation">Dependencies and mutation</a>
+    <a href="#profile-file-checks">Profile file checks</a>
+    <a href="#lifecycle-boundaries">Lifecycle boundaries</a>
+    <a href="#scheduling-boundary">Scheduling boundary</a>
+  </div>
+  <span class="rail-head">theme</span>
+  <div class="rail-palettes">
+    <button data-set-palette="catppuccin-mocha" title="catppuccin-mocha" style="--sw:#89b4fa" aria-label="catppuccin-mocha"></button>
+    <button data-set-palette="tokyo-night" title="tokyo-night" style="--sw:#7aa2f7" aria-label="tokyo-night"></button>
+    <button data-set-palette="gruvbox-dark" title="gruvbox-dark" style="--sw:#83a598" aria-label="gruvbox-dark"></button>
+    <button data-set-palette="nord" title="nord" style="--sw:#88c0d0" aria-label="nord"></button>
+    <button data-set-palette="dracula" title="dracula" style="--sw:#bd93f9" aria-label="dracula"></button>
+    <button data-set-palette="one-dark" title="one-dark" style="--sw:#61afef" aria-label="one-dark"></button>
+    <button data-set-palette="solarized-dark" title="solarized-dark" style="--sw:#268bd2" aria-label="solarized-dark"></button>
+    <button data-set-palette="catppuccin-latte" title="catppuccin-latte" style="--sw:#1e66f5" aria-label="catppuccin-latte"></button>
+    <button data-set-palette="github-light" title="github-light" style="--sw:#0969da" aria-label="github-light"></button>
+    <button data-set-palette="one-light" title="one-light" style="--sw:#4078f2" aria-label="one-light"></button>
+    <button data-set-palette="solarized-light" title="solarized-light" style="--sw:#268bd2" aria-label="solarized-light"></button>
+  </div>
+  <span class="palette-name" data-palette-name>catppuccin-mocha</span>
+</aside>
+<main class="content" id="main">
+<article class="md">
+<h1 id="tasks-and-checks">Tasks and checks</h1>
+<p>Tasks make deliberate commands discoverable. Checks give validation an explicit subject and lifecycle stage. Neither is an implicit background scheduler.</p>
+<h2 id="manual-tasks">Manual tasks</h2>
+<p>Extend the <a href="../docs/packages.html#a-release-archive">ripgrep workspace</a> with a named action. Add <code>exec</code>, <code>lit</code>, <code>packageCommand</code> and <code>task</code> to its imports, declare this output, and include <code>searchVersion</code> alongside <code>ripgrep</code> and <code>search</code> in <code>workspace.outputs</code>:</p>
+<pre><code class="language-typescript">const searchVersion = task(&quot;search-version&quot;, {
+  environment: &quot;search&quot;,
+  steps: [
+    exec({ argv: [packageCommand(&quot;ripgrep&quot;, &quot;rg&quot;), lit(&quot;--version&quot;)] }),
+  ],
+});
+</code></pre>
+<pre><code class="language-sh">grip task list
+grip task plan search-version
+grip task run search-version --closed-stdin
+</code></pre>
+<p><code>list</code> and <code>plan</code> inspect declarations without realizing packages or executing postconditions. <code>run</code> creates a fresh invocation, not a cached task success. Use the invocation ID returned by the command:</p>
+<pre><code class="language-sh">: &quot;${invocation:?set this to the invocation ID returned by task run}&quot;
+grip task status &quot;$invocation&quot;
+grip task log &quot;$invocation&quot;
+</code></pre>
+<p>Status reads the durable receipt; log reads bounded private stdout/stderr output. Review logs for private information before sharing them.</p>
+<h2 id="dependencies-and-mutation">Dependencies and mutation</h2>
+<p><code>deps</code> names unordered prerequisite tasks that must succeed in the same invocation. A task's <code>steps</code> are ordered locally; <code>checks</code> are its invocation postconditions. Declare live mutation paths with <code>context: { kind: "host", mutable_paths: [...] }</code> and shared mutation keys with <code>locks: [lock("user", "editor-config")]</code> or store-scoped locks.</p>
+<p>Locks coordinate declared effects; they do not grant execution authority or infer dependencies from shell text. <code>--skip-busy</code> can skip an active conflict, not bypass an unknown interrupted owner. <code>--timeout-seconds</code> bounds realization, prerequisites and verification together. Interrupted or indeterminate outcomes are not recorded as success.</p>
+<p>Use typed <code>packageCommand</code>, <code>lit</code> and explicit <code>env</code>/<code>argv</code> values for commands. A <code>runBash</code> body requires a declared package-command interpreter; it does not discover ambient Bash. Host executable commands are explicit trusted host execution, not sealed package-closure proof. Consult the <a href="https://github.com/gripsack-dev/gripsack/blob/d060e1fef80f83212210e66bf65a8f1d62631bd0/typescript/README.md">SDK command reference</a> for shell bodies and task postconditions.</p>
+<h2 id="profile-file-checks">Profile file checks</h2>
+<p>This complete workspace validates a captured shell configuration before writing its destination. It deliberately uses the host's <code>/bin/sh</code> syntax checker, so that executable is a prerequisite and trusted host input:</p>
+<pre><code class="language-typescript">import {
+  check, defineWorkspace, exec, file, identity, lit, profile, repoFile,
+  sourcePath, trackedCopyTo, workspace,
+} from &quot;@gripsack/core&quot;;
+
+const syntax = check(&quot;shell-syntax&quot;, {
+  subject: &quot;dotfiles&quot;,
+  run: exec({ argv: [lit(&quot;/bin/sh&quot;), lit(&quot;-n&quot;), sourcePath(&quot;.&quot;)] }),
+});
+const dotfiles = profile(&quot;dotfiles&quot;, {
+  files: [file({
+    source: repoFile(&quot;config/shell.sh&quot;),
+    content: identity(),
+    destination: trackedCopyTo(&quot;~/.config/shell/settings.sh&quot;),
+    checks: [{ check: &quot;shell-syntax&quot;, subject: &quot;rendered&quot;, stage: &quot;pre_flip&quot; }],
+  })],
+});
+
+export default defineWorkspace(() =&gt; workspace({ outputs: [syntax, dotfiles] }));
+</code></pre>
+<p>Create <code>config/shell.sh</code> with valid POSIX shell configuration, then use <code>grip check</code>, <code>grip plan dotfiles</code> and <code>grip apply dotfiles</code>, reviewing approvals and the deployment plan as usual. A check's <code>sourcePath(".")</code> is its immutable attached subject, not writable staging or an arbitrary working directory.</p>
+<h2 id="lifecycle-boundaries">Lifecycle boundaries</h2>
+<ul>
+<li>A source check requires captured source.</li>
+<li>A rendered-file check must be <code>pre_flip</code> and validates before destination mutation.</li>
+<li>A deployed <code>pre_flip</code> check runs after candidate writes but before the generation flip, within journal compensation.</li>
+<li><code>post_link</code> and <code>post_activate</code> run in the activation lifecycle. Late failure is not a promise of automatic rollback.</li>
+<li>A profile-bound check cannot also serve as a recipe validator or task postcondition.</li>
+</ul>
+<p>Profile hooks are explicit lifecycle actions. They can have external effects, and an ambiguous interrupted delivery can run again with the same identity: write idempotent hooks and retain recovery data. See <a href="../docs/safety.html">safety</a>.</p>
+<h2 id="scheduling-boundary">Scheduling boundary</h2>
+<p>Scheduled registration and execution are not available. A successful <code>grip check</code> does not activate a timer. Use manual tasks for the actions documented here; an external scheduler remains your own operational choice and trust boundary.</p>
+</article>
+<footer>
+  <span><span class="blink"></span> © 2026 <a href="https://github.com/tknawara">Tarek Nawara</a></span>
+  <span>MIT license</span>
+  <a href="https://github.com/gripsack-dev">gripsack-dev</a>
+  <a href="https://github.com/gripsack-dev/gripsack">source</a>
+  <a href="../index.html">home</a>
+  <span style="margin-left:auto"><span class="fversion">v0.50.0</span> · eleven palettes</span>
+</footer>
+</main>
+</div>
+</body>
+</html>
