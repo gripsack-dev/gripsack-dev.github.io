@@ -1,7 +1,7 @@
 # Run logs
 
-Core 0.48 initializes a structured log for command runs, including workspace
-and legacy flows. Logs help explain engine events; they are not a complete
+Gripsack initializes a structured log for command runs. Logs help explain
+engine events; they are not a complete
 transcript of every subprocess or a proof that a deployment succeeded.
 Argument-parsing exits (such as `--help`) occur before logging, and a failure
 to initialize logging can leave no run file.
@@ -25,7 +25,7 @@ Save the specific filename when comparing concurrent runs.
 Each line is a JSON event with `timestamp`, `level`, `fields.message` and,
 where emitted, `fields.code`. `span` describes the current span and `spans`
 is its ancestry: an array of **objects** with a `name` and structured fields,
-not strings such as `"module:helix"`. Module or stage fields are present only
+not encoded span-name strings. Output or stage fields are present only
 where the corresponding instrumentation emits them.
 
 ```bash
@@ -48,7 +48,7 @@ private paths or command details before sharing them.
 
 ## For agents
 
-The [released debugging skill](https://github.com/gripsack-dev/gripsack/tree/core-v0.48.0/skills/gripsack-debug)
+The [debugging skill](https://github.com/gripsack-dev/gripsack/tree/{release_source}/skills/gripsack-debug)
 provides a debugging workflow and diagnostic references. See [skills](skills.md)
 for installation. Give the agent the specific run log and the failing command,
 not only `latest`, which another command may replace. For captured-source

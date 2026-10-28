@@ -1,43 +1,32 @@
-# Compare
+# Where gripsack fits
 
-Gripsack 0.48 manages user-space packages, environments and configuration,
-not the operating system. New authoring uses a root `gripsack.ts` workspace;
-legacy host/module repositories remain supported. You can leave system
-packages with apt or another manager and adopt only the files you choose.
+Gripsack manages user-space tools, project environments and personal configuration. It is not an operating-system package manager. Keep apt or another system manager for the OS; select the packages and files you want in a workspace.
 
-| | gripsack 0.48 | Nix + Home Manager | chezmoi | GNU Stow | apt / Homebrew / mise |
-|---|---|---|---|---|---|
-| primary scope | user packages, environments and profiles | declarative packages and home configuration | dotfiles | symlink trees | system packages / packages / developer tools and tasks |
-| existing files | explicit takeover with prior-state capture | declarative activation; conflicts need a migration policy | import files into source state | link conflicts need resolution | not a shared dotfile ownership model |
-| mutable or shared config | tracked copies with drift guards; managed text blocks | managed files, with application-specific escape hatches | templates and modification scripts | no content reconciliation | tool-specific |
-| rollback | retained generations and journaled file ownership | generations for managed configuration/packages | source history and re-application | relink another tree manually | manager- and package-specific |
-| pinned inputs | captured source, platform locks and verified archive identities | dependency graph and sandboxed builds, subject to derivation policy | source-controlled config; external tools need separate pinning | source tree only | manager-specific locks and checksums |
-| authoring | typed TypeScript, evaluated in a sandbox | Nix language | templates and scripts | directory layout | package manifests and tool-specific configuration |
+## Choose the scope you need
 
-These are scope comparisons, not claims that another tool cannot be extended.
-Nix is the stronger general-purpose reproducible-build system. Gripsack's
-captured inputs and lockfiles do not make legacy shell steps hermetic or
-undo arbitrary external effects. Workspace recipes use an explicit production
-contract; the qualified owned-worker route is Linux x86_64 with Docker, not
-an unconditional “no daemon” promise.
+| Tool | Typical focus | Why choose it |
+|---|---|---|
+| gripsack | Typed packages, native environments, personal profiles, BuildKit recipes and OCI outputs | One workspace graph with explicit source review, file ownership and retained generations |
+| Nix + Home Manager | Declarative package graphs and home configuration in the Nix ecosystem | Broad package ecosystem and established derivation/configuration workflows |
+| chezmoi | Personal configuration source state and templates | Focused dotfile management with rich templating |
+| GNU Stow | Symlink trees | Small, direct link management without a package producer graph |
+| apt / other OS managers | Distribution packages and system integration | Operating-system dependency and installation policy |
+| mise | Developer tool versions, environments and tasks | Its tool ecosystem and project task workflow |
 
-Gripsack's supported hosts are **Linux and WSL2 on x86_64**, not macOS or
-native Windows. File-only profiles need no build worker; provider-backed
-packages and retained outputs can also avoid a worker. A file-only adoption
-can be incremental, but taking ownership still requires a deliberate decision.
-Rollback requires retained history and respects drift; late activation failure
-is not an automatic whole-machine undo. See [adoption](adopting.md),
-[workspace migration](workspace-migration.md), and [safety](safety.md).
+These are scope comparisons, not a claim that other tools cannot be extended or combined.
 
-## Release status
+## When gripsack is useful
 
-[Core 0.48](https://github.com/gripsack-dev/gripsack/releases/tag/core-v0.48.0)
-is the public latest release, **unsigned**, with 17 practical local gates
-and 96 persistence partitions passed. TLC, TLAPS and Verus remain explicitly
-unqualified; these results are not formal qualification or completion of the
-original roadmap. Core 0.47 remains an unsigned, unverified prerelease.
+- You want tools from release archives, captured source or a coherent Conda solve without global user-space installs.
+- You want a project environment and a personal command launcher to select the same packages.
+- You want source builds and OCI exports described alongside native consumers.
+- You want copied configuration with drift guards, store-owned links or small managed blocks rather than one ownership policy for every file.
+- You want manual tasks and lifecycle checks to be named, inspectable outputs.
 
-Use the release's manual archive installation instructions: 0.48 has no npm
-or crates.io publication, and the signed core installer/updater still fails
-closed. The documentation website is built locally and does not require
-signed release artifacts; its availability is not release-authentication evidence.
+Start with a [file-only workspace](workspaces.md), a [native package](packages.md) or a [BuildKit source build](builds.md).
+
+## Deliberate boundaries
+
+Current host support is Linux x86_64 and WSL2. BuildKit production needs Docker; native file profiles do not. Scheduled execution and host recipe execution are unavailable. An OCI export is an archive, not an automatic registry publication or deployment.
+
+Generations and journals protect managed state, not every effect on the machine. Tracked-copy drift is preserved by default; arbitrary tasks, services and hooks are not automatically reversible. Alpha software still needs independent backups and actual consumer checks. See [safety and recovery](safety.md) and [installation](install.md).

@@ -1,184 +1,42 @@
 # Architecture
 
-How gripsack turns a repository into packages, development environments and
-managed files on Linux/WSL. This is the tour; [design records](plan/) retain
-the detailed contracts and outstanding work.
+Gripsack separates declarations, production, execution and personal deployment. A workspace is the shared graph; each operation takes only the authority needed for its stage.
 
-![gripsack architecture: eval row (env repo → frontend → IR → lockfile) with linter plugins validating configs at eval, feeding the execute row (core → store → generations → $HOME), with fetcher plugins below](architecture.svg)
+## From source to declared graph
 
-## The two halves
+1. **Capture:** the core snapshots repository inputs under an explicit capture policy.
+2. **Approve:** the operator reviews the exact source bundle and policy identities.
+3. **Evaluate:** the matching TypeScript frontend runs in provisioned Deno with restricted reads and no ambient network, environment or subprocess access.
+4. **Admit:** the Rust core validates the resulting intermediate representation, references, dependency graph and execution contracts.
 
-gripsack is a compiler, and it keeps its two halves strictly separate:
+The public authoring surface is `gripsack.ts` and `@gripsack/core`. The intermediate representation is an implementation contract, not a second hand-maintained configuration language. Use matching core and frontend bytes rather than assuming a wire version grants another implementation's authority.
 
-- **Eval** is sandboxed TypeScript under a pinned, hash-verified Deno:
-  no environment variables, no network, no subprocesses, read-only
-  within your repo. The machine's facts — os, arch, libc, hostname —
-  are detected by the core and injected; host effects are *probes*,
-  symbolic requests the core binds. Workspace outputs and legacy modules
-  describe sources, builds and deployment. Evaluation emits **IR**, a
-  validated JSON graph with source locations for diagnostics.
-- **Execute** is the `grip` binary — one static Rust executable. It
-  never evaluates code and only consumes IR: it parses, validates,
-  resolves against the lockfile, builds a plan, and executes it as a
-  DAG into a hash-addressed **store**. Credentials: **evaluation**
-  sees none (the sandbox denies env, network, and subprocesses); the
-  fetch/execution layer necessarily can — fetching a private release
-  requires a token. The boundary is eval-vs-everything-else, and
-  that is the boundary the trust prompt describes.
+## Sources and packages
 
-`grip update` runs the source-preparation part without deployment: resolve,
-acquire, verify and capture the selected repo overlay. It writes complete
-source pins once, only after every selected source succeeds. Source-only
-merged artifacts are cached; package recipes run when realization is requested,
-not during source update. Applying a completed lock does not re-solve it.
-`grip update --check` performs the same preparation in private scratch, reports
-would-be changes, and publishes neither lockfile nor source cache.
+Providers acquire immutable source inputs and package closures. Native Conda solves a coherent environment; explicit Pixi imports consume a captured manifest/lock selection. `gripsack.lock` binds platform-keyed source and frontend/import identities. `grip update` refreshes those records without deploying files or running recipes.
 
-`grip plan` prepares deployment changes without activating destinations.
-Source preparation and cached realization are distinct from deployment; this
-is not a promise that planning performs no filesystem or network work.
+A package gives its producer's output a target, layout, commands and runtime dependencies. Packages can be selected into environments, profiles, tasks and images without duplicating source resolution policy. See [packages](packages.md) and [sources](fetchers.md).
 
-The frontend *source* is embedded in the `grip` binary — the DSL
-version always matches the core — so only the runtime provisions: the
-first eval downloads the pinned Deno once (per-platform sha256 baked
-into grip, ~40MB, cached under `$GRIPSACK_HOME/tools/`;
-`GRIPSACK_DENO` overrides). And eval never runs unasked: the first
-eval of a repo grip doesn't trust prompts first — naming the path,
-the remote, and exactly what the sandbox allows — and `y` records it
-(`grip trust list/add/remove`; `GRIPSACK_TRUST_ALL=1` is refused —
-approval binds exact captured digests, see
-[unattended approval](safety.md#unattended-approval)). Same repo +
-same lockfile + same declared host now means the same graph, because
-nothing observable is left to the frontend's environment.
+## BuildKit production
 
-## Modules and sources
+Recipes use an isolated Linux worker with a digest-pinned toolchain. Typed source and output paths separate immutable inputs from writable staging. The core provisions its pinned bridge helper and owns the worker lifecycle; BuildKit performs the solve.
 
-New configurations use a workspace: packages declare producers, files declare
-destinations, environments assemble commands, profiles select deployment, and
-tasks describe explicit operations and checks. These outputs share one graph
-without combining source resolution, installation and verification into each
-tool declaration.
+OCI images use BuildKit's exporter. The native core admits the returned archive and selected package content before publishing it. The native store, not the worker cache, retains package and image outputs. Cleaning the builder cache does not delete retained generations or their packages. See [BuildKit and OCI](builds.md).
 
-Legacy modules still combine those concerns and remain supported for migration.
-Their build-only dependencies are published to the store and supplied through
-PATH and `GRIP_DEP_*`, not deployed merely to compile a dependent module.
-Retained generations pin store paths; rollback does not rebuild them.
+## Native execution
 
-Core/SDK 0.48 emits **IR8**, including the legacy modules-compatibility envelope.
-Retained v3–v7 readers keep their historical meanings. `Dependency.for` remains;
-inert retry fields are rejected.
+An environment selects compatible packages and explicit command exports. Native invocation admits the selected runtime closure instead of treating arbitrary `PATH` or ambient loader search as authority. Host-runtime dependencies are explicit opt-ins and remain mutable host inputs, not portable image content.
 
-Low-level compiler APIs (`emitIr`, `emitWorkspaceIr`, `IR_VERSION` and compiler
-DTOs) are exported by `@gripsack/core/advanced`, not the ordinary authoring root.
-See the [0.48 SDK reference](https://github.com/gripsack-dev/gripsack/blob/core-v0.48.0/typescript/README.md).
+Tasks add manually invoked command graphs, prerequisites, declared mutation locks and postconditions. Their receipts describe invocation outcomes; declaring a schedule does not register a timer. Host recipe execution remains unavailable.
 
-When a source is unusual — your company's internal registry — the
-sourcing ladder keeps the core small:
+## Personal deployment
 
-1. **built-in fetcher arguments** (`base_url` covers GitHub Enterprise),
-2. **fetchers** — `gripfetch-*` plugins for genuinely bespoke
-   transports, with the core hash-verifying every byte they return.
+Profiles combine captured files, retained artifacts and selected environment launchers. Apply realizes required packages before changing destinations, then uses journaled ownership transitions and an atomic generation-selection flip. Destination writes are not atomic across the entire profile.
 
-Bespoke *resolution* ("latest artifact X" → pinned URL + hash) is
-planned as a third plugin kind — `gripresolve-*` executables,
-specified in [plan/0013 D8](https://github.com/gripsack-dev/gripsack/blob/main/plan/0013-constrained-evaluation.md)
-and built next, not shipped; today the built-ins resolve at
-lock/update time.
+Retained generations preserve package roots, file content, launcher bindings and recovery information. Rollback reuses retained bytes rather than re-running today's source or build. Local tracked-copy drift remains protected. Hooks and explicit native commands can have effects outside managed files; those are not whole-machine transactions.
 
-## Dotfiles, first-class
+See [profiles](adopting.md) and [safety](safety.md) for exact ownership and recovery boundaries.
 
-Config files are deployed per **ownership mode**, chosen per file:
+## Where the implementation lives
 
-| mode | what it means | use it for |
-|---|---|---|
-| `owned` | store-owned symlink, read-only | disciplined tools (helix, git) |
-| `tracked-copy` | copied out; drift detected next apply | apps that rewrite their own configs |
-| `merge` | managed block inside a shared file | `.bashrc`, `.profile` |
-| `template` | rendered per machine at activation | hostnames, work vs personal |
-
-You don't have to migrate your packages to use this. A module with no
-source at all — just configs — is a first-class setup: brew/apt keep
-managing binaries, gripsack manages `~/.config`, and you get versioned
-dotfiles with rollback. See
-[plan/0006 — gradual migration](plan/0006-gradual-migration.md).
-
-## Generations and rollback
-
-A **generation** records a complete deployment and its immutable store references.
-An unchanged workspace apply can reuse the active generation when the complete
-deployment state matches; it does not necessarily consume a retention slot.
-Checks and hooks can still run. Changed deployments select a new generation
-through an atomic `current` flip, including its environment profile.
-
-Shell activation and non-interactive PATH are separate: profile-managed launchers
-provide commands without requiring an editor or SSH process to source a profile.
-
-Destination mutations (deploys, prunes, rollback restores) are
-journaled before they land: a crash anywhere is reconciled by the next
-run — you get the previous generation or the committed one, never an
-unexplained mixture. Rollback runs the same journal in reverse. The
-guarantees, precisely:
-
-| surface | guarantee |
-|---|---|
-| store object publication | atomic final-name rename |
-| generation selection + env profile | one atomic `current` flip |
-| destination deploy / prune / rollback | journaled, crash-recovered |
-| failed apply or rollback | restores captured prior state |
-| external package-manager effects | adapter-dependent, best effort |
-| arbitrary run steps | not automatically reversible |
-
-
-**What rollback covers, exactly.** Transactional per generation: store
-payloads, symlinks, tracked copies, managed blocks inside foreign
-files, and the exported env profile — all restored to the previous
-generation's bytes. Not transactional: side effects that already ran
-— a service an activation adapter already enabled stays enabled (a
-new apply with the adapter removed disables it), and downloads stay
-downloaded. The flip is the environment; the world outside it is
-yours.
-
-Reproducibility starts with pinned inputs and reproducible deployment, not a
-promise that every execution mode is hermetic. Workspace execution admits
-declared runtime closures; BuildKit-backed recipes use their declared build
-environment. Legacy ambient shell steps and explicit host execution have
-different isolation boundaries. Host success does not prove sealed closure
-completeness.
-
-**The store is content-addressed where content is knowable**
-([plan 0014](https://github.com/gripsack-dev/gripsack/tree/main/plan/0014-content-addressed-fetches.md)).
-A fetched or config-only payload's path names its canonical content
-hash — so the store verifies itself (`grip store-verify` needs no
-lockfile and no hostname), and a mirror swap with identical bytes
-re-proves once, then dedups to the same path. Built modules stay
-input-addressed: their output can't be named before the build runs,
-and plan-time naming is what keeps `grip plan` a complete diff.
-
-## Errors that point at your code
-
-Compiler and execution diagnostics use stable codes and attach source locations
-where available. The same interface covers evaluation, paths, configuration
-[linters](linters.md) and execution:
-
-```diag
-error[E101]: module "helix" depends on unknown module "git"
-  --> modules/helix.ts:4:1
-```
-
-An editor-facing LSP remains roadmap work. The diagnostic design is recorded in
-[plan/0004 — rich IR & passes](plan/0004-rich-ir-and-passes.md).
-
-## Where things live
-
-| path | what |
-|---|---|
-| `~/.local/share/gripsack/store/` | immutable, hash-addressed payloads |
-| `~/.local/share/gripsack/generations/` | one directory per generation |
-| `~/.local/share/gripsack/current` | the symlink that IS your profile |
-| `~/.config/gripsack/config.toml` | machine-local user config |
-| your repo's `env.toml` | the committed, self-describing env config |
-
-`GRIPSACK_HOME` overrides the base directory. Explicit destinations and host
-operations can reach outside the home directory when permissions allow.
-BuildKit recipes require a configured builder; ordinary configuration-file
-deployment does not require a privileged system service.
+The [core source](https://github.com/gripsack-dev/gripsack/tree/{release_source}/crates), [TypeScript SDK](https://github.com/gripsack-dev/gripsack/tree/{release_source}/typescript) and [technical guarantee ledger](https://github.com/gripsack-dev/gripsack/blob/{release_source}/verification/guarantees.md) hold implementation contracts and evidence. Product examples use public authoring declarations, not historical internal envelopes.
