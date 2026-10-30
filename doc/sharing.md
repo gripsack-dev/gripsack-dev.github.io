@@ -120,6 +120,8 @@ For an imported environment, select `source.package({ manifest: digest })` with 
 
 Conda sharing transfers a single archive-set component with the admitted lock, original archives, core-approved pinned helper and required signed/pinned redistribution notices, not a copied installed prefix. Import reconstructs at the recipient's actual final prefix and records that realization separately. Missing originals or helper fail offline without solving, repodata access or a network fallback.
 
+GNU-linked Python/Conda tools declare a glibc target, for example `abi: { "kind": "glibc", "minimum": "2.28" }`, matching the environment's explicit baseline. A kernel-only Linux target does not authorize a host GNU loader. Mixed environments preserve that requirement for local and independently signed members.
+
 Binary prefix replacement is limited by the placeholders in the original Conda archives. An excessively long final store prefix is rejected, not truncated or silently redirected. Use a shorter `GRIPSACK_HOME` when necessary; arbitrary prefix lengths are not a relocation guarantee.
 
 Supported explicitly hash-pinned wheels can accompany the Conda environment, including supported wheel records selected from an imported Pixi lock. The maintained UV installer runs offline inside the core-pinned helper; core validation binds installed bytes, generated console entrypoints and receipts to original wheels and the final prefix. This does not run pip, resolve missing Python dependencies, compile bytecode or execute package-provided installers. See [wheel authoring and limits](environments.md#hash-pinned-python-wheels).
