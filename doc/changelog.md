@@ -1,6 +1,6 @@
 # What's new
 
-Gripsack brings user-space packages, native environments, profiles, manual tasks, BuildKit source builds and OCI image exports into one typed workspace. Start with the [workspace guide](workspaces.md), then explore [packages](packages.md), [profiles](adopting.md) or [builds and images](builds.md).
+The 0.51 product line brings native packages, environments, profiles, tasks and Docker Engine services into one typed workspace, with semantic review and native artifact sharing. Source recipes and container-image building are retired. Start with the [workspace guide](workspaces.md), then explore [services](services.md), [review](review.md) or [sharing](sharing.md). Release links below follow the published source selected for this site; these notes do not themselves announce publication.
 
 ## Release history
 

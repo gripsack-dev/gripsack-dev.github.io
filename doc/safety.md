@@ -69,9 +69,9 @@ See [tasks and checks](tasks.md) for lifecycle stages and invocation receipts.
 
 ## Host runtime dependencies
 
-Linux GNU packages may declare `hostRuntime: { libraryDirectories: ["/opt/vendor/lib64"] }`. Review who controls those directories as well as the package bytes. This is package-scoped runtime authority, not an evaluator read grant, arbitrary ambient loader fallback or a BuildKit mount grant.
+Linux GNU packages may declare `hostRuntime: { libraryDirectories: ["/opt/vendor/lib64"] }`. Review who controls those directories as well as the package bytes. This is package-scoped runtime authority, not an evaluator read grant or arbitrary ambient loader fallback.
 
-The dependency graph, ABI and search paths are re-admitted on invocation. Host libraries remain mutable trusted host inputs; they are not retained portable artifacts. Packages with this policy are refused for portable image placement. Prefer complete retained package closures when portability matters.
+The dependency graph, ABI and search paths are re-admitted on invocation. Host libraries remain mutable trusted host inputs; they are not retained portable artifacts. Prefer complete retained package closures when portability matters.
 
 Managed launchers retain the absolute installed core location and private state path. Keep both available. If the core moves, restore it or reapply using the replacement binary; do not edit launcher bodies. Putting a launcher in a shared directory does not make private state a multi-user installation. Run as the owning UID and keep trust, journals and retained state private.
 

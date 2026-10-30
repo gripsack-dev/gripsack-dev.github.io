@@ -49,7 +49,7 @@ For noninteractive execution, compare separately reviewed expected digests befor
 
 Temporary extraction and materialization can use `TMPDIR`, `TMP` or `TEMP`. Native publication stages and seals content before final rename; a cross-filesystem transfer uses a bounded copy into destination-filesystem staging before publication. Scratch cleanup is not a substitute for publication or recovery authority.
 
-External tools retain their own temporary-storage rules. Configure enough space for source archives, expanded trees, build cache and retained generations; `grip gc --dry-run` previews native reclamation, while `grip builder cache-clean` concerns the owned worker cache.
+External tools retain their own temporary-storage rules. Configure enough space for source archives, expanded trees and retained generations; `grip gc --dry-run` previews native reclamation. Docker Engine storage and service volumes have a separate lifecycle.
 
 ## Network and acquisition policy
 
@@ -57,4 +57,4 @@ The native fetcher honors system CA roots, `SSL_CERT_FILE`, `HTTPS_PROXY` and `N
 
 Acquisition has its own concurrency and resource budgets. Defaults are two concurrent payloads, 512 MiB downloaded, 4 GiB expanded, 100,000 entries and a 128 MiB decoder budget per payload. Downloads use disk spools rather than payload-sized RAM buffers. Limits are positive; exceeding one fails rather than truncating a package.
 
-The [settings reference](settings/reference.md) lists values and precedence. Build worker CPU, memory and deadline flags are separate from acquisition policy; see [BuildKit](builds.md#worker-lifecycle-and-limits).
+The [settings reference](settings/reference.md) lists values and precedence. Service startup deadlines are separate from acquisition policy; see [services](services.md).

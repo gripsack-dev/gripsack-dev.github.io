@@ -64,7 +64,6 @@ Units are `s`, `min` and `hr`. Bucket state persists in the private state root s
 | `HTTPS_PROXY`, `NO_PROXY` | Network proxy policy |
 | `GITHUB_TOKEN`, `GH_TOKEN` | Public GitHub credentials, in that precedence |
 | `GITHUB_ENTERPRISE_TOKEN`, `GH_ENTERPRISE_TOKEN` | Enterprise credentials, requiring a matching `GH_HOST` or `GITHUB_HOST` |
-| `GRIPSACK_BRIDGE_MIRROR` | Download origin override for the pinned build bridge; does not replace its expected hash |
 
 `GRIPSACK_TRUST_ALL=1` is refused. Use exact-digest [source approval](safety.md#unattended-approval), not a floating trust setting.
 
@@ -74,7 +73,7 @@ Units are `s`, `min` and `hr`. Bucket state persists in the private state root s
 grip check                         # validate workspace declarations
 grip plan [PROFILE...]             # prepare selected profile changes
 grip apply [PROFILE...]            # deploy selected profiles
-grip build OUTPUT --json           # realize a recipe, package or OCI image
+grip build OUTPUT --json           # realize a native package output
 grip run --env ENV -- COMMAND       # run in a selected environment
 grip shell ENV                     # open its interactive shell
 grip task list                     # list manual tasks
@@ -95,12 +94,20 @@ grip trust list
 grip trust remove
 grip hooks list                    # inspect durable hook outcomes
 grip store-verify                  # verify retained store content
-grip builder status                # observe the owned worker
-grip builder stop                  # stop it when clients are quiescent
-grip builder cache-clean           # remove disposable worker cache
+grip up [SERVICE...]               # start services and await readiness
+grip down [SERVICE...]             # remove owned containers, retain volumes
+grip services status --json        # inspect recorded service state
+grip services logs SERVICE         # read bounded container output
+grip jobs capability               # inspect user-manager prerequisites
+grip jobs status --json            # inspect registered scheduled tasks
+grip snapshot current --out FILE   # save a private semantic snapshot
+grip diff BEFORE AFTER --json      # compare captured semantic states
+grip plan PROFILE --save FILE      # save exact deployment bindings
+grip apply --saved-plan FILE       # apply only if bindings remain valid
+grip package --help               # passive native artifact sharing
 ```
 
-`update --check` returns 0 for complete/current, 1 for complete/changes and 2 for incomplete/error. It can use the network and initialize runtime/log state, but it does not deploy or execute recipes and hooks. `plan` is not an apply: follow [ownership guidance](adopting.md) before authorizing destination changes.
+`update --check` returns 0 for complete/current, 1 for complete/changes and 2 for incomplete/error. It can use the network and initialize runtime/log state, but it does not deploy or execute hooks. `plan` is not an apply: follow [ownership guidance](adopting.md) before authorizing destination changes.
 
 ## Recovery and diagnostics
 
