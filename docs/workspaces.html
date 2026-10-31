@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>gripsack — workspaces</title>
-<meta name="description" content="Declare user-space packages, native environments and personal profiles. Build with BuildKit, export OCI images and retain managed generations.">
+<meta name="description" content="Declare native packages, environments, dotfiles and tasks in one workspace. Manage explicit Docker Engine services and review changes before applying.">
 <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="../assets/site.css?v=0055d231">
 <script src="../assets/site.js?v=0055d231" defer></script>
@@ -24,7 +24,10 @@
     <a class="" href="../docs/packages.html">packages</a>
     <a class="" href="../docs/environments.html">environments</a>
     <a class="" href="../docs/adopting.html">profiles &amp; dotfiles</a>
-    <a class="" href="../docs/builds.html">BuildKit &amp; OCI</a>
+    <a class="" href="../docs/services.html">Docker services</a>
+    <a class="" href="../docs/review.html">review &amp; saved plans</a>
+    <a class="" href="../docs/sharing.html">native artifact sharing</a>
+    <a class="" href="../docs/schedules.html">scheduled tasks</a>
     <a class="" href="../docs/tasks.html">tasks &amp; checks</a>
     <a class="" href="../docs/fetchers.html">sources &amp; locks</a>
     <a class="" href="../docs/safety.html">safety &amp; recovery</a>
@@ -157,14 +160,14 @@ grip apply dotfiles
 <li><a href="../docs/packages.html">Packages</a> describe how tools are produced and exposed.</li>
 <li><a href="../docs/environments.html">Environments</a> select tools for project commands without deploying personal files.</li>
 <li><a href="../docs/adopting.html">Profiles</a> deploy files and launchers through the generation transaction.</li>
-<li><a href="../docs/builds.html">BuildKit and OCI</a> use packages in source builds and portable image exports.</li>
+<li><a href="../docs/services.html">Services</a> run digest-pinned Docker Engine containers independently of native package realization.</li>
 <li><a href="../docs/tasks.html">Tasks and checks</a> make explicit actions and validation discoverable.</li>
 </ul>
 <p><code>grip update</code> refreshes external source and frontend/import pins in <code>gripsack.lock</code>. Review its diff and approve the changed capture before frozen consumers run. File-only declarations use the approved repository snapshot and need no external package solve.</p>
-<p><code>grip check</code> validates declarations; it does not execute recipes or register scheduled jobs. <code>grip build</code> realizes outputs without personal activation. A cold <code>grip apply</code> realizes required packages before changing destinations; a separate pre-build is optional.</p>
+<p><code>grip check</code> validates declarations; it does not start services or register scheduled jobs. <code>grip build</code> realizes native outputs without personal activation. A cold <code>grip apply</code> realizes required packages before changing destinations; a separate pre-build is optional. Explicit profile application owns <a href="../docs/schedules.html">scheduled task registration</a>.</p>
 <h2 id="authoring-and-execution">Authoring and execution</h2>
 <p>Evaluation runs in provisioned Deno with restricted captured-source reads and no environment, network or subprocess grants. Use <code>repoFile</code>, <code>repoTree</code> and named <code>inputFile</code> declarations for source data instead of evaluation-time filesystem walks. Host facts come from the injected context.</p>
-<p>Use the frontend embedded in your installed core, or a deliberately selected matching SDK. See <a href="../docs/install.html">installation</a>, <a href="../docs/settings.html">source capture</a> and the <a href="https://github.com/gripsack-dev/gripsack/blob/d060e1fef80f83212210e66bf65a8f1d62631bd0/typescript/README.md">complete SDK reference</a>. The <a href="https://github.com/gripsack-dev/gripsack/tree/d060e1fef80f83212210e66bf65a8f1d62631bd0/examples/workspaces">workspace examples</a> show complete repositories, including captured executable files.</p>
+<p>Use the frontend embedded in your installed core, or a deliberately selected matching SDK. See <a href="../docs/install.html">installation</a>, <a href="../docs/settings.html">source capture</a> and the <a href="https://github.com/gripsack-dev/gripsack/blob/3332429b2b92392e267c1df28f673fa798d43a02/typescript/README.md">complete SDK reference</a>. The <a href="https://github.com/gripsack-dev/gripsack/tree/3332429b2b92392e267c1df28f673fa798d43a02/examples/workspaces">workspace examples</a> show complete repositories, including captured executable files.</p>
 </article>
 <footer>
   <span><span class="blink"></span> © 2026 <a href="https://github.com/tknawara">Tarek Nawara</a></span>
@@ -172,7 +175,7 @@ grip apply dotfiles
   <a href="https://github.com/gripsack-dev">gripsack-dev</a>
   <a href="https://github.com/gripsack-dev/gripsack">source</a>
   <a href="../index.html">home</a>
-  <span style="margin-left:auto"><span class="fversion">v0.50.0</span> · eleven palettes</span>
+  <span style="margin-left:auto"><span class="fversion">v0.51.0</span> · eleven palettes</span>
 </footer>
 </main>
 </div>

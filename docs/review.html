@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>gripsack — review and saved plans</title>
+<meta name="description" content="Declare native packages, environments, dotfiles and tasks in one workspace. Manage explicit Docker Engine services and review changes before applying.">
+<link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../assets/site.css?v=0055d231">
+<script src="../assets/site.js?v=0055d231" defer></script>
+</head>
+<body class="docs">
+<a class="skip-link" href="#main">Skip to content</a>
+<div class="shell">
+<aside class="rail">
+  <a class="brand" href="../index.html">
+    <img src="../assets/icon.svg" alt="gripsack icon"><span class="wordmark">gripsack</span>
+  </a>
+  <span class="rail-head">menu</span>
+  <nav aria-label="Documentation">
+    <a class="" href="../index.html">home</a>
+    <a class="" href="../docs/install.html">install</a>
+    <a class="" href="../docs/workspaces.html">workspaces</a>
+    <a class="" href="../docs/packages.html">packages</a>
+    <a class="" href="../docs/environments.html">environments</a>
+    <a class="" href="../docs/adopting.html">profiles &amp; dotfiles</a>
+    <a class="" href="../docs/services.html">Docker services</a>
+    <a class="active" aria-current="page" href="../docs/review.html">review &amp; saved plans</a>
+    <a class="" href="../docs/sharing.html">native artifact sharing</a>
+    <a class="" href="../docs/schedules.html">scheduled tasks</a>
+    <a class="" href="../docs/tasks.html">tasks &amp; checks</a>
+    <a class="" href="../docs/fetchers.html">sources &amp; locks</a>
+    <a class="" href="../docs/safety.html">safety &amp; recovery</a>
+    <a class="" href="../docs/settings.html">settings</a>
+    <a class="child" href="../docs/settings/reference.html">↳ settings reference</a>
+    <a class="" href="../docs/runs.html">run logs</a>
+    <a class="" href="../docs/skills.html">agent guidance</a>
+    <a class="" href="../docs/compare.html">where it fits</a>
+    <a class="" href="../docs/architecture.html">architecture</a>
+    <a class="" href="../docs/changelog.html">what&#x27;s new</a>
+    <a class="gh" href="https://github.com/gripsack-dev/gripsack">github ↗</a>
+  </nav>
+  <span class="rail-head">on this page</span>
+  <div class="rail-toc">
+    <a href="#snapshot-and-compare">Snapshot and compare</a>
+    <a href="#configuration-views">Configuration views</a>
+    <a href="#save-a-deployment-plan">Save a deployment plan</a>
+  </div>
+  <span class="rail-head">theme</span>
+  <div class="rail-palettes">
+    <button data-set-palette="catppuccin-mocha" title="catppuccin-mocha" style="--sw:#89b4fa" aria-label="catppuccin-mocha"></button>
+    <button data-set-palette="tokyo-night" title="tokyo-night" style="--sw:#7aa2f7" aria-label="tokyo-night"></button>
+    <button data-set-palette="gruvbox-dark" title="gruvbox-dark" style="--sw:#83a598" aria-label="gruvbox-dark"></button>
+    <button data-set-palette="nord" title="nord" style="--sw:#88c0d0" aria-label="nord"></button>
+    <button data-set-palette="dracula" title="dracula" style="--sw:#bd93f9" aria-label="dracula"></button>
+    <button data-set-palette="one-dark" title="one-dark" style="--sw:#61afef" aria-label="one-dark"></button>
+    <button data-set-palette="solarized-dark" title="solarized-dark" style="--sw:#268bd2" aria-label="solarized-dark"></button>
+    <button data-set-palette="catppuccin-latte" title="catppuccin-latte" style="--sw:#1e66f5" aria-label="catppuccin-latte"></button>
+    <button data-set-palette="github-light" title="github-light" style="--sw:#0969da" aria-label="github-light"></button>
+    <button data-set-palette="one-light" title="one-light" style="--sw:#4078f2" aria-label="one-light"></button>
+    <button data-set-palette="solarized-light" title="solarized-light" style="--sw:#268bd2" aria-label="solarized-light"></button>
+  </div>
+  <span class="palette-name" data-palette-name>catppuccin-mocha</span>
+</aside>
+<main class="content" id="main">
+<article class="md">
+<h1 id="review-and-saved-plans">Review and saved plans</h1>
+<p>Source approval, semantic review and deployment planning answer different questions. Approval binds captured bytes and policy; semantic review explains declared changes; a plan describes the selected operation. None proves that arbitrary commands are safe.</p>
+<h2 id="snapshot-and-compare">Snapshot and compare</h2>
+<p>First apply the <a href="../docs/workspaces.html">file-only workspace</a> through its ordinary reviewed workflow. These commands compare retained generations, not unevaluated source edits. Keep snapshots outside the captured repository:</p>
+<pre><code class="language-sh">grip snapshot current --out /tmp/gripsack-before.json
+# Deliberately edit, review, plan and apply your workspace through the ordinary workflow.
+grip diff /tmp/gripsack-before.json current --json
+</code></pre>
+<p>Selectors include <code>current</code>, <code>generation:N</code>, <code>snapshot:FILE</code>, a bare snapshot filename and <code>proposed:IRFILE</code>. The proposed selector consumes already-emitted IR with the repository's <code>gripsack.lock</code> offline; it is not another hand-authored configuration format or permission to execute it. Snapshots are private files (mode <code>0600</code>).</p>
+<p>Semantic review is offline: it does not evaluate TypeScript, fetch packages, start services, run tasks or change generations. New generations retain private immutable declaration/dependency evidence, actual evaluation facts and probes, selected captured inputs, locks and available artifact receipts. Rollback and comparison read that frozen evidence rather than today's checkout. An unchanged or provenance-only apply reuses prior evidence instead of rewriting history.</p>
+<p>Older generations without retained review artifacts remain readable but incomplete. Missing declarations, probes, locks, receipts and redacted values remain unknown, even in a self-comparison; they are not inferred from current source.</p>
+<p>For <code>diff</code> and <code>diff-config</code>, exit 0 means complete and unchanged, 2 complete and changed, 3 incomplete (including fallback), and 1 an error. Automation must distinguish these results rather than treating incomplete comparison as equality.</p>
+<h2 id="configuration-views">Configuration views</h2>
+<pre><code class="language-sh">printf '{&quot;enabled&quot;:true}\n' &gt; /tmp/gripsack-before-config.json
+printf '{&quot;enabled&quot;:false}\n' &gt; /tmp/gripsack-after-config.json
+grip diff-config /tmp/gripsack-before-config.json /tmp/gripsack-after-config.json --format json --json
+</code></pre>
+<p>These inputs are actual configuration files, not semantic snapshots or selectors. This example exits 2 because the complete comparison found a change.</p>
+<p>Choose <code>--format json</code>, <code>toml</code> or <code>bytes</code>. JSON and TOML parsing are strict; explicit bounded byte fallback is not a successful structured comparison. Portable output omits raw configuration values. <code>--local-values</code> opts into local value display: treat its output as sensitive and do not paste it into public logs. Missing evidence remains unknown rather than an invented no-change result.</p>
+<p>For live planning, use <code>grip plan dotfiles --json</code>: this explicitly performs normal trusted evaluation and reports selected deployment operations and bounded configuration views. Its successful exit code does not imply complete evidence; inspect <code>complete</code>, configuration unknowns and change completeness. Structural equality is not application equivalence and does not hide exact byte differences.</p>
+<h2 id="save-a-deployment-plan">Save a deployment plan</h2>
+<pre><code class="language-sh">grip plan dotfiles --save /tmp/gripsack-dotfiles-plan.json
+grip apply --saved-plan /tmp/gripsack-dotfiles-plan.json
+</code></pre>
+<p>Review the plan before the second command. Save outside the captured repository so writing the plan does not stale its own source binding. The private plan retains exact admitted IR and can contain authored literal configuration; never put secrets in service literals. Inherited secret references are not resolved or stored while saving.</p>
+<p>Saving does not grant execution authority. Saved apply checks source, lock, trust, facts, probes, base generation, scope and destination bindings. A stale plan is refused; make a new plan rather than forcing it or silently evaluating different source. Existing ownership, crash recovery and per-mutation checks still apply. External filesystem writers can race operating-system operations.</p>
+<p>Review and saved profile application do not implicitly start unrelated <a href="../docs/services.html">services</a>. Profile rollback is not rollback of database data or task effects. See <a href="../docs/safety.html">safety</a> for the underlying boundaries.</p>
+</article>
+<footer>
+  <span><span class="blink"></span> © 2026 <a href="https://github.com/tknawara">Tarek Nawara</a></span>
+  <span>MIT license</span>
+  <a href="https://github.com/gripsack-dev">gripsack-dev</a>
+  <a href="https://github.com/gripsack-dev/gripsack">source</a>
+  <a href="../index.html">home</a>
+  <span style="margin-left:auto"><span class="fversion">v0.51.0</span> · eleven palettes</span>
+</footer>
+</main>
+</div>
+</body>
+</html>

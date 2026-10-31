@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>gripsack — docker engine services</title>
+<meta name="description" content="Declare native packages, environments, dotfiles and tasks in one workspace. Manage explicit Docker Engine services and review changes before applying.">
+<link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../assets/site.css?v=0055d231">
+<script src="../assets/site.js?v=0055d231" defer></script>
+</head>
+<body class="docs">
+<a class="skip-link" href="#main">Skip to content</a>
+<div class="shell">
+<aside class="rail">
+  <a class="brand" href="../index.html">
+    <img src="../assets/icon.svg" alt="gripsack icon"><span class="wordmark">gripsack</span>
+  </a>
+  <span class="rail-head">menu</span>
+  <nav aria-label="Documentation">
+    <a class="" href="../index.html">home</a>
+    <a class="" href="../docs/install.html">install</a>
+    <a class="" href="../docs/workspaces.html">workspaces</a>
+    <a class="" href="../docs/packages.html">packages</a>
+    <a class="" href="../docs/environments.html">environments</a>
+    <a class="" href="../docs/adopting.html">profiles &amp; dotfiles</a>
+    <a class="active" aria-current="page" href="../docs/services.html">Docker services</a>
+    <a class="" href="../docs/review.html">review &amp; saved plans</a>
+    <a class="" href="../docs/sharing.html">native artifact sharing</a>
+    <a class="" href="../docs/schedules.html">scheduled tasks</a>
+    <a class="" href="../docs/tasks.html">tasks &amp; checks</a>
+    <a class="" href="../docs/fetchers.html">sources &amp; locks</a>
+    <a class="" href="../docs/safety.html">safety &amp; recovery</a>
+    <a class="" href="../docs/settings.html">settings</a>
+    <a class="child" href="../docs/settings/reference.html">↳ settings reference</a>
+    <a class="" href="../docs/runs.html">run logs</a>
+    <a class="" href="../docs/skills.html">agent guidance</a>
+    <a class="" href="../docs/compare.html">where it fits</a>
+    <a class="" href="../docs/architecture.html">architecture</a>
+    <a class="" href="../docs/changelog.html">what&#x27;s new</a>
+    <a class="gh" href="https://github.com/gripsack-dev/gripsack">github ↗</a>
+  </nav>
+  <span class="rail-head">on this page</span>
+  <div class="rail-toc">
+    <a href="#prerequisites">Prerequisites</a>
+    <a href="#postgresql-workspace">PostgreSQL workspace</a>
+    <a href="#start-and-inspect">Start and inspect</a>
+    <a href="#stop-without-deleting-data">Stop without deleting data</a>
+    <a href="#three-different-uses-of-oci">Three different uses of OCI</a>
+  </div>
+  <span class="rail-head">theme</span>
+  <div class="rail-palettes">
+    <button data-set-palette="catppuccin-mocha" title="catppuccin-mocha" style="--sw:#89b4fa" aria-label="catppuccin-mocha"></button>
+    <button data-set-palette="tokyo-night" title="tokyo-night" style="--sw:#7aa2f7" aria-label="tokyo-night"></button>
+    <button data-set-palette="gruvbox-dark" title="gruvbox-dark" style="--sw:#83a598" aria-label="gruvbox-dark"></button>
+    <button data-set-palette="nord" title="nord" style="--sw:#88c0d0" aria-label="nord"></button>
+    <button data-set-palette="dracula" title="dracula" style="--sw:#bd93f9" aria-label="dracula"></button>
+    <button data-set-palette="one-dark" title="one-dark" style="--sw:#61afef" aria-label="one-dark"></button>
+    <button data-set-palette="solarized-dark" title="solarized-dark" style="--sw:#268bd2" aria-label="solarized-dark"></button>
+    <button data-set-palette="catppuccin-latte" title="catppuccin-latte" style="--sw:#1e66f5" aria-label="catppuccin-latte"></button>
+    <button data-set-palette="github-light" title="github-light" style="--sw:#0969da" aria-label="github-light"></button>
+    <button data-set-palette="one-light" title="one-light" style="--sw:#4078f2" aria-label="one-light"></button>
+    <button data-set-palette="solarized-light" title="solarized-light" style="--sw:#268bd2" aria-label="solarized-light"></button>
+  </div>
+  <span class="palette-name" data-palette-name>catppuccin-mocha</span>
+</aside>
+<main class="content" id="main">
+<article class="md">
+<h1 id="docker-engine-services">Docker Engine services</h1>
+<p>Services are explicit workspace outputs for existing container images. <code>grip up</code> starts selected services and waits for their declared readiness; there is no Gripsack daemon. Native packages, environments and dotfiles remain independent of Docker.</p>
+<h2 id="prerequisites">Prerequisites</h2>
+<p>Use Linux x86_64 or WSL2 with a reachable local Linux Docker Engine Unix socket and permission to use it. Docker access is powerful host authority: source approval is not a container-security guarantee. For a nondefault local socket, pass <code>grip up --socket /path/to/docker.sock postgres</code>; later inspection and down use recorded state.</p>
+<p>Images must use immutable <code>name@sha256:DIGEST</code> references, not floating tags. The PostgreSQL 18 digest below was obtained from an actual Docker pull and inspected repository digest during release preparation; that alone is not evidence of a Gripsack runtime test. Cold startup requires registry access and disk space.</p>
+<h2 id="postgresql-workspace">PostgreSQL workspace</h2>
+<p>Create <code>gripsack.ts</code>:</p>
+<pre><code class="language-typescript">import {
+  defineWorkspace, exec, lit, service, task, workspace,
+} from &quot;@gripsack/core&quot;;
+
+const postgres = service(&quot;postgres&quot;, {
+  image: &quot;docker.io/library/postgres@sha256:979bccfde35445db618c65107d27d08c6c21339d8dc3ad4c830c6633947be0e4&quot;,
+  ports: [{ address: &quot;127.0.0.1&quot;, host: 55432, container: 5432 }],
+  volumes: [{ name: &quot;gripsack-guide-postgres18&quot;, target: &quot;/var/lib/postgresql&quot; }],
+  env: {
+    POSTGRES_USER: { kind: &quot;literal&quot;, value: &quot;app&quot; },
+    POSTGRES_DB: { kind: &quot;literal&quot;, value: &quot;app&quot; },
+    POSTGRES_PASSWORD: { kind: &quot;inherited&quot;, name: &quot;GRIPSACK_POSTGRES_PASSWORD&quot; },
+  },
+  health: {
+    kind: &quot;command&quot;,
+    argv: [&quot;pg_isready&quot;, &quot;-U&quot;, &quot;app&quot;, &quot;-d&quot;, &quot;app&quot;],
+    interval_seconds: 2,
+    timeout_seconds: 2,
+    retries: 30,
+  },
+});
+const databaseReady = task(&quot;database-ready&quot;, {
+  services: [&quot;postgres&quot;],
+  steps: [exec({ argv: [lit(&quot;/usr/bin/printf&quot;), lit(&quot;postgres is healthy\\n&quot;)] })],
+});
+
+export default defineWorkspace(() =&gt; workspace({ outputs: [postgres, databaseReady] }));
+</code></pre>
+<p>The task deliberately uses a trusted host <code>/usr/bin/printf</code>; ensure it exists. <code>task.services</code> requires the recorded service to be <strong>already healthy</strong>. It never starts a service implicitly and this task is not a SQL or migration test. Service <code>depends_on: ["other-service"]</code> orders explicit startup by readiness, separately from task prerequisites.</p>
+<h2 id="start-and-inspect">Start and inspect</h2>
+<p>Supply <code>GRIPSACK_POSTGRES_PASSWORD</code> from your secret manager into the calling process environment, not a literal in captured source, shell history or a committed file. The reference is captured; the secret value is inherited at startup. Docker administrators can inspect container environment values. Application logs may contain secrets too.</p>
+<pre><code class="language-sh">: &quot;${GRIPSACK_POSTGRES_PASSWORD:?export the database secret from your secret manager}&quot;
+grip check
+grip up postgres --timeout-seconds 180
+grip services status --json
+grip task run database-ready --closed-stdin
+grip services logs postgres --lines 50
+</code></pre>
+<p>Review and approve the exact captured source and policy when prompted before startup. Ports must bind explicit loopback addresses; the example exposes PostgreSQL on <code>127.0.0.1:55432</code>, not the LAN. Readiness uses <code>pg_isready</code> inside the container; it does not prove your application's schema, credentials or queries work.</p>
+<h2 id="stop-without-deleting-data">Stop without deleting data</h2>
+<pre><code class="language-sh">grip down postgres
+grip services status --json
+</code></pre>
+<p><code>down</code> stops/removes owned containers and retains named volumes. Startup can reuse the database data. PostgreSQL's initialization variables apply to a new data directory; changing the inherited password does not rotate credentials in an existing database. Use database-native administration and backups.</p>
+<p>Changing a running service definition requires explicit <code>grip down postgres</code> followed by <code>grip up postgres</code>; startup does not silently replace it. Inherited credentials are resolved at startup, not continuously synchronized.</p>
+<p>Status, logs and down inspect recorded owned state without evaluating current workspace source. They do not adopt or delete arbitrary containers. Profile generations and rollback do <strong>not</strong> roll back database contents, migrations, task effects or external services. No automatic database rollback is promised.</p>
+<h2 id="three-different-uses-of-oci">Three different uses of OCI</h2>
+<p>These services run pre-existing container images through Docker Engine. <a href="../docs/sharing.html">Native sharing</a> transports retained native artifacts through an OCI registry without making them container images. The old <a href="../docs/builds.html">BuildKit source builder and image exporter</a> are retired.</p>
+</article>
+<footer>
+  <span><span class="blink"></span> © 2026 <a href="https://github.com/tknawara">Tarek Nawara</a></span>
+  <span>MIT license</span>
+  <a href="https://github.com/gripsack-dev">gripsack-dev</a>
+  <a href="https://github.com/gripsack-dev/gripsack">source</a>
+  <a href="../index.html">home</a>
+  <span style="margin-left:auto"><span class="fversion">v0.51.0</span> · eleven palettes</span>
+</footer>
+</main>
+</div>
+</body>
+</html>

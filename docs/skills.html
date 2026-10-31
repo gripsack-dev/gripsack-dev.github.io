@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>gripsack — agent guidance</title>
-<meta name="description" content="Declare user-space packages, native environments and personal profiles. Build with BuildKit, export OCI images and retain managed generations.">
+<meta name="description" content="Declare native packages, environments, dotfiles and tasks in one workspace. Manage explicit Docker Engine services and review changes before applying.">
 <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="../assets/site.css?v=0055d231">
 <script src="../assets/site.js?v=0055d231" defer></script>
@@ -24,7 +24,10 @@
     <a class="" href="../docs/packages.html">packages</a>
     <a class="" href="../docs/environments.html">environments</a>
     <a class="" href="../docs/adopting.html">profiles &amp; dotfiles</a>
-    <a class="" href="../docs/builds.html">BuildKit &amp; OCI</a>
+    <a class="" href="../docs/services.html">Docker services</a>
+    <a class="" href="../docs/review.html">review &amp; saved plans</a>
+    <a class="" href="../docs/sharing.html">native artifact sharing</a>
+    <a class="" href="../docs/schedules.html">scheduled tasks</a>
     <a class="" href="../docs/tasks.html">tasks &amp; checks</a>
     <a class="" href="../docs/fetchers.html">sources &amp; locks</a>
     <a class="" href="../docs/safety.html">safety &amp; recovery</a>
@@ -64,10 +67,10 @@
 <h1 id="agent-guidance">Agent guidance</h1>
 <p>Gripsack's source repository includes reusable guidance for agents that help inspect or operate a workspace. Guidance is not executable enforcement and does not grant permission to approve source, overwrite files or discard recovery data.</p>
 <h2 id="workspace-adoption">Workspace adoption</h2>
-<p>The <a href="https://github.com/gripsack-dev/gripsack/tree/d060e1fef80f83212210e66bf65a8f1d62631bd0/skills/gripsack-adopt">gripsack-adopt skill</a> starts from the installed tools, configuration and ownership. Use it to choose package declarations, profiles, file policies, launchers and real consumer checks.</p>
-<p>The <a href="../docs/workspaces.html">workspace guide</a> and <a href="https://github.com/gripsack-dev/gripsack/blob/d060e1fef80f83212210e66bf65a8f1d62631bd0/typescript/README.md">SDK reference</a> are the public API reference. An agent should not invent constructor names or assume a successful plan has deployed anything.</p>
+<p>The <a href="https://github.com/gripsack-dev/gripsack/tree/3332429b2b92392e267c1df28f673fa798d43a02/skills/gripsack-adopt">gripsack-adopt skill</a> starts from the installed tools, configuration and ownership. Use it to choose package declarations, profiles, file policies, launchers and real consumer checks.</p>
+<p>The <a href="../docs/workspaces.html">workspace guide</a> and <a href="https://github.com/gripsack-dev/gripsack/blob/3332429b2b92392e267c1df28f673fa798d43a02/typescript/README.md">SDK reference</a> are the public API reference. An agent should not invent constructor names or assume a successful plan has deployed anything.</p>
 <h2 id="debugging">Debugging</h2>
-<p>The <a href="https://github.com/gripsack-dev/gripsack/tree/d060e1fef80f83212210e66bf65a8f1d62631bd0/skills/gripsack-debug">gripsack-debug skill</a> explains structured logs, span chains and diagnostic codes. Give the agent the failing command and exact run-log filename rather than only <code>latest</code>, which another invocation may replace.</p>
+<p>The <a href="https://github.com/gripsack-dev/gripsack/tree/3332429b2b92392e267c1df28f673fa798d43a02/skills/gripsack-debug">gripsack-debug skill</a> explains structured logs, span chains and diagnostic codes. Give the agent the failing command and exact run-log filename rather than only <code>latest</code>, which another invocation may replace.</p>
 <p>Logs are diagnostic evidence, not recovery authority. Keep journals, generation manifests and retained state intact while investigating. See <a href="../docs/runs.html">run logs</a> and <a href="../docs/safety.html">safety</a>.</p>
 <h2 id="use-with-your-agent">Use with your agent</h2>
 <p>Review the skill contents at the selected source revision, then copy the chosen skill directory into your harness's configured skill path. For Claude Code, for example, that can be <code>~/.claude/skills/</code>. Installing guidance does not install or upgrade <code>grip</code>.</p>
@@ -79,7 +82,7 @@
   <a href="https://github.com/gripsack-dev">gripsack-dev</a>
   <a href="https://github.com/gripsack-dev/gripsack">source</a>
   <a href="../index.html">home</a>
-  <span style="margin-left:auto"><span class="fversion">v0.50.0</span> · eleven palettes</span>
+  <span style="margin-left:auto"><span class="fversion">v0.51.0</span> · eleven palettes</span>
 </footer>
 </main>
 </div>

@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>gripsack — architecture</title>
-<meta name="description" content="Declare user-space packages, native environments and personal profiles. Build with BuildKit, export OCI images and retain managed generations.">
+<meta name="description" content="Declare native packages, environments, dotfiles and tasks in one workspace. Manage explicit Docker Engine services and review changes before applying.">
 <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="../assets/site.css?v=0055d231">
 <script src="../assets/site.js?v=0055d231" defer></script>
@@ -24,7 +24,10 @@
     <a class="" href="../docs/packages.html">packages</a>
     <a class="" href="../docs/environments.html">environments</a>
     <a class="" href="../docs/adopting.html">profiles &amp; dotfiles</a>
-    <a class="" href="../docs/builds.html">BuildKit &amp; OCI</a>
+    <a class="" href="../docs/services.html">Docker services</a>
+    <a class="" href="../docs/review.html">review &amp; saved plans</a>
+    <a class="" href="../docs/sharing.html">native artifact sharing</a>
+    <a class="" href="../docs/schedules.html">scheduled tasks</a>
     <a class="" href="../docs/tasks.html">tasks &amp; checks</a>
     <a class="" href="../docs/fetchers.html">sources &amp; locks</a>
     <a class="" href="../docs/safety.html">safety &amp; recovery</a>
@@ -41,7 +44,7 @@
   <div class="rail-toc">
     <a href="#from-source-to-declared-graph">From source to declared graph</a>
     <a href="#sources-and-packages">Sources and packages</a>
-    <a href="#buildkit-production">BuildKit production</a>
+    <a href="#services-and-transport">Services and transport</a>
     <a href="#native-execution">Native execution</a>
     <a href="#personal-deployment">Personal deployment</a>
     <a href="#where-the-implementation-lives">Where the implementation lives</a>
@@ -75,20 +78,20 @@
 </ol>
 <p>The public authoring surface is <code>gripsack.ts</code> and <code>@gripsack/core</code>. The intermediate representation is an implementation contract, not a second hand-maintained configuration language. Use matching core and frontend bytes rather than assuming a wire version grants another implementation's authority.</p>
 <h2 id="sources-and-packages">Sources and packages</h2>
-<p>Providers acquire immutable source inputs and package closures. Native Conda solves a coherent environment; explicit Pixi imports consume a captured manifest/lock selection. <code>gripsack.lock</code> binds platform-keyed source and frontend/import identities. <code>grip update</code> refreshes those records without deploying files or running recipes.</p>
-<p>A package gives its producer's output a target, layout, commands and runtime dependencies. Packages can be selected into environments, profiles, tasks and images without duplicating source resolution policy. See <a href="../docs/packages.html">packages</a> and <a href="../docs/fetchers.html">sources</a>.</p>
-<h2 id="buildkit-production">BuildKit production</h2>
-<p>Recipes use an isolated Linux worker with a digest-pinned toolchain. Typed source and output paths separate immutable inputs from writable staging. The core provisions its pinned bridge helper and owns the worker lifecycle; BuildKit performs the solve.</p>
-<p>OCI images use BuildKit's exporter. The native core admits the returned archive and selected package content before publishing it. The native store, not the worker cache, retains package and image outputs. Cleaning the builder cache does not delete retained generations or their packages. See <a href="../docs/builds.html">BuildKit and OCI</a>.</p>
+<p>Providers acquire immutable source inputs and package closures. Native Conda solves a coherent environment; explicit Pixi imports consume a captured manifest/lock selection. <code>gripsack.lock</code> binds platform-keyed source and frontend/import identities. <code>grip update</code> refreshes those records without deploying files.</p>
+<p>A package gives a native provider's output a target, layout, commands and runtime dependencies. Packages can be selected into environments, profiles and tasks without duplicating source resolution policy. See <a href="../docs/packages.html">packages</a> and <a href="../docs/fetchers.html">sources</a>.</p>
+<h2 id="services-and-transport">Services and transport</h2>
+<p><a href="../docs/services.html">Services</a> declare digest-pinned Docker Engine containers, named volumes, loopback ports and readiness checks. Startup is explicit; Gripsack does not run a daemon. Service data is outside profile generations.</p>
+<p><a href="../docs/sharing.html">Native artifact sharing</a> moves retained native closures. Its OCI registry transport is not a container image builder or runtime. The previous <a href="../docs/builds.html">source builder</a> has been retired.</p>
 <h2 id="native-execution">Native execution</h2>
 <p>An environment selects compatible packages and explicit command exports. Native invocation admits the selected runtime closure instead of treating arbitrary <code>PATH</code> or ambient loader search as authority. Host-runtime dependencies are explicit opt-ins and remain mutable host inputs, not portable image content.</p>
-<p>Tasks add manually invoked command graphs, prerequisites, declared mutation locks and postconditions. Their receipts describe invocation outcomes; declaring a schedule does not register a timer. Host recipe execution remains unavailable.</p>
+<p>Tasks add command graphs, prerequisites, declared mutation locks and postconditions. Their receipts describe invocation outcomes. <a href="../docs/schedules.html">Scheduling</a> requires explicit registration with the user service manager; declaring a schedule does not register a timer.</p>
 <h2 id="personal-deployment">Personal deployment</h2>
 <p>Profiles combine captured files, retained artifacts and selected environment launchers. Apply realizes required packages before changing destinations, then uses journaled ownership transitions and an atomic generation-selection flip. Destination writes are not atomic across the entire profile.</p>
 <p>Retained generations preserve package roots, file content, launcher bindings and recovery information. Rollback reuses retained bytes rather than re-running today's source or build. Local tracked-copy drift remains protected. Hooks and explicit native commands can have effects outside managed files; those are not whole-machine transactions.</p>
 <p>See <a href="../docs/adopting.html">profiles</a> and <a href="../docs/safety.html">safety</a> for exact ownership and recovery boundaries.</p>
 <h2 id="where-the-implementation-lives">Where the implementation lives</h2>
-<p>The <a href="https://github.com/gripsack-dev/gripsack/tree/d060e1fef80f83212210e66bf65a8f1d62631bd0/crates">core source</a>, <a href="https://github.com/gripsack-dev/gripsack/tree/d060e1fef80f83212210e66bf65a8f1d62631bd0/typescript">TypeScript SDK</a> and <a href="https://github.com/gripsack-dev/gripsack/blob/d060e1fef80f83212210e66bf65a8f1d62631bd0/verification/guarantees.md">technical guarantee ledger</a> hold implementation contracts and evidence. Product examples use public authoring declarations, not historical internal envelopes.</p>
+<p>The <a href="https://github.com/gripsack-dev/gripsack/tree/3332429b2b92392e267c1df28f673fa798d43a02/crates">core source</a>, <a href="https://github.com/gripsack-dev/gripsack/tree/3332429b2b92392e267c1df28f673fa798d43a02/typescript">TypeScript SDK</a> and <a href="https://github.com/gripsack-dev/gripsack/blob/3332429b2b92392e267c1df28f673fa798d43a02/verification/guarantees.md">technical guarantee ledger</a> hold implementation contracts and evidence. Product examples use public authoring declarations, not historical internal envelopes.</p>
 </article>
 <footer>
   <span><span class="blink"></span> © 2026 <a href="https://github.com/tknawara">Tarek Nawara</a></span>
@@ -96,7 +99,7 @@
   <a href="https://github.com/gripsack-dev">gripsack-dev</a>
   <a href="https://github.com/gripsack-dev/gripsack">source</a>
   <a href="../index.html">home</a>
-  <span style="margin-left:auto"><span class="fversion">v0.50.0</span> · eleven palettes</span>
+  <span style="margin-left:auto"><span class="fversion">v0.51.0</span> · eleven palettes</span>
 </footer>
 </main>
 </div>

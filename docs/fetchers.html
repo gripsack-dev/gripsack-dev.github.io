@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>gripsack — sources and locks</title>
-<meta name="description" content="Declare user-space packages, native environments and personal profiles. Build with BuildKit, export OCI images and retain managed generations.">
+<meta name="description" content="Declare native packages, environments, dotfiles and tasks in one workspace. Manage explicit Docker Engine services and review changes before applying.">
 <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="../assets/site.css?v=0055d231">
 <script src="../assets/site.js?v=0055d231" defer></script>
@@ -24,7 +24,10 @@
     <a class="" href="../docs/packages.html">packages</a>
     <a class="" href="../docs/environments.html">environments</a>
     <a class="" href="../docs/adopting.html">profiles &amp; dotfiles</a>
-    <a class="" href="../docs/builds.html">BuildKit &amp; OCI</a>
+    <a class="" href="../docs/services.html">Docker services</a>
+    <a class="" href="../docs/review.html">review &amp; saved plans</a>
+    <a class="" href="../docs/sharing.html">native artifact sharing</a>
+    <a class="" href="../docs/schedules.html">scheduled tasks</a>
     <a class="" href="../docs/tasks.html">tasks &amp; checks</a>
     <a class="active" aria-current="page" href="../docs/fetchers.html">sources &amp; locks</a>
     <a class="" href="../docs/safety.html">safety &amp; recovery</a>
@@ -107,14 +110,14 @@
 </tr>
 </tbody>
 </table>
-<p>Use <a href="../docs/packages.html">packages</a> for a complete archive example, <a href="../docs/environments.html">environments</a> for Conda and Pixi declarations, and <a href="../docs/builds.html">BuildKit</a> for source recipes. Platform support is Linux x86_64 and WSL2, not every platform represented by upstream metadata.</p>
+<p>Use <a href="../docs/packages.html">packages</a> for a complete archive example and <a href="../docs/environments.html">environments</a> for Conda and Pixi declarations. Platform support is Linux x86_64 and WSL2, not every platform represented by upstream metadata.</p>
 <p><code>git</code> without a revision follows the default branch during update; a named branch or tag is then frozen to its resolved commit. An explicit commit remains fixed. A GitHub <code>version</code> selects an exact tag. Source declarations do not make arbitrary upstream payloads trustworthy.</p>
 <h2 id="update-deliberately">Update deliberately</h2>
 <pre><code class="language-sh">grip update --check
 grip update
 </code></pre>
 <p><code>--check</code> surveys without publishing sources or writing <code>gripsack.lock</code>. Exit 0 means complete/current, 1 means complete with changes, and 2 means incomplete or operational failure. Network access, evaluator provisioning and run logging can still occur.</p>
-<p><code>grip update</code> resolves and verifies sources, records complete platform-keyed pins and captures frontend/import identities. It does not run build recipes or activation hooks, and it does not deploy destinations. Review the lock diff and renew exact source/policy approval when required before the next frozen consumer.</p>
+<p><code>grip update</code> resolves and verifies sources, records complete platform-keyed pins and captures frontend/import identities. It does not run activation hooks or deploy destinations. Review the lock diff and renew exact source/policy approval when required before the next frozen consumer.</p>
 <p>A changed Pixi manifest or lock must be imported explicitly with <code>grip update</code>; that operation does not re-solve or rewrite the external lock. Use your Pixi workflow first when you intend to change packages.</p>
 <h2 id="asset-selection">Asset selection</h2>
 <p>GitHub asset patterns support explicit placeholders such as <code>{version}</code>, <code>{version.bare}</code>, <code>{system}</code>, <code>{target}</code>, <code>{arch}</code>, <code>{arch.go}</code>, <code>{arch.x64}</code> and <code>{os}</code>. <code>version.bare</code> removes one leading lowercase <code>v</code>; the lock keeps the actual tag. Direct archive URLs can use platform placeholders, not a version they have not resolved.</p>
@@ -133,7 +136,7 @@ grip update
   <a href="https://github.com/gripsack-dev">gripsack-dev</a>
   <a href="https://github.com/gripsack-dev/gripsack">source</a>
   <a href="../index.html">home</a>
-  <span style="margin-left:auto"><span class="fversion">v0.50.0</span> · eleven palettes</span>
+  <span style="margin-left:auto"><span class="fversion">v0.51.0</span> · eleven palettes</span>
 </footer>
 </main>
 </div>

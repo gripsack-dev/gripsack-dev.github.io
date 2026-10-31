@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>gripsack — native artifact sharing</title>
+<meta name="description" content="Declare native packages, environments, dotfiles and tasks in one workspace. Manage explicit Docker Engine services and review changes before applying.">
+<link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../assets/site.css?v=0055d231">
+<script src="../assets/site.js?v=0055d231" defer></script>
+</head>
+<body class="docs">
+<a class="skip-link" href="#main">Skip to content</a>
+<div class="shell">
+<aside class="rail">
+  <a class="brand" href="../index.html">
+    <img src="../assets/icon.svg" alt="gripsack icon"><span class="wordmark">gripsack</span>
+  </a>
+  <span class="rail-head">menu</span>
+  <nav aria-label="Documentation">
+    <a class="" href="../index.html">home</a>
+    <a class="" href="../docs/install.html">install</a>
+    <a class="" href="../docs/workspaces.html">workspaces</a>
+    <a class="" href="../docs/packages.html">packages</a>
+    <a class="" href="../docs/environments.html">environments</a>
+    <a class="" href="../docs/adopting.html">profiles &amp; dotfiles</a>
+    <a class="" href="../docs/services.html">Docker services</a>
+    <a class="" href="../docs/review.html">review &amp; saved plans</a>
+    <a class="active" aria-current="page" href="../docs/sharing.html">native artifact sharing</a>
+    <a class="" href="../docs/schedules.html">scheduled tasks</a>
+    <a class="" href="../docs/tasks.html">tasks &amp; checks</a>
+    <a class="" href="../docs/fetchers.html">sources &amp; locks</a>
+    <a class="" href="../docs/safety.html">safety &amp; recovery</a>
+    <a class="" href="../docs/settings.html">settings</a>
+    <a class="child" href="../docs/settings/reference.html">↳ settings reference</a>
+    <a class="" href="../docs/runs.html">run logs</a>
+    <a class="" href="../docs/skills.html">agent guidance</a>
+    <a class="" href="../docs/compare.html">where it fits</a>
+    <a class="" href="../docs/architecture.html">architecture</a>
+    <a class="" href="../docs/changelog.html">what&#x27;s new</a>
+    <a class="gh" href="https://github.com/gripsack-dev/gripsack">github ↗</a>
+  </nav>
+  <span class="rail-head">on this page</span>
+  <div class="rail-toc">
+    <a href="#prepare-a-native-bundle">Prepare a native bundle</a>
+    <a href="#recipient-trust">Recipient trust</a>
+    <a href="#inspect-and-select">Inspect and select</a>
+    <a href="#oci-transport-is-not-docker-runtime">OCI transport is not Docker runtime</a>
+    <a href="#targets-and-independent-dependencies">Targets and independent dependencies</a>
+    <a href="#passive-mixed-environments">Passive mixed environments</a>
+    <a href="#conda-and-wheel-reconstruction">Conda and wheel reconstruction</a>
+  </div>
+  <span class="rail-head">theme</span>
+  <div class="rail-palettes">
+    <button data-set-palette="catppuccin-mocha" title="catppuccin-mocha" style="--sw:#89b4fa" aria-label="catppuccin-mocha"></button>
+    <button data-set-palette="tokyo-night" title="tokyo-night" style="--sw:#7aa2f7" aria-label="tokyo-night"></button>
+    <button data-set-palette="gruvbox-dark" title="gruvbox-dark" style="--sw:#83a598" aria-label="gruvbox-dark"></button>
+    <button data-set-palette="nord" title="nord" style="--sw:#88c0d0" aria-label="nord"></button>
+    <button data-set-palette="dracula" title="dracula" style="--sw:#bd93f9" aria-label="dracula"></button>
+    <button data-set-palette="one-dark" title="one-dark" style="--sw:#61afef" aria-label="one-dark"></button>
+    <button data-set-palette="solarized-dark" title="solarized-dark" style="--sw:#268bd2" aria-label="solarized-dark"></button>
+    <button data-set-palette="catppuccin-latte" title="catppuccin-latte" style="--sw:#1e66f5" aria-label="catppuccin-latte"></button>
+    <button data-set-palette="github-light" title="github-light" style="--sw:#0969da" aria-label="github-light"></button>
+    <button data-set-palette="one-light" title="one-light" style="--sw:#4078f2" aria-label="one-light"></button>
+    <button data-set-palette="solarized-light" title="solarized-light" style="--sw:#268bd2" aria-label="solarized-light"></button>
+  </div>
+  <span class="palette-name" data-palette-name>catppuccin-mocha</span>
+</aside>
+<main class="content" id="main">
+<article class="md">
+<h1 id="native-artifact-sharing">Native artifact sharing</h1>
+<p><code>grip package</code> transfers passive Linux x86_64 artifacts. Import does not evaluate TypeScript, install tasks or schedules, run publisher checks or activate a profile. A signature authenticates an authorized publisher's claim; it does not prove the program is safe or universally relocatable.</p>
+<h2 id="prepare-a-native-bundle">Prepare a native bundle</h2>
+<p>This minimal example deliberately depends on the receiving host's <code>/bin/sh</code>. Create <code>input/components/app/bin/hello</code>:</p>
+<pre><code class="language-sh">#!/bin/sh
+printf '%s\n' 'hello from a native package'
+</code></pre>
+<p>Make that file executable with <code>chmod 755 input/components/app/bin/hello</code>. Create <code>specification.json</code>:</p>
+<pre><code class="language-json">{
+  &quot;version&quot;: 1,
+  &quot;namespace&quot;: &quot;example/tools&quot;,
+  &quot;publisher&quot;: &quot;example&quot;,
+  &quot;target&quot;: {
+    &quot;os&quot;: &quot;linux&quot;, &quot;arch&quot;: &quot;x86_64&quot;, &quot;abi&quot;: {&quot;kind&quot;: &quot;linux&quot;},
+    &quot;minimum_kernel&quot;: &quot;3.2&quot;, &quot;cpu&quot;: &quot;x86_64&quot;
+  },
+  &quot;layout&quot;: {
+    &quot;kind&quot;: &quot;relocatable&quot;,
+    &quot;contract&quot;: {
+      &quot;behavior&quot;: &quot;Shell script requiring recipient /bin/sh, with no producer-prefix dependencies&quot;
+    }
+  },
+  &quot;components&quot;: [{
+    &quot;id&quot;: &quot;app&quot;, &quot;payload&quot;: null, &quot;tree&quot;: null, &quot;runtime&quot;: [],
+    &quot;conda&quot;: null, &quot;external&quot;: null, &quot;inventory&quot;: []
+  }],
+  &quot;roots&quot;: [&quot;app&quot;],
+  &quot;commands&quot;: {&quot;hello&quot;: {&quot;component&quot;: &quot;app&quot;, &quot;executable&quot;: &quot;bin/hello&quot;, &quot;args&quot;: []}},
+  &quot;environment&quot;: {},
+  &quot;licenses&quot;: [],
+  &quot;redistribution_authorized&quot;: true
+}
+</code></pre>
+<p>Only authorize redistribution for content you have the right to distribute. Include required notices and list their aggregate-relative paths in <code>licenses</code> for real packages. The packer captures bounded trees and fills exact payload, tree, path and mode inventories.</p>
+<p>Provide your publisher's explicitly selected <strong>raw 32-byte Ed25519 seed</strong>, owned by your UID with mode <code>0600</code>; PEM or a password is not the key format. Keep it outside captured source and package metadata. Configure recipient trust independently before importing:</p>
+<pre><code class="language-sh">grip package pack --manifest specification.json --source input \
+  --output bundle --key /private/publisher-seed.bin --key-id publisher-2026
+grip package import --bundle bundle
+</code></pre>
+<p>These paths identify an operator-provided key, not a downloadable example secret. The resulting bundle directory contains <code>manifest.json</code>, <code>envelope.json</code>, deduplicated <code>blobs/&lt;sha256&gt;</code> and, when needed, independent dependencies under <code>manifests/&lt;digest&gt;/</code>.</p>
+<h2 id="recipient-trust">Recipient trust</h2>
+<p>The recipient configures <code>$GRIPSACK_HOME/sharing/trust.json</code> with the actual publisher's base64-encoded raw 32-byte public key:</p>
+<pre><code class="language-json">{
+  &quot;version&quot;: 1,
+  &quot;keys&quot;: [{
+    &quot;key_id&quot;: &quot;publisher-2026&quot;,
+    &quot;publisher&quot;: &quot;example&quot;,
+    &quot;namespaces&quot;: [&quot;example/tools&quot;],
+    &quot;public_key&quot;: &quot;BASE64_RAW_32_BYTE_ED25519_PUBLIC_KEY&quot;,
+    &quot;allowed_layouts&quot;: [&quot;relocatable&quot;],
+    &quot;required_validators&quot;: [&quot;manifest-integrity&quot;, &quot;payload-integrity&quot;, &quot;layout-safety&quot;]
+  }],
+  &quot;revoked_keys&quot;: [],
+  &quot;revoked_manifests&quot;: []
+}
+</code></pre>
+<p>Replace the public-key marker with a separately authenticated value; it is not executable sample trust. There is no trust-on-first-use. Namespaces are exact, not wildcards. Key removal, key or manifest revocation and tightened validator/layout policy block subsequent managed consumption; they do not kill running processes or delete retained bytes. Offline validation cannot discover unseen remote revocations. Independent execution of extracted files is outside subsequent Gripsack enforcement.</p>
+<h2 id="inspect-and-select">Inspect and select</h2>
+<p>Use the actual canonical package manifest SHA-256 reported by the package operation, not the registry transport digest:</p>
+<pre><code class="language-sh">: &quot;${manifest:?set the package manifest SHA-256}&quot;
+grip package inspect --manifest &quot;$manifest&quot;
+grip package export --manifest &quot;$manifest&quot; --output exported-bundle
+</code></pre>
+<p>Package commands emit JSON. A recipient-authored workspace selects the imported content with <code>source.package({ manifest: "ACTUAL_PACKAGE_MANIFEST_SHA256" })</code> as its package provider. For the example, its exported command path is <code>components/app/bin/hello</code>. Recipient-owned package, environment, profile and task declarations decide exposure and checks; import alone grants no automation authority.</p>
+<h2 id="oci-transport-is-not-docker-runtime">OCI transport is not Docker runtime</h2>
+<pre><code class="language-sh">: &quot;${registry:?set the HTTPS registry URL}&quot;
+: &quot;${repository:?set the registry repository name}&quot;
+grip package push --manifest &quot;$manifest&quot; \
+  --registry &quot;$registry&quot; --repository &quot;$repository&quot; --reference release
+: &quot;${transport_digest:?set sha256: followed by the reported OCI transport digest}&quot;
+grip package pull --digest &quot;$transport_digest&quot; \
+  --registry &quot;$registry&quot; --repository &quot;$repository&quot;
+</code></pre>
+<p>Push publishes blobs before the OCI artifact manifest. Pull is digest-only; a mutable tag is discovery, not a frozen selection. Registry authentication is explicit through <code>--bearer-token-file</code> or <code>--basic-credentials-file</code> (private mode <code>0600</code> JSON containing <code>username</code> and <code>password</code>). HTTPS uses rustls. There is no redirect, implicit authentication-challenge discovery, retry or fallback. Anonymous local test registries require explicit <code>--insecure-loopback</code> for HTTP.</p>
+<p>This OCI artifact is <strong>not a runnable container image</strong> and needs no Docker Engine or BuildKit worker. <a href="../docs/services.html">Services</a> separately run existing Docker images. The <a href="../docs/builds.html">source builder</a> is retired. Relocation is a declared runtime contract, not general embedded-prefix rewriting; validate actual recipient execution and host requirements before relying on a shared package.</p>
+<h2 id="targets-and-independent-dependencies">Targets and independent dependencies</h2>
+<p>Targets contain admitted OS, architecture, minimum kernel, CPU and ABI requirements, not free-form compatibility claims. A glibc target uses <code>abi: { "kind": "glibc", "minimum": "2.28" }</code>; the Linux ABI target above does not grant arbitrary host libraries. Import and managed consumption measure the actual receiving host. The example's <code>/bin/sh</code> prerequisite still needs separate operator qualification.</p>
+<p>A component can instead reference an already-imported independently signed package through <code>external: { manifest, namespace, publisher }</code>, with null local payload/tree/Conda fields. Packing includes the complete signed dependency closure. Every independent manifest needs its own namespace-scoped publisher authorization; the root signature cannot authorize another publisher. Independent manifest references must form an acyclic graph. Missing metadata or payloads fail offline without registry fallback. A relocatable aggregate cannot embed Conda or fixed prefixes and relabel them relocatable.</p>
+<h2 id="passive-mixed-environments">Passive mixed environments</h2>
+<p>The signed <code>layout: { "kind": "environment" }</code> selects ordered native, Conda archive-set and independent package roots. Its <code>commands</code> map binds exported names to component-relative executables and fixed arguments. It does not copy a producer's installed prefix.</p>
+<p>Environment values use typed literal or artifact bindings, such as <code>{ "kind": "literal", "value": "development" }</code> or <code>{ "kind": "artifact", "output": "python", "selector": "." }</code>. Artifact selectors resolve against the recipient's admitted component. Host paths, repository inputs, command/effect references and reserved loader/interpreter/shell-control variables are rejected; command PATH comes from selected typed commands.</p>
+<p>For an imported environment, select <code>source.package({ manifest: digest })</code> with package <code>layout: { kind: "prefix_materialized" }</code> and command paths <code>bin/&lt;exported-name&gt;</code>. This differs from the relocatable tree example's <code>components/app/bin/hello</code> path. Recipient-owned declarations grant exposure and invocation; passive import sets no shell variables, runs nothing and activates no profile.</p>
+<h2 id="conda-and-wheel-reconstruction">Conda and wheel reconstruction</h2>
+<p>Conda sharing transfers a single archive-set component with the admitted lock, original archives, core-approved pinned helper and required signed/pinned redistribution notices, not a copied installed prefix. Import reconstructs at the recipient's actual final prefix and records that realization separately. Missing originals or helper fail offline without solving, repodata access or a network fallback.</p>
+<p>GNU-linked Python/Conda tools declare a glibc target, for example <code>abi: { "kind": "glibc", "minimum": "2.28" }</code>, matching the environment's explicit baseline. A kernel-only Linux target does not authorize a host GNU loader. Mixed environments preserve that requirement for local and independently signed members.</p>
+<p>Binary prefix replacement is limited by the placeholders in the original Conda archives. An excessively long final store prefix is rejected, not truncated or silently redirected. Use a shorter <code>GRIPSACK_HOME</code> when necessary; arbitrary prefix lengths are not a relocation guarantee.</p>
+<p>Supported explicitly hash-pinned wheels can accompany the Conda environment, including supported wheel records selected from an imported Pixi lock. The maintained UV installer runs offline inside the core-pinned helper; core validation binds installed bytes, generated console entrypoints and receipts to original wheels and the final prefix. This does not run pip, resolve missing Python dependencies, compile bytecode or execute package-provided installers. See <a href="../docs/environments.html#hash-pinned-python-wheels">wheel authoring and limits</a>.</p>
+<p>Unsupported selected Pixi build/resolution policies or wheel records are errors, not silently omitted packages. Runtime compatibility and actual consumer behavior still require recipient qualification; this guide does not claim a completed offline reconstruction test.</p>
+<p>The <a href="https://github.com/gripsack-dev/gripsack/blob/3332429b2b92392e267c1df28f673fa798d43a02/README.md#share-native-packages-without-activating-profiles">selected core sharing reference</a>, <a href="https://github.com/gripsack-dev/gripsack/blob/3332429b2b92392e267c1df28f673fa798d43a02/e2e/test_package_sharing.py">package-sharing fixture</a> and <a href="https://github.com/gripsack-dev/gripsack/blob/3332429b2b92392e267c1df28f673fa798d43a02/e2e/test_package_conda_offline.py">offline Conda fixture</a> provide the source contract and runnable coverage definitions, not evidence that those checks ran for this site.</p>
+</article>
+<footer>
+  <span><span class="blink"></span> © 2026 <a href="https://github.com/tknawara">Tarek Nawara</a></span>
+  <span>MIT license</span>
+  <a href="https://github.com/gripsack-dev">gripsack-dev</a>
+  <a href="https://github.com/gripsack-dev/gripsack">source</a>
+  <a href="../index.html">home</a>
+  <span style="margin-left:auto"><span class="fversion">v0.51.0</span> · eleven palettes</span>
+</footer>
+</main>
+</div>
+</body>
+</html>

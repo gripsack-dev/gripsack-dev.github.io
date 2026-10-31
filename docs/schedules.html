@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>gripsack — scheduled tasks</title>
+<meta name="description" content="Declare native packages, environments, dotfiles and tasks in one workspace. Manage explicit Docker Engine services and review changes before applying.">
+<link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../assets/site.css?v=0055d231">
+<script src="../assets/site.js?v=0055d231" defer></script>
+</head>
+<body class="docs">
+<a class="skip-link" href="#main">Skip to content</a>
+<div class="shell">
+<aside class="rail">
+  <a class="brand" href="../index.html">
+    <img src="../assets/icon.svg" alt="gripsack icon"><span class="wordmark">gripsack</span>
+  </a>
+  <span class="rail-head">menu</span>
+  <nav aria-label="Documentation">
+    <a class="" href="../index.html">home</a>
+    <a class="" href="../docs/install.html">install</a>
+    <a class="" href="../docs/workspaces.html">workspaces</a>
+    <a class="" href="../docs/packages.html">packages</a>
+    <a class="" href="../docs/environments.html">environments</a>
+    <a class="" href="../docs/adopting.html">profiles &amp; dotfiles</a>
+    <a class="" href="../docs/services.html">Docker services</a>
+    <a class="" href="../docs/review.html">review &amp; saved plans</a>
+    <a class="" href="../docs/sharing.html">native artifact sharing</a>
+    <a class="active" aria-current="page" href="../docs/schedules.html">scheduled tasks</a>
+    <a class="" href="../docs/tasks.html">tasks &amp; checks</a>
+    <a class="" href="../docs/fetchers.html">sources &amp; locks</a>
+    <a class="" href="../docs/safety.html">safety &amp; recovery</a>
+    <a class="" href="../docs/settings.html">settings</a>
+    <a class="child" href="../docs/settings/reference.html">↳ settings reference</a>
+    <a class="" href="../docs/runs.html">run logs</a>
+    <a class="" href="../docs/skills.html">agent guidance</a>
+    <a class="" href="../docs/compare.html">where it fits</a>
+    <a class="" href="../docs/architecture.html">architecture</a>
+    <a class="" href="../docs/changelog.html">what&#x27;s new</a>
+    <a class="gh" href="https://github.com/gripsack-dev/gripsack">github ↗</a>
+  </nav>
+  <span class="rail-head">on this page</span>
+  <div class="rail-toc">
+    <a href="#prerequisites">Prerequisites</a>
+    <a href="#register-the-same-task-you-run-manually">Register the same task you run manually</a>
+    <a href="#inspect-disable-and-remove">Inspect, disable and remove</a>
+    <a href="#execution-boundaries">Execution boundaries</a>
+  </div>
+  <span class="rail-head">theme</span>
+  <div class="rail-palettes">
+    <button data-set-palette="catppuccin-mocha" title="catppuccin-mocha" style="--sw:#89b4fa" aria-label="catppuccin-mocha"></button>
+    <button data-set-palette="tokyo-night" title="tokyo-night" style="--sw:#7aa2f7" aria-label="tokyo-night"></button>
+    <button data-set-palette="gruvbox-dark" title="gruvbox-dark" style="--sw:#83a598" aria-label="gruvbox-dark"></button>
+    <button data-set-palette="nord" title="nord" style="--sw:#88c0d0" aria-label="nord"></button>
+    <button data-set-palette="dracula" title="dracula" style="--sw:#bd93f9" aria-label="dracula"></button>
+    <button data-set-palette="one-dark" title="one-dark" style="--sw:#61afef" aria-label="one-dark"></button>
+    <button data-set-palette="solarized-dark" title="solarized-dark" style="--sw:#268bd2" aria-label="solarized-dark"></button>
+    <button data-set-palette="catppuccin-latte" title="catppuccin-latte" style="--sw:#1e66f5" aria-label="catppuccin-latte"></button>
+    <button data-set-palette="github-light" title="github-light" style="--sw:#0969da" aria-label="github-light"></button>
+    <button data-set-palette="one-light" title="one-light" style="--sw:#4078f2" aria-label="one-light"></button>
+    <button data-set-palette="solarized-light" title="solarized-light" style="--sw:#268bd2" aria-label="solarized-light"></button>
+  </div>
+  <span class="palette-name" data-palette-name>catppuccin-mocha</span>
+</aside>
+<main class="content" id="main">
+<article class="md">
+<h1 id="scheduled-tasks">Scheduled tasks</h1>
+<p>A schedule invokes a finite task through the Linux systemd user manager. There is no Gripsack daemon. A declaration, import, check or plan never registers a timer: explicit profile application owns registration.</p>
+<h2 id="prerequisites">Prerequisites</h2>
+<p>Use the Linux x86_64 static release binary and a reachable supported systemd 255 user manager. WSL2 must have a usable systemd user session; merely being WSL2 is not enough. Check capability before applying:</p>
+<pre><code class="language-sh">grip jobs capability
+</code></pre>
+<p>The runner is retained with the captured registration. There is no root-service or linger fallback. Unsupported or unreachable managers fail closed. These prerequisites describe the implementation contract, not a claim that every host has been qualified.</p>
+<h2 id="register-the-same-task-you-run-manually">Register the same task you run manually</h2>
+<p>Start from the complete Bash <code>gripsack.ts</code> in <a href="../docs/tasks.html#literal-bash-bodies">tasks</a>. Add <code>daily</code>, <code>schedule</code> and <code>profile</code> to its imports, then add these declarations before its export:</p>
+<pre><code class="language-typescript">const nightly = schedule(&quot;nightly&quot;, { task: &quot;greet&quot;, trigger: daily(&quot;03:30&quot;) });
+const personal = profile(&quot;personal&quot;, { schedules: [&quot;nightly&quot;] });
+</code></pre>
+<p>Replace the export with:</p>
+<pre><code class="language-typescript">export default defineWorkspace(() =&gt; workspace({
+  outputs: [shell, dev, greet, nightly, personal],
+}));
+</code></pre>
+<pre><code class="language-sh">grip update
+grip task run greet --closed-stdin
+grip plan personal
+grip apply personal
+grip jobs status --json
+</code></pre>
+<p>Review source and lock approvals, then the registration plan before applying. Daily and weekly calendar triggers use local time. This example only prints a greeting: it does not back up or mutate a database. Tasks that mutate shared resources should declare appropriate store-scoped locks so manual and scheduled invocation participate in the same conflict policy.</p>
+<h2 id="inspect-disable-and-remove">Inspect, disable and remove</h2>
+<p>Use the actual job and invocation identifiers from status and receipts:</p>
+<pre><code class="language-sh">: &quot;${job:?set the registered job ID}&quot;
+: &quot;${invocation:?set the task invocation ID}&quot;
+grip jobs status &quot;$job&quot; --json
+grip jobs log &quot;$invocation&quot;
+grip jobs disable &quot;$job&quot;
+</code></pre>
+<p>Remove the schedule from the profile's selection and apply the profile to remove registration. Profile rollback restores the retained registration capture, not effects from previous task runs. Update source or pins and explicitly apply again to replace the registered capture; timers do not evaluate current TypeScript at firing time.</p>
+<h2 id="execution-boundaries">Execution boundaries</h2>
+<p>Scheduled invocation uses closed stdin, bounded logs and a 1,800-second runtime limit. Timers use <code>Persistent=false</code> with native missed-event behavior, not promised catch-up delivery. Stale callbacks are refused; already-admitted old invocations may finish. Read logs as private application output. Retain independent backups and do not assume task side effects are reversible.</p>
+<p>Tasks requiring <a href="../docs/services.html">services</a> still require already-healthy services. Scheduling does not start Docker containers implicitly. The <a href="https://github.com/gripsack-dev/gripsack/tree/3332429b2b92392e267c1df28f673fa798d43a02/examples/workspaces/04-scheduled-task">complete captured scheduled-task example</a> shows a package-command task and store lock.</p>
+</article>
+<footer>
+  <span><span class="blink"></span> © 2026 <a href="https://github.com/tknawara">Tarek Nawara</a></span>
+  <span>MIT license</span>
+  <a href="https://github.com/gripsack-dev">gripsack-dev</a>
+  <a href="https://github.com/gripsack-dev/gripsack">source</a>
+  <a href="../index.html">home</a>
+  <span style="margin-left:auto"><span class="fversion">v0.51.0</span> · eleven palettes</span>
+</footer>
+</main>
+</div>
+</body>
+</html>
