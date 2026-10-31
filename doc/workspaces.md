@@ -71,12 +71,12 @@ Selection is not a trust bypass: approval still covers the exact whole captured 
 - [Packages](packages.md) describe how tools are produced and exposed.
 - [Environments](environments.md) select tools for project commands without deploying personal files.
 - [Profiles](adopting.md) deploy files and launchers through the generation transaction.
-- [BuildKit and OCI](builds.md) use packages in source builds and portable image exports.
+- [Services](services.md) run digest-pinned Docker Engine containers independently of native package realization.
 - [Tasks and checks](tasks.md) make explicit actions and validation discoverable.
 
 `grip update` refreshes external source and frontend/import pins in `gripsack.lock`. Review its diff and approve the changed capture before frozen consumers run. File-only declarations use the approved repository snapshot and need no external package solve.
 
-`grip check` validates declarations; it does not execute recipes or register scheduled jobs. `grip build` realizes outputs without personal activation. A cold `grip apply` realizes required packages before changing destinations; a separate pre-build is optional.
+`grip check` validates declarations; it does not start services or register scheduled jobs. `grip build` realizes native outputs without personal activation. A cold `grip apply` realizes required packages before changing destinations; a separate pre-build is optional. Explicit profile application owns [scheduled task registration](schedules.md).
 
 ## Authoring and execution
 

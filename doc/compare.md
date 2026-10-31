@@ -6,7 +6,7 @@ Gripsack manages user-space tools, project environments and personal configurati
 
 | Tool | Typical focus | Why choose it |
 |---|---|---|
-| gripsack | Typed packages, native environments, personal profiles, BuildKit recipes and OCI outputs | One workspace graph with explicit source review, file ownership and retained generations |
+| gripsack | Typed native packages, environments, personal profiles, tasks and Docker Engine services | One workspace graph with explicit source review, file ownership and retained generations |
 | Nix + Home Manager | Declarative package graphs and home configuration in the Nix ecosystem | Broad package ecosystem and established derivation/configuration workflows |
 | chezmoi | Personal configuration source state and templates | Focused dotfile management with rich templating |
 | GNU Stow | Symlink trees | Small, direct link management without a package producer graph |
@@ -19,14 +19,14 @@ These are scope comparisons, not a claim that other tools cannot be extended or 
 
 - You want tools from release archives, captured source or a coherent Conda solve without global user-space installs.
 - You want a project environment and a personal command launcher to select the same packages.
-- You want source builds and OCI exports described alongside native consumers.
+- You want an explicit, digest-pinned local database alongside native project tools.
 - You want copied configuration with drift guards, store-owned links or small managed blocks rather than one ownership policy for every file.
 - You want manual tasks and lifecycle checks to be named, inspectable outputs.
 
-Start with a [file-only workspace](workspaces.md), a [native package](packages.md) or a [BuildKit source build](builds.md).
+Start with a [file-only workspace](workspaces.md), a [native package](packages.md) or [PostgreSQL service](services.md).
 
 ## Deliberate boundaries
 
-Current host support is Linux x86_64 and WSL2. BuildKit production needs Docker; native file profiles do not. Scheduled execution and host recipe execution are unavailable. An OCI export is an archive, not an automatic registry publication or deployment.
+Current host support is Linux x86_64 and WSL2. Container services need Docker Engine; native file profiles do not. Scheduled tasks require explicit profile application and a supported user service manager. Native artifact sharing is not automatic registry deployment or container-image building.
 
 Generations and journals protect managed state, not every effect on the machine. Tracked-copy drift is preserved by default; arbitrary tasks, services and hooks are not automatically reversible. Alpha software still needs independent backups and actual consumer checks. See [safety and recovery](safety.md) and [installation](install.md).

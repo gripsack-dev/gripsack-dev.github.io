@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>gripsack — your environment, in one workspace</title>
-<meta name="description" content="Declare user-space packages, development environments and dotfiles in TypeScript. Build from source with BuildKit, export OCI images, and deploy personal profiles with generations and rollback.">
+<meta name="description" content="Declare native packages, development environments, dotfiles and tasks in TypeScript. Review managed changes and run explicit Docker Engine services on Linux and WSL2.">
 <meta property="og:title" content="gripsack — your environment, in one workspace">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://gripsack.dev/">
@@ -23,8 +23,8 @@
   <div class="logo" role="img" aria-label="gripsack"><!--LOGO--></div>
   <p class="kicker">declarative user-space environments · alpha</p>
   <h1 class="tagline">your environment,<br>in <span class="accent">one workspace</span>.</h1>
-  <p class="sub">Make the tools and configuration you depend on explicit. Declare packages, development environments and personal profiles in TypeScript. Use the same package graph for native commands, source builds and OCI images.</p>
-  <div class="cta"><a class="primary" href="./docs/workspaces.html">build your workspace →</a><a href="./docs/builds.html">BuildKit &amp; OCI images</a></div>
+  <p class="sub">Make the tools and configuration you depend on explicit. Declare native packages, development environments, dotfiles and tasks in TypeScript. Start Docker Engine services explicitly when your project needs them.</p>
+  <div class="cta"><a class="primary" href="./docs/workspaces.html">build your workspace →</a><a href="./docs/services.html">PostgreSQL with Docker Engine</a></div>
   <p class="alt">Linux x86_64 and WSL2 · keep your OS package manager</p>
 </section>
 <section id="capabilities">
@@ -33,8 +33,8 @@
     <article class="card"><h3><a href="./docs/packages.html">User-space packages</a></h3><p>Pin release archives, captured sources or coherent Conda environments. Declare commands and runtime dependencies, not global installs.</p></article>
     <article class="card"><h3><a href="./docs/environments.html">Native environments</a></h3><p>Run project commands in a selected environment. Expose the commands you want through managed profile launchers.</p></article>
     <article class="card"><h3><a href="./docs/adopting.html">Profiles &amp; dotfiles</a></h3><p>Compose captured trees, templates and shared text blocks. Review a deployment plan, preserve local drift, retain generations.</p></article>
-    <article class="card"><h3><a href="./docs/builds.html#source-builds">BuildKit source builds</a></h3><p>Build against a digest-pinned toolchain in an isolated Linux worker. Retain published outputs independently of builder cache.</p></article>
-    <article class="card"><h3><a href="./docs/builds.html#oci-images">OCI image exports</a></h3><p>Place declared packages into scratch or a pinned base. Export an admitted OCI archive with an explicit entrypoint and runtime configuration.</p></article>
+    <article class="card"><h3><a href="./docs/services.html">Docker Engine services</a></h3><p>Start digest-pinned containers with loopback ports and explicit readiness. Keep named-volume data when taking services down.</p></article>
+    <article class="card"><h3><a href="./docs/review.html">Review &amp; native sharing</a></h3><p>Inspect semantic changes and save deployment plans. Share retained native artifacts separately from container runtime services.</p></article>
     <article class="card"><h3><a href="./docs/tasks.html">Manual tasks &amp; checks</a></h3><p>Name repeatable commands, prerequisites and postconditions. Validate profile files at explicit lifecycle stages.</p></article>
   </div>
 </section>
@@ -64,7 +64,7 @@ grip apply dotfiles</code></pre>
 </section>
 <section id="install">
   <h2 class="section">install</h2>
-  <p class="lede">One core binary with its TypeScript frontend embedded. Start with files or native packages; add Docker when you need BuildKit recipes and image exports.</p>
+  <p class="lede">One core binary with its TypeScript frontend embedded. Start with files or native packages; add access to Docker Engine only for container services.</p>
   <p><a href="https://github.com/gripsack-dev/gripsack/releases/tag/core-v{version}">Download v<!--VERSION--> for Linux / WSL</a> · <a href="./docs/install.html">Installation &amp; prerequisites</a></p>
 </section>
 <section id="docs">
@@ -73,6 +73,8 @@ grip apply dotfiles</code></pre>
     <li><a href="./docs/workspaces.html">Workspace guide</a> — how packages, environments, profiles and tasks fit together.</li>
     <li><a href="./docs/fetchers.html">Sources &amp; locks</a> — choose inputs, review updates, import a Pixi lock explicitly.</li>
     <li><a href="./docs/settings.html">Settings &amp; source capture</a> — control the inputs you approve.</li>
+    <li><a href="./docs/services.html">Services</a> · <a href="./docs/schedules.html">Scheduled tasks</a> — explicit lifecycle operations, not a Gripsack daemon.</li>
+    <li><a href="./docs/review.html">Review &amp; saved plans</a> · <a href="./docs/sharing.html">Native artifact sharing</a>.</li>
     <li><a href="./docs/safety.html">Safety &amp; recovery</a> — ownership, drift and retained recovery data.</li>
     <li><a href="https://github.com/gripsack-dev/gripsack/blob/{release_source}/typescript/README.md">Complete SDK reference</a> · <a href="https://github.com/gripsack-dev/gripsack/tree/{release_source}/examples/workspaces">Workspace examples</a>.</li>
   </ul>

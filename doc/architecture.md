@@ -13,21 +13,21 @@ The public authoring surface is `gripsack.ts` and `@gripsack/core`. The intermed
 
 ## Sources and packages
 
-Providers acquire immutable source inputs and package closures. Native Conda solves a coherent environment; explicit Pixi imports consume a captured manifest/lock selection. `gripsack.lock` binds platform-keyed source and frontend/import identities. `grip update` refreshes those records without deploying files or running recipes.
+Providers acquire immutable source inputs and package closures. Native Conda solves a coherent environment; explicit Pixi imports consume a captured manifest/lock selection. `gripsack.lock` binds platform-keyed source and frontend/import identities. `grip update` refreshes those records without deploying files.
 
-A package gives its producer's output a target, layout, commands and runtime dependencies. Packages can be selected into environments, profiles, tasks and images without duplicating source resolution policy. See [packages](packages.md) and [sources](fetchers.md).
+A package gives a native provider's output a target, layout, commands and runtime dependencies. Packages can be selected into environments, profiles and tasks without duplicating source resolution policy. See [packages](packages.md) and [sources](fetchers.md).
 
-## BuildKit production
+## Services and transport
 
-Recipes use an isolated Linux worker with a digest-pinned toolchain. Typed source and output paths separate immutable inputs from writable staging. The core provisions its pinned bridge helper and owns the worker lifecycle; BuildKit performs the solve.
+[Services](services.md) declare digest-pinned Docker Engine containers, named volumes, loopback ports and readiness checks. Startup is explicit; Gripsack does not run a daemon. Service data is outside profile generations.
 
-OCI images use BuildKit's exporter. The native core admits the returned archive and selected package content before publishing it. The native store, not the worker cache, retains package and image outputs. Cleaning the builder cache does not delete retained generations or their packages. See [BuildKit and OCI](builds.md).
+[Native artifact sharing](sharing.md) moves retained native closures. Its OCI registry transport is not a container image builder or runtime. The previous [source builder](builds.md) has been retired.
 
 ## Native execution
 
 An environment selects compatible packages and explicit command exports. Native invocation admits the selected runtime closure instead of treating arbitrary `PATH` or ambient loader search as authority. Host-runtime dependencies are explicit opt-ins and remain mutable host inputs, not portable image content.
 
-Tasks add manually invoked command graphs, prerequisites, declared mutation locks and postconditions. Their receipts describe invocation outcomes; declaring a schedule does not register a timer. Host recipe execution remains unavailable.
+Tasks add command graphs, prerequisites, declared mutation locks and postconditions. Their receipts describe invocation outcomes. [Scheduling](schedules.md) requires explicit registration with the user service manager; declaring a schedule does not register a timer.
 
 ## Personal deployment
 

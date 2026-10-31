@@ -58,7 +58,11 @@ PAGES: dict[str, tuple[str, str]] = {
     "packages": ("doc/packages.md", "packages"),
     "environments": ("doc/environments.md", "environments"),
     "adopting": ("doc/adopting.md", "profiles & dotfiles"),
-    "builds": ("doc/builds.md", "BuildKit & OCI"),
+    "builds": ("doc/builds.md", "retired source builder"),
+    "services": ("doc/services.md", "Docker services"),
+    "review": ("doc/review.md", "review & saved plans"),
+    "sharing": ("doc/sharing.md", "native artifact sharing"),
+    "schedules": ("doc/schedules.md", "scheduled tasks"),
     "tasks": ("doc/tasks.md", "tasks & checks"),
     "fetchers": ("doc/fetchers.md", "sources & locks"),
     "safety": ("doc/safety.md", "safety & recovery"),
@@ -118,6 +122,7 @@ def themed_logo() -> str:
 
 RAIL_LINKS = [("index.html", "home")] + [
     (f"docs/{slug}.html", label) for slug, (_, label) in PAGES.items()
+    if slug != "builds"
 ]
 
 PALETTE_DOTS = [
@@ -182,7 +187,7 @@ def page(title: str, body: str, active: str, toc: list[tuple[str, str]], root: s
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{title}</title>
-<meta name="description" content="Declare user-space packages, native environments and personal profiles. Build with BuildKit, export OCI images and retain managed generations.">
+<meta name="description" content="Declare native packages, environments, dotfiles and tasks in one workspace. Manage explicit Docker Engine services and review changes before applying.">
 <link rel="icon" href="{root}assets/favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="{root}assets/site.css?v={asset_version()}">
 <script src="{root}assets/site.js?v={asset_version()}" defer></script>

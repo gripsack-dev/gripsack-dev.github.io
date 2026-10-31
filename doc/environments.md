@@ -1,6 +1,6 @@
 # Environments
 
-An environment selects packages and command exports for native execution. A profile can expose that same environment to your shell and editor through managed launchers. Neither requires a BuildKit worker when all packages have native providers.
+An environment selects packages and command exports for native execution. A profile can expose that same environment to your shell and editor through managed launchers. Neither requires Docker.
 
 ## A coherent Conda toolchain
 
@@ -45,6 +45,16 @@ grip apply personal
 Review and approve the source and changed lock when prompted. `grip run` executes without deploying the personal profile; `grip apply` deploys its explicit launchers through a generation.
 
 Package constraints are Conda MatchSpecs: `"*"`, `"==25.07.1"` for exact equality, `"=25.07"` for a prefix or `">=25.07.1,<26"` for a range. A bare `"25.07.1"` is not a valid constraint. The lock fixes exact archive identities regardless of the authored range.
+
+## Hash-pinned Python wheels
+
+A coherent `conda.environment` can also declare `wheels: [{ name, version, url, sha256 }]` alongside its Conda packages. Use canonical lowercase wheel names, exact versions, explicit HTTPS wheel URLs without credentials/query strings/fragments, and independently approved SHA-256 values. The selected Python runtime and wheel dependencies must already belong to the declared environment; this is not an implicit PyPI solve. Imported Pixi locks can select supported hash-pinned wheel records too.
+
+The core validates metadata, RECORD ownership, dependencies, Python requirements and platform tags. Its pinned helper uses the maintained UV wheel installer offline; original wheel bytes are retained for reconstruction at the actual recipient prefix. Conda/wheel ownership collisions reject rather than overwrite. Binary manylinux wheels require an explicit compatible glibc baseline, checked again on the receiving host.
+
+Native environments must own their non-system runtime libraries. For example, the portable Python/Tk fixture declares `packages: { python: "3.12.*", "xorg-libx11": "*" }` rather than borrowing an undeclared host X11 library. Gripsack reports an incomplete runtime closure instead of silently searching ambient library paths.
+
+Source distributions, editable packages, executable startup files (`.pth`, `sitecustomize`, `usercustomize`) and arbitrary wheel `.data/scripts` are unsupported. Standard metadata-declared console entrypoints are supported. Missing dependencies are not resolved during installation, and package installation scripts are not executed. See [native sharing](sharing.md#conda-and-wheel-reconstruction) for the offline transfer boundary and the [exact SDK reference](https://github.com/gripsack-dev/gripsack/blob/{release_source}/typescript/README.md) for authoring details.
 
 ## Solve baselines
 
@@ -98,4 +108,4 @@ Use the same UID that owns the state. An explicit `/usr/local/bin` destination d
 
 `grip generations` lists retained generations; `grip rollback` restores a previous managed state, including retained package roots and launcher bindings. It does not re-solve the environment or rebuild packages. Keep recovery data until you have exercised the deployed commands and configuration.
 
-For scoped project execution, use `grip run --env search -- COMMAND` or `grip shell search`. For source-built packages or OCI deployment, continue with [BuildKit and images](builds.md). For files alongside a toolchain, see [profiles and dotfiles](adopting.md).
+For scoped project execution, use `grip run --env search -- COMMAND` or `grip shell search`. Add [Docker services](services.md) for an explicit project database. For files alongside a toolchain, see [profiles and dotfiles](adopting.md).

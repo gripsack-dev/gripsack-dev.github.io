@@ -40,7 +40,7 @@ Keep the installed path stable: profile launchers record the absolute core locat
 
 - **Evaluation:** the core provisions a pinned, SHA-256-verified Deno runtime when needed. First use needs download access unless that runtime is already available or deliberately supplied through `GRIPSACK_DENO`.
 - **Native packages:** download access to their sources on a cold realization, suitable host ABI/runtime support, and space for verified archives and retained output. Native Conda uses the core's helper/materialization path, not a user-installed Pixi command.
-- **Source builds and OCI exports:** a usable Linux Docker daemon and access to the pinned toolchain/worker artifacts. See [BuildKit prerequisites](builds.md#prerequisites).
+- **Container services:** a usable local Linux Docker Engine and access to the digest-pinned images. See [services prerequisites](services.md#prerequisites).
 - **Profiles:** write access to the selected destinations. No root or Docker service is required for ordinary file-only deployment.
 
 ## Editor support and frontend selection
