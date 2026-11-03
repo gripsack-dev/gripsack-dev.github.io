@@ -8,6 +8,16 @@
 The core version and existing installer are read from local Git objects.
 This is documentation rendering, not signature or release admission.
 Pages only uploads/deploys the resulting static commit; it never builds products.
+Paper is the CSS default, including previews without JavaScript. The shared
+palette control offers its Paper Dark companion alongside the optional editor
+palettes and retains the saved browser choice.
+Build before previewing: public/ is generated, including the documentation shell.
+Use a released --core-ref when checking download links; a moving HEAD can name
+an unpublished version. Rendering alone does not publish the site.
+Syntax highlighting is local Prism 1.30.0 in assets/syntax.js, with the upstream
+license shipped beside it. Keep fenced-code language labels explicit; sh/bash
+are equivalent, while text blocks stay plain. The shared asset hash covers the
+bundle so nested documentation and the landing page update together.
 """
 
 from __future__ import annotations
@@ -45,7 +55,7 @@ def asset_version() -> str:
     global _ASSET_VERSION
     if _ASSET_VERSION is None:
         h = hashlib.sha1()
-        for name in ("site.css", "site.js"):
+        for name in ("site.css", "syntax.js", "site.js"):
             h.update((ROOT / "website" / "assets" / name).read_bytes())
         _ASSET_VERSION = h.hexdigest()[:8]
     return _ASSET_VERSION
@@ -106,12 +116,8 @@ def themed_svg(path: Path) -> str:
 
 def themed_logo() -> str:
     svg = themed_svg(ROOT / "doc" / "logo.svg")
-    # no tile on the site: the bag art themes with the palette and
-    # grounds itself with a CSS drop-shadow that follows its
-    # silhouette (.hero .logo svg). A backdrop rect — solid, radial,
-    # or feathered — always left an edge to fight the spotlight.
-    # (doc/logo.svg keeps the static bake for README/og: an <img>
-    # there has no page to blend with.)
+    # Keep the original bag artwork, without its standalone README tile.
+    # Inline colors inherit the site palette; external images remain unchanged.
     tile = '<rect width="480" height="310" rx="18" fill="var(--bg)"/>'
     if tile in svg:
         svg = svg.replace(tile, "", 1)
@@ -126,6 +132,8 @@ RAIL_LINKS = [("index.html", "home")] + [
 ]
 
 PALETTE_DOTS = [
+    ("paper", "#18765b"),
+    ("paper-dark", "#9bc7ac"),
     ("catppuccin-mocha", "#89b4fa"),
     ("tokyo-night", "#7aa2f7"),
     ("gruvbox-dark", "#83a598"),
@@ -138,6 +146,17 @@ PALETTE_DOTS = [
     ("one-light", "#4078f2"),
     ("solarized-light", "#268bd2"),
 ]
+
+def palette_picker() -> str:
+    options = "".join(
+        f'<option value="{name}">{"Paper" if name == "paper" else name.replace("-", " ").title()}</option>'
+        for name, _ in PALETTE_DOTS
+    )
+    return (
+        '<label class="palette-picker" hidden><span>Palette</span>'
+        f'<select data-palette-select aria-label="Site palette">{options}</select></label>'
+    )
+
 
 
 def rail(active: str, toc: list[tuple[str, str]], root: str = "../") -> str:
@@ -160,23 +179,19 @@ def rail(active: str, toc: list[tuple[str, str]], root: str = "../") -> str:
         if toc_html
         else ""
     )
-    dots = "".join(
-        f'    <button data-set-palette="{name}" title="{name}" '
-        f'style="--sw:{color}" aria-label="{name}"></button>\n'
-        for name, color in PALETTE_DOTS
-    )
+    picker = palette_picker()
     return f"""<aside class="rail">
   <a class="brand" href="{root}index.html">
     <img src="{root}assets/icon.svg" alt="gripsack icon"><span class="wordmark">gripsack</span>
   </a>
-  <span class="rail-head">menu</span>
+  <details class="docs-menu" open>
+  <summary>Documentation <span aria-hidden="true">↕</span></summary>
   <nav aria-label="Documentation">
 {links}    <a class="gh" href="{REPO}">github ↗</a>
   </nav>
-{toc_block}  <span class="rail-head">theme</span>
-  <div class="rail-palettes">
-{dots}  </div>
-  <span class="palette-name" data-palette-name>catppuccin-mocha</span>
+  </details>
+{toc_block}
+  {picker}
 </aside>"""
 
 
@@ -190,23 +205,25 @@ def page(title: str, body: str, active: str, toc: list[tuple[str, str]], root: s
 <meta name="description" content="Declare native packages, environments, dotfiles and tasks in one workspace. Manage explicit Docker Engine services and review changes before applying.">
 <link rel="icon" href="{root}assets/favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="{root}assets/site.css?v={asset_version()}">
+<script src="{root}assets/syntax.js?v={asset_version()}" data-manual defer></script>
 <script src="{root}assets/site.js?v={asset_version()}" defer></script>
 </head>
 <body class="docs">
 <a class="skip-link" href="#main">Skip to content</a>
 <div class="shell">
 {rail(active, toc, root)}
-<main class="content" id="main">
+<main class="content" id="main" tabindex="-1">
+<p class="doc-eyebrow">Gripsack / documentation</p>
 <article class="md">
 {body}
 </article>
 <footer>
-  <span><span class="blink"></span> © 2026 <a href="https://github.com/tknawara">Tarek Nawara</a></span>
+  <span>© 2026 <a href="https://github.com/tknawara">Tarek Nawara</a></span>
   <span>MIT license</span>
   <a href="https://github.com/gripsack-dev">gripsack-dev</a>
   <a href="{REPO}">source</a>
   <a href="{root}index.html">home</a>
-  <span style="margin-left:auto"><span class="fversion">v{site_version()}</span> · eleven palettes</span>
+  <span class="fversion">v{site_version()}</span>
 </footer>
 </main>
 </div>
@@ -268,15 +285,17 @@ def assemble() -> None:
     index = index.replace("<!--VERSION-->", site_version())
     index = index.replace("{version}", site_version())
     index = index.replace("{release_source}", RELEASE["source"]["commit"])
+    index = index.replace("<!--PALETTES-->", palette_picker())
     index = index.replace("./assets/site.css", f"./assets/site.css?v={asset_version()}")
     index = index.replace("./assets/site.js", f"./assets/site.js?v={asset_version()}")
+    index = index.replace("./assets/syntax.js", f"./assets/syntax.js?v={asset_version()}")
     (OUT / "index.html").write_text(index)
     # Custom domain — GitHub Pages reads this from the deployed artifact.
     (OUT / "CNAME").write_text("gripsack.dev\n")
     # Preserve the installer endpoint without bypassing its own checks.
     (OUT / "install.sh").write_bytes(RELEASE_FILES["install.sh"])
     (OUT / "assets").mkdir(exist_ok=True)
-    for name in ("icon.svg", "favicon.svg", "site.css", "site.js"):
+    for name in ("icon.svg", "favicon.svg", "site.css", "syntax.js", "site.js", "SYNTAX-LICENSE"):
         shutil.copy(ROOT / "website" / "assets" / name, OUT / "assets" / name)
     shutil.copy(ROOT / "doc" / "logo.svg", OUT / "assets" / "logo.svg")
     # Independently supported griplint distribution endpoints stay outside
