@@ -9,18 +9,29 @@
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://gripsack.dev/">
 <link rel="icon" href="./assets/favicon.svg" type="image/svg+xml">
-<link rel="stylesheet" href="./assets/site.css?v=0055d231">
-<script src="./assets/site.js?v=0055d231" defer></script>
+<link rel="stylesheet" href="./assets/site.css?v=0419e0ac">
+<script src="./assets/syntax.js?v=0419e0ac" data-manual defer></script>
+<script src="./assets/site.js?v=0419e0ac" defer></script>
 </head>
 <body class="home">
 <a class="skip-link" href="#main">Skip to content</a>
 <header class="topbar">
   <a class="brand" href="./index.html"><img src="./assets/icon.svg" alt=""><span class="wordmark">gripsack</span></a>
-  <nav aria-label="Primary"><a href="#capabilities">what it does</a><a href="#start">start</a><a href="#install">install</a><a href="#docs">docs</a></nav>
+  <nav aria-label="Primary"><a href="#capabilities">Overview</a><a href="#start">Quick start</a><a href="./docs/workspaces.html">Documentation ↗</a></nav>
+  <label class="palette-picker" hidden><span>Palette</span><select data-palette-select aria-label="Site palette"><option value="paper">Paper</option><option value="paper-dark">Paper Dark</option><option value="catppuccin-mocha">Catppuccin Mocha</option><option value="tokyo-night">Tokyo Night</option><option value="gruvbox-dark">Gruvbox Dark</option><option value="nord">Nord</option><option value="dracula">Dracula</option><option value="one-dark">One Dark</option><option value="solarized-dark">Solarized Dark</option><option value="catppuccin-latte">Catppuccin Latte</option><option value="github-light">Github Light</option><option value="one-light">One Light</option><option value="solarized-light">Solarized Light</option></select></label>
 </header>
-<main class="content" id="main">
+<main class="content" id="main" tabindex="-1">
 <section class="hero">
-  <div class="logo" role="img" aria-label="gripsack"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 310" font-family="ui-monospace, DejaVu Sans Mono, monospace">
+  <div class="hero-copy">
+  <p class="kicker">A declared workspace. A little more control.</p>
+  <h1 class="tagline">Your environment,<br>in <span class="accent">one workspace.</span></h1>
+  <p class="sub">Make the tools and configuration you depend on explicit. Declare native packages, development environments, dotfiles and tasks in TypeScript. Start Docker Engine services explicitly when your project needs them.</p>
+  <div class="cta"><a class="primary" href="#install">Get gripsack <span aria-hidden="true">↗</span></a><a href="./docs/workspaces.html">Read the workspace guide →</a></div>
+  <p class="alt">Linux x86_64 &amp; WSL2 <span aria-hidden="true">/</span> Alpha</p>
+  </div>
+  <aside class="workspace-card" aria-label="The declared workspace">
+    <div class="workspace-label"><span>Workspace / field notes</span><span>01</span></div>
+    <div class="logo" role="img" aria-label="gripsack"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 310" font-family="ui-monospace, DejaVu Sans Mono, monospace">
   <!-- gripsack logo, Catppuccin Mocha (static bake for README/<img> use;
        the re-themable var() version lives on gripsack.dev). A traveler's
        gripsack with a config file and a terminal chip peeking out. -->
@@ -49,14 +60,13 @@
   <path d="M 158 212 H 322" stroke="#b87f5c" stroke-width="3.5" stroke-dasharray="8 8" stroke-linecap="round"/>
   <text x="240" y="291" text-anchor="middle" font-size="54" font-weight="bold" letter-spacing="-2" fill="var(--text)">gripsack</text>
 </svg></div>
-  <p class="kicker">declarative user-space environments · alpha</p>
-  <h1 class="tagline">your environment,<br>in <span class="accent">one workspace</span>.</h1>
-  <p class="sub">Make the tools and configuration you depend on explicit. Declare native packages, development environments, dotfiles and tasks in TypeScript. Start Docker Engine services explicitly when your project needs them.</p>
-  <div class="cta"><a class="primary" href="./docs/workspaces.html">build your workspace →</a><a href="./docs/services.html">PostgreSQL with Docker Engine</a></div>
-  <p class="alt">Linux x86_64 and WSL2 · keep your OS package manager</p>
+    <p class="workspace-title">Pack what you need.<br>Know what you manage.</p>
+    <ul class="workspace-inventory"><li><span>Native tools</span><span>packages + environments</span></li><li><span>Personal setup</span><span>profiles + dotfiles</span></li><li><span>Explicit operations</span><span>tasks + services</span></li></ul>
+    <p class="workspace-foot">Declared in TypeScript. Reviewed before applying.</p>
+  </aside>
 </section>
 <section id="capabilities">
-  <h2 class="section">one graph, useful outputs</h2>
+  <div class="section-heading"><p class="eyebrow">01 / The workspace</p><h2 class="section">One graph.<br>Useful outputs.</h2><p>Bring the pieces you manage together.<br>Keep your operating system in its own hands.</p></div>
   <div class="grid">
     <article class="card"><h3><a href="./docs/packages.html">User-space packages</a></h3><p>Pin release archives, captured sources or coherent Conda environments. Declare commands and runtime dependencies, not global installs.</p></article>
     <article class="card"><h3><a href="./docs/environments.html">Native environments</a></h3><p>Run project commands in a selected environment. Expose the commands you want through managed profile launchers.</p></article>
@@ -67,8 +77,10 @@
   </div>
 </section>
 <section id="start">
-  <h2 class="section">start with one useful change</h2>
-  <p class="lede">A file-only workspace needs no package build or Docker service. Save this as <code>gripsack.ts</code> in its own repository:</p>
+  <div class="section-heading"><p class="eyebrow">02 / A small beginning</p><h2 class="section">One file.<br>One useful change.</h2><p>A file-only workspace needs no package build or Docker service.</p></div>
+  <div class="example-layout">
+  <div class="example-source">
+  <p class="lede">Save this as <code>gripsack.ts</code> in its own repository:</p>
   <div class="window">
     <div class="titlebar"><span class="wtitle">gripsack.ts</span></div>
 <pre><code class="language-typescript">import {
@@ -84,20 +96,27 @@ const dotfiles = profile("dotfiles", {
 
 export default defineWorkspace(() =&gt; workspace({ outputs: [dotfiles] }));</code></pre>
   </div>
+  </div>
+  <div class="example-flow">
+  <p class="eyebrow">From declaration to deployment</p>
   <p>After <a href="./docs/install.html">installing <code>grip</code></a>, review the captured source and policy when prompted:</p>
-<pre><code class="language-bash">grip check
-grip plan dotfiles
-grip apply dotfiles</code></pre>
-  <p class="note">Review the plan before applying. <code>grip generations</code> lists retained states; <code>grip rollback</code> restores a previous managed generation. Keep independent backups of irreplaceable files. <a href="./docs/safety.html">Understand ownership and recovery →</a></p>
+  <ol class="flow">
+    <li><span class="flow-num">01</span><div><h3>Check the workspace</h3><pre><code class="language-bash">grip check</code></pre></div></li>
+    <li><span class="flow-num">02</span><div><h3>Read the proposed changes</h3><pre><code class="language-bash">grip plan dotfiles</code></pre></div></li>
+    <li><span class="flow-num">03</span><div><h3>Apply when you're ready</h3><pre><code class="language-bash">grip apply dotfiles</code></pre></div></li>
+  </ol>
+  </div>
+  </div>
+  <p class="note"><strong>Review first. Keep a way back.</strong> Review the plan before applying. <code>grip generations</code> lists retained states; <code>grip rollback</code> restores a previous managed generation. Keep independent backups of irreplaceable files. <a href="./docs/safety.html">Understand ownership and recovery →</a></p>
 </section>
 <section id="install">
-  <h2 class="section">install</h2>
-  <p class="lede">One core binary with its TypeScript frontend embedded. Start with files or native packages; add access to Docker Engine only for container services.</p>
-  <p><a href="https://github.com/gripsack-dev/gripsack/releases/tag/core-v0.51.0">Download v0.51.0 for Linux / WSL</a> · <a href="./docs/install.html">Installation &amp; prerequisites</a></p>
+  <div class="install-copy"><p class="eyebrow">03 / Take it with you</p><h2 class="section">Start small.<br>Make it yours.</h2>
+  <p class="lede">One core binary with its TypeScript frontend embedded. Start with files or native packages; add access to Docker Engine only for container services.</p></div>
+  <div class="install-actions"><p class="eyebrow">Linux x86_64 / WSL2 · Alpha</p><a class="primary" href="https://github.com/gripsack-dev/gripsack/releases/tag/core-v0.51.0">Download v0.51.0 <span aria-hidden="true">↗</span></a><a href="./docs/install.html">Installation &amp; prerequisites →</a><p>Keep your OS package manager.<br>Declare the user-space pieces you choose.</p></div>
 </section>
 <section id="docs">
-  <h2 class="section">make it yours</h2>
-  <ul>
+  <div class="section-heading"><p class="eyebrow">04 / The field guide</p><h2 class="section">A workspace,<br>on your terms.</h2><p>Understand the pieces.<br>Choose what belongs in yours.</p></div>
+  <ul class="guide-links">
     <li><a href="./docs/workspaces.html">Workspace guide</a> — how packages, environments, profiles and tasks fit together.</li>
     <li><a href="./docs/fetchers.html">Sources &amp; locks</a> — choose inputs, review updates, import a Pixi lock explicitly.</li>
     <li><a href="./docs/settings.html">Settings &amp; source capture</a> — control the inputs you approve.</li>
@@ -108,7 +127,7 @@ grip apply dotfiles</code></pre>
   </ul>
 </section>
 <section id="compare">
-  <h2 class="section">your tools, not a new operating system</h2>
+  <p class="eyebrow">A clear boundary</p><h2 class="section">Your tools, not a new operating system.</h2>
   <p>Keep system packages with your existing manager. Bring the user-space tools, project commands and personal files you want to manage into a reviewable workspace. <a href="./docs/compare.html">Where gripsack fits →</a></p>
 </section>
 <footer><span>MIT licensed · <a href="https://github.com/gripsack-dev/gripsack">source</a></span><a href="./docs/architecture.html">architecture</a><a href="./docs/changelog.html">what's new</a></footer>

@@ -6,8 +6,9 @@
 <title>gripsack — agent guidance</title>
 <meta name="description" content="Declare native packages, environments, dotfiles and tasks in one workspace. Manage explicit Docker Engine services and review changes before applying.">
 <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
-<link rel="stylesheet" href="../assets/site.css?v=0055d231">
-<script src="../assets/site.js?v=0055d231" defer></script>
+<link rel="stylesheet" href="../assets/site.css?v=0419e0ac">
+<script src="../assets/syntax.js?v=0419e0ac" data-manual defer></script>
+<script src="../assets/site.js?v=0419e0ac" defer></script>
 </head>
 <body class="docs">
 <a class="skip-link" href="#main">Skip to content</a>
@@ -16,7 +17,8 @@
   <a class="brand" href="../index.html">
     <img src="../assets/icon.svg" alt="gripsack icon"><span class="wordmark">gripsack</span>
   </a>
-  <span class="rail-head">menu</span>
+  <details class="docs-menu" open>
+  <summary>Documentation <span aria-hidden="true">↕</span></summary>
   <nav aria-label="Documentation">
     <a class="" href="../index.html">home</a>
     <a class="" href="../docs/install.html">install</a>
@@ -40,29 +42,18 @@
     <a class="" href="../docs/changelog.html">what&#x27;s new</a>
     <a class="gh" href="https://github.com/gripsack-dev/gripsack">github ↗</a>
   </nav>
+  </details>
   <span class="rail-head">on this page</span>
   <div class="rail-toc">
     <a href="#workspace-adoption">Workspace adoption</a>
     <a href="#debugging">Debugging</a>
     <a href="#use-with-your-agent">Use with your agent</a>
   </div>
-  <span class="rail-head">theme</span>
-  <div class="rail-palettes">
-    <button data-set-palette="catppuccin-mocha" title="catppuccin-mocha" style="--sw:#89b4fa" aria-label="catppuccin-mocha"></button>
-    <button data-set-palette="tokyo-night" title="tokyo-night" style="--sw:#7aa2f7" aria-label="tokyo-night"></button>
-    <button data-set-palette="gruvbox-dark" title="gruvbox-dark" style="--sw:#83a598" aria-label="gruvbox-dark"></button>
-    <button data-set-palette="nord" title="nord" style="--sw:#88c0d0" aria-label="nord"></button>
-    <button data-set-palette="dracula" title="dracula" style="--sw:#bd93f9" aria-label="dracula"></button>
-    <button data-set-palette="one-dark" title="one-dark" style="--sw:#61afef" aria-label="one-dark"></button>
-    <button data-set-palette="solarized-dark" title="solarized-dark" style="--sw:#268bd2" aria-label="solarized-dark"></button>
-    <button data-set-palette="catppuccin-latte" title="catppuccin-latte" style="--sw:#1e66f5" aria-label="catppuccin-latte"></button>
-    <button data-set-palette="github-light" title="github-light" style="--sw:#0969da" aria-label="github-light"></button>
-    <button data-set-palette="one-light" title="one-light" style="--sw:#4078f2" aria-label="one-light"></button>
-    <button data-set-palette="solarized-light" title="solarized-light" style="--sw:#268bd2" aria-label="solarized-light"></button>
-  </div>
-  <span class="palette-name" data-palette-name>catppuccin-mocha</span>
+
+  <label class="palette-picker" hidden><span>Palette</span><select data-palette-select aria-label="Site palette"><option value="paper">Paper</option><option value="paper-dark">Paper Dark</option><option value="catppuccin-mocha">Catppuccin Mocha</option><option value="tokyo-night">Tokyo Night</option><option value="gruvbox-dark">Gruvbox Dark</option><option value="nord">Nord</option><option value="dracula">Dracula</option><option value="one-dark">One Dark</option><option value="solarized-dark">Solarized Dark</option><option value="catppuccin-latte">Catppuccin Latte</option><option value="github-light">Github Light</option><option value="one-light">One Light</option><option value="solarized-light">Solarized Light</option></select></label>
 </aside>
-<main class="content" id="main">
+<main class="content" id="main" tabindex="-1">
+<p class="doc-eyebrow">Gripsack / documentation</p>
 <article class="md">
 <h1 id="agent-guidance">Agent guidance</h1>
 <p>Gripsack's source repository includes reusable guidance for agents that help inspect or operate a workspace. Guidance is not executable enforcement and does not grant permission to approve source, overwrite files or discard recovery data.</p>
@@ -77,12 +68,12 @@
 <p>Require the agent to review captured source and policy, inspect a plan before applying, and report only checks it actually ran. A task receipt, evaluation result and application-level consumer test answer different questions.</p>
 </article>
 <footer>
-  <span><span class="blink"></span> © 2026 <a href="https://github.com/tknawara">Tarek Nawara</a></span>
+  <span>© 2026 <a href="https://github.com/tknawara">Tarek Nawara</a></span>
   <span>MIT license</span>
   <a href="https://github.com/gripsack-dev">gripsack-dev</a>
   <a href="https://github.com/gripsack-dev/gripsack">source</a>
   <a href="../index.html">home</a>
-  <span style="margin-left:auto"><span class="fversion">v0.51.0</span> · eleven palettes</span>
+  <span class="fversion">v0.51.0</span>
 </footer>
 </main>
 </div>
