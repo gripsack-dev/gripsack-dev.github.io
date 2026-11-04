@@ -39,6 +39,24 @@ OUT = ROOT / "public"
 
 REPO = "https://github.com/gripsack-dev/gripsack"
 
+SITE = "https://gripsack.dev"
+OG_IMAGE = f"{SITE}/assets/og.png"
+OG_ALT = ("gripsack — a traveler's satchel holding a config file and a "
+          "terminal chip, beside the tagline 'Your environment, in one workspace.'")
+
+
+def og_meta(title: str, path: str) -> str:
+    """Social preview tags; scrapers require an absolute image URL."""
+    return f"""<meta property="og:title" content="{title}">
+<meta property="og:type" content="website">
+<meta property="og:url" content="{SITE}/{path}">
+<meta property="og:description" content="Declare native packages, environments, dotfiles and tasks in one workspace. Manage explicit Docker Engine services and review changes before applying.">
+<meta property="og:image" content="{OG_IMAGE}">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="627">
+<meta property="og:image:alt" content="{OG_ALT}">
+<meta name="twitter:card" content="summary_large_image">"""
+
 # Cache-busting: content hash of the shared assets, stamped into every
 # css/js URL as ?v=…
 _ASSET_VERSION: str | None = None
@@ -203,6 +221,7 @@ def page(title: str, body: str, active: str, toc: list[tuple[str, str]], root: s
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{title}</title>
 <meta name="description" content="Declare native packages, environments, dotfiles and tasks in one workspace. Manage explicit Docker Engine services and review changes before applying.">
+{og_meta(title, active)}
 <link rel="icon" href="{root}assets/favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="{root}assets/site.css?v={asset_version()}">
 <script src="{root}assets/syntax.js?v={asset_version()}" data-manual defer></script>
@@ -295,7 +314,7 @@ def assemble() -> None:
     # Preserve the installer endpoint without bypassing its own checks.
     (OUT / "install.sh").write_bytes(RELEASE_FILES["install.sh"])
     (OUT / "assets").mkdir(exist_ok=True)
-    for name in ("icon.svg", "favicon.svg", "site.css", "syntax.js", "site.js", "SYNTAX-LICENSE"):
+    for name in ("icon.svg", "favicon.svg", "og.png", "site.css", "syntax.js", "site.js", "SYNTAX-LICENSE"):
         shutil.copy(ROOT / "website" / "assets" / name, OUT / "assets" / name)
     shutil.copy(ROOT / "doc" / "logo.svg", OUT / "assets" / "logo.svg")
     # Independently supported griplint distribution endpoints stay outside

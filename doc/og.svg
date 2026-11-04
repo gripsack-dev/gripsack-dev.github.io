@@ -1,0 +1,70 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="627" viewBox="0 0 1200 627" font-family="DejaVu Sans, system-ui, sans-serif">
+  <!-- gripsack.dev LinkedIn featured thumbnail — site "Paper" palette -->
+  <rect width="1200" height="627" fill="#f8f8f3"/>
+
+  <!-- top brand row -->
+  <g transform="translate(84,58) scale(0.4375)">
+    <rect width="128" height="128" rx="28" fill="#11111b"/>
+    <g transform="rotate(-10 38 34)">
+      <rect x="28" y="18" width="20" height="28" rx="3" fill="#1e1e2e" stroke="#585b70" stroke-width="2"/>
+      <rect x="32" y="25" width="10" height="3" rx="1.5" fill="#89b4fa"/>
+      <rect x="32" y="31" width="12" height="3" rx="1.5" fill="#94e2d5"/>
+    </g>
+    <rect x="49" y="20" width="30" height="22" rx="10" fill="none" stroke="#c9906a" stroke-width="6"/>
+    <rect x="26" y="40" width="76" height="60" rx="14" fill="#fab387"/>
+    <rect x="26" y="40" width="76" height="24" rx="12" fill="#d1946f"/>
+    <rect x="41" y="36" width="8" height="32" rx="2" fill="#b87f5c"/>
+    <rect x="79" y="36" width="8" height="32" rx="2" fill="#b87f5c"/>
+    <rect x="39" y="48" width="12" height="9" rx="2.5" fill="none" stroke="#f9e2af" stroke-width="2.5"/>
+    <rect x="77" y="48" width="12" height="9" rx="2.5" fill="none" stroke="#f9e2af" stroke-width="2.5"/>
+    <path d="M 34 88 H 94" stroke="#b87f5c" stroke-width="3" stroke-dasharray="5 5" stroke-linecap="round"/>
+  </g>
+  <text x="164" y="103" font-size="34" font-weight="700" letter-spacing="-1.7" fill="#20362d">gripsack</text>
+  <text x="1116" y="100" text-anchor="end" font-size="20" font-family="DejaVu Sans Mono, ui-monospace, monospace" fill="#364940">gripsack.dev</text>
+  <path d="M 84 142 H 1116" stroke="#dce1d6" stroke-width="1.5"/>
+
+  <!-- headline -->
+  <text x="84" y="196" font-size="19" font-weight="600" letter-spacing="2.5" font-family="DejaVu Sans Mono, ui-monospace, monospace" fill="#18765b">A DECLARED WORKSPACE · A LITTLE MORE CONTROL</text>
+  <text x="84" y="282" font-size="74" font-weight="700" letter-spacing="-3" fill="#20362d">Your environment,</text>
+  <text x="84" y="368" font-size="74" font-weight="700" letter-spacing="-3" fill="#20362d">in <tspan fill="#1b604b">one workspace.</tspan></text>
+
+  <!-- sub copy -->
+  <text x="84" y="418" font-size="24" fill="#364940">Declare native packages, environments, dotfiles</text>
+  <text x="84" y="452" font-size="24" fill="#364940">and tasks in TypeScript. Review before applying.</text>
+
+  <!-- chips -->
+  <g font-size="18" font-family="DejaVu Sans Mono, ui-monospace, monospace" fill="#20362d" text-anchor="middle">
+    <rect x="84" y="504" width="293" height="54" rx="5" fill="#fdfdf9" stroke="#a9b8a8" stroke-width="1.5"/>
+    <text x="230.5" y="538">packages + environments</text>
+    <rect x="395" y="504" width="250" height="54" rx="5" fill="#fdfdf9" stroke="#a9b8a8" stroke-width="1.5"/>
+    <text x="520" y="538">profiles + dotfiles</text>
+    <rect x="663" y="504" width="217" height="54" rx="5" fill="#fdfdf9" stroke="#a9b8a8" stroke-width="1.5"/>
+    <text x="771.5" y="538">tasks + services</text>
+  </g>
+
+  <!-- the gripsack mark, site Paper palette -->
+  <g transform="translate(720.4,167.6) scale(1.1)" font-family="DejaVu Sans Mono, ui-monospace, monospace">
+    <ellipse cx="240" cy="240" rx="118" ry="10" fill="#eff1e9"/>
+    <g transform="rotate(-10 176 82)">
+      <rect x="152" y="46" width="48" height="72" rx="6" fill="#fdfdf9" stroke="#a9b8a8" stroke-width="2.5"/>
+      <rect x="161" y="62" width="24" height="6" rx="2.5" fill="#18765b"/>
+      <rect x="161" y="74" width="30" height="6" rx="2.5" fill="#1a6650"/>
+      <rect x="161" y="86" width="20" height="6" rx="2.5" fill="#364940"/>
+    </g>
+    <g transform="rotate(9 307 77)">
+      <rect x="282" y="44" width="50" height="66" rx="9" fill="#fdfdf9" stroke="#a9b8a8" stroke-width="2.5"/>
+      <text x="293" y="76" font-size="24" font-weight="bold" fill="#526e38">❯</text>
+      <rect x="308" y="60" width="10" height="17" rx="2.5" fill="#526e38" opacity="0.65"/>
+    </g>
+    <rect x="204" y="68" width="72" height="44" rx="18" fill="none" stroke="#c9906a" stroke-width="8"/>
+    <rect x="140" y="110" width="200" height="122" rx="26" fill="#986139"/>
+    <rect x="140" y="110" width="200" height="48" rx="24" fill="#d1946f"/>
+    <rect x="180" y="102" width="14" height="64" rx="4" fill="#b87f5c"/>
+    <rect x="286" y="102" width="14" height="64" rx="4" fill="#b87f5c"/>
+    <rect x="176" y="126" width="22" height="16" rx="4" fill="none" stroke="#806223" stroke-width="3.5"/>
+    <rect x="282" y="126" width="22" height="16" rx="4" fill="none" stroke="#806223" stroke-width="3.5"/>
+    <circle cx="187" cy="162" r="3.2" fill="#806223"/>
+    <circle cx="293" cy="162" r="3.2" fill="#806223"/>
+    <path d="M 158 212 H 322" stroke="#b87f5c" stroke-width="3.5" stroke-dasharray="8 8" stroke-linecap="round"/>
+  </g>
+</svg>
