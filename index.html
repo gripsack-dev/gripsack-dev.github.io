@@ -16,9 +16,9 @@
 <meta property="og:image:alt" content="gripsack — a traveler's satchel holding a config file and a terminal chip, beside the tagline 'Your environment, in one workspace.'">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="./assets/favicon.svg" type="image/svg+xml">
-<link rel="stylesheet" href="./assets/site.css?v=5dc94c7b">
-<script src="./assets/syntax.js?v=5dc94c7b" data-manual defer></script>
-<script src="./assets/site.js?v=5dc94c7b" defer></script>
+<link rel="stylesheet" href="./assets/site.css?v=36390b66">
+<script src="./assets/syntax.js?v=36390b66" data-manual defer></script>
+<script src="./assets/site.js?v=36390b66" defer></script>
 </head>
 <body class="home">
 <a class="skip-link" href="#main">Skip to content</a>
@@ -90,10 +90,6 @@
     </div>
     <div class="gens-cmds" aria-hidden="true"><span class="apply"><code>grip apply</code> → publish generation 3, flip current</span><span class="rollback"><code>grip rollback</code> → flip current back; nothing rebuilt</span></div>
   </div>
-  <div class="demo">
-    <div class="window"><div class="titlebar"><span class="wtitle">grip apply · edit · apply · rollback</span></div><img src="./img/demo-rollback.gif" alt="Terminal recording: grip apply deploys a profile, an edited config is applied as generation 2, cat shows the new value, grip rollback restores generation 1 and cat shows the old value again." loading="lazy" width="1800" height="1120"></div>
-    <p>Recorded against the real binary. <a href="./docs/safety.html">What apply does, step by step →</a></p>
-  </div>
 </section>
 
 <section id="declare">
@@ -119,7 +115,38 @@
       <li class="assume"><strong>The filesystem and the world</strong>Atomic rename, fsync durability, SHA-256 identity and a single lifecycle writer are stated assumptions, fault-tested rather than proved. Docker, systemd, Deno and your own hooks are outside every proof.</li>
     </ul>
     <div>
-<figure class="diagram"><a href="./assets/diagrams/rings.svg"><img src="./assets/diagrams/rings.svg" alt="Nested rings: Product, Edge, Host, Protocol and Kernel. The kernel&#x27;s proved decisions flow to a Lean proof project over the shipped Rust; the host&#x27;s storage assumptions point to the unproved world." loading="lazy"></a><figcaption>The rings today: the kernel is proved, the protocol is next, the host&#x27;s assumptions are listed.</figcaption></figure>
+<figure class="anim a-rings" role="img" aria-label="Five nested rings: Product, Edge, Host, Protocol and Kernel. Untrusted input such as an archive, a gripsack.ts or a lockfile enters the Edge ring, where it is hash-checked and turned into typed values; those flow inward to the Kernel, whose pure decisions about commit, garbage collection and journal publication are proved in Lean since 0.52. The decision leaves as a command that carries what the kernel expects to find; the Protocol ring (proofs next) orders it, the Host ring re-checks that the live file still matches the expectation and only then acts on the filesystem. The small window between that re-check and the act is where another process could still write; gripsack detects such writes but cannot exclude them.">
+<svg viewBox="0 0 780 440" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+  <rect class="a-ring r4" x="80" y="60" width="620" height="360" rx="22"/>
+  <text class="a-ring-label" x="390" y="80" text-anchor="middle">Product — CLI · review · adopt · doctor</text>
+  <rect class="a-ring r3" x="125" y="95" width="530" height="290" rx="20"/>
+  <text class="a-ring-label" x="390" y="115" text-anchor="middle">Edge — evaluation · downloads · archives · Docker · systemd</text>
+  <rect class="a-ring r2" x="170" y="130" width="440" height="220" rx="18"/>
+  <text class="a-ring-label" x="390" y="150" text-anchor="middle">Host — driver · filesystem · locks · assumptions listed</text>
+  <rect class="a-ring r1" x="215" y="165" width="350" height="150" rx="16"/>
+  <text class="a-ring-label" x="390" y="185" text-anchor="middle">Protocol — apply · rollback · recover · gc <tspan class="a-tag next">· proofs next</tspan></text>
+  <rect class="a-ring r0" x="260" y="200" width="260" height="80" rx="14"/>
+  <text class="a-ring-label" x="390" y="220" text-anchor="middle">Kernel — pure decisions</text>
+  <text class="a-tag proved" x="390" y="238" text-anchor="middle">proved in Lean · 0.52</text>
+  <text class="a-dim" x="390" y="254" text-anchor="middle">commit · GC · journal publication</text>
+  <g class="a-station s-kernel"><text x="390" y="272" text-anchor="middle">decide</text></g>
+
+  <g class="a-world"><path d="M2 228 h70 v24 h-70 z"/><text x="37" y="243" text-anchor="middle">untrusted</text><text class="a-dim" x="37" y="268" text-anchor="middle">input</text></g>
+  <g class="a-world fs"><path d="M706 228 h70 v24 h-70 z"/><text x="741" y="243" text-anchor="middle">filesystem</text><text class="a-dim" x="741" y="268" text-anchor="middle">S1–S7 assumed</text></g>
+
+  <line class="a-path" x1="70" y1="240" x2="260" y2="240"/>
+  <line class="a-path" x1="520" y1="240" x2="710" y2="240"/>
+  <circle class="a-token in-token" cx="70" cy="240" r="6"/>
+  <circle class="a-token out-token" cx="390" cy="240" r="6"/>
+
+  <g class="a-station s-cmd"><text x="390" y="303" text-anchor="middle">command + expect · what must still be live</text></g>
+  <g class="a-station s-check"><text x="310" y="338" text-anchor="middle">re-check: live = expect?</text></g>
+  <g class="a-station s-act"><text x="452" y="338" text-anchor="middle">→ act</text></g>
+  <g class="a-window"><path d="M404 327 v-6 h22 v6"/><text x="490" y="338" text-anchor="start">← S5 window</text><text class="a-dim" x="390" y="406" text-anchor="middle">S5: between re-check and act, another process's write is only detected, never excluded</text></g>
+  <g class="a-station s-edge"><text x="390" y="373" text-anchor="middle">hash ✓ · typed values admitted · everything else refused</text></g>
+</svg>
+<figcaption>Untrusted bytes are admitted at the edge, the kernel decides, and the decision travels back out as a command that says what it expects to find. Purple is proved; red is next.</figcaption>
+</figure>
       <p class="note" style="margin-top:0"><strong>What is and is not claimed.</strong> The proofs are over the exact Rust that ships, use only Lean's standard axioms and run as a release gate next to the test suites. They cover decisions, not the operating system, and not the effects of your own hooks, tasks or containers. <a href="./docs/guarantees.html">Read the full guarantee list →</a></p>
     </div>
   </div>
@@ -159,14 +186,118 @@ export default defineWorkspace(() =&gt; workspace({ outputs: [dotfiles] }));</co
   </div>
 </section>
 
+<section id="examples">
+  <div class="section-heading"><p class="eyebrow">05 / Three more shapes</p><h2 class="section">Same file.<br>Different workspaces.</h2><p>Each tab is the complete <code>gripsack.ts</code> from its guide, run as part of the release checks. Pick one.</p></div>
+  <div class="examples">
+    <input type="radio" name="example" id="ex-packages" checked>
+    <input type="radio" name="example" id="ex-service">
+    <input type="radio" name="example" id="ex-task">
+    <div class="tabs"><label for="ex-packages">package + environment</label><label for="ex-service">Docker service</label><label for="ex-task">task</label></div>
+    <div class="panel panel-packages">
+      <div class="example-source"><div class="window"><div class="titlebar"><span class="wtitle">gripsack.ts · packages</span></div>
+<pre><code class="language-typescript">import {
+  defineWorkspace, environment, githubRelease, pkg, provider,
+  targetPlatform, workspace,
+} from "@gripsack/core";
+
+const target = targetPlatform({ os: "linux", arch: "x86_64", abi: "musl" });
+const ripgrep = pkg("ripgrep", {
+  producer: provider(githubRelease({
+    repo: "BurntSushi/ripgrep",
+    asset: "ripgrep-{version.bare}-x86_64-unknown-linux-musl.tar.gz",
+  })),
+  archiveRoot: { kind: "single_directory" },
+  commands: { rg: "rg" },
+  target,
+  layout: { kind: "relocatable" },
+});
+const search = environment("search", { packages: ["ripgrep"], target });
+
+export default defineWorkspace(() =&gt; workspace({ outputs: [ripgrep, search] }));</code></pre></div></div>
+      <div class="example-flow"><p>A release archive becomes a package; an environment puts <code>rg</code> on the path for one command. <a href="./docs/packages.html">Packages guide →</a></p><pre><code class="language-bash">grip update
+grip build ripgrep
+grip run --env search -- rg --version</code></pre></div>
+    </div>
+    <div class="panel panel-service">
+      <div class="example-source"><div class="window"><div class="titlebar"><span class="wtitle">gripsack.ts · service</span></div>
+<pre><code class="language-typescript">import {
+  defineWorkspace, exec, lit, service, task, workspace,
+} from "@gripsack/core";
+
+const postgres = service("postgres", {
+  image: "docker.io/library/postgres@sha256:979bccfde35445db618c65107d27d08c6c21339d8dc3ad4c830c6633947be0e4",
+  ports: [{ address: "127.0.0.1", host: 55432, container: 5432 }],
+  volumes: [{ name: "gripsack-guide-postgres18", target: "/var/lib/postgresql" }],
+  env: {
+    POSTGRES_USER: { kind: "literal", value: "app" },
+    POSTGRES_DB: { kind: "literal", value: "app" },
+    POSTGRES_PASSWORD: { kind: "inherited", name: "GRIPSACK_POSTGRES_PASSWORD" },
+  },
+  health: {
+    kind: "command",
+    argv: ["pg_isready", "-U", "app", "-d", "app"],
+    interval_seconds: 2,
+    timeout_seconds: 2,
+    retries: 30,
+  },
+});
+const databaseReady = task("database-ready", {
+  services: ["postgres"],
+  steps: [exec({ argv: [lit("/usr/bin/printf"), lit("postgres is healthy\\n")] })],
+});
+
+export default defineWorkspace(() =&gt; workspace({ outputs: [postgres, databaseReady] }));</code></pre></div></div>
+      <div class="example-flow"><p>A digest-pinned PostgreSQL on loopback, a health check, and a task that requires it to be healthy. The password is inherited from your environment, never written down. <a href="./docs/services.html">Services guide →</a></p><pre><code class="language-bash">: "${GRIPSACK_POSTGRES_PASSWORD:?}"
+grip up postgres
+grip task run database-ready --closed-stdin
+grip down postgres   # keeps the volume</code></pre></div>
+    </div>
+    <div class="panel panel-task">
+      <div class="example-source"><div class="window"><div class="titlebar"><span class="wtitle">gripsack.ts · task</span></div>
+<pre><code class="language-typescript">import {
+  bash, conda, defineWorkspace, environment, lit, packageCommand,
+  pkg, provider, targetPlatform, task, workspace,
+} from "@gripsack/core";
+
+const target = targetPlatform({ os: "linux", arch: "x86_64", abi: "gnu" });
+const shell = pkg("shell", {
+  producer: provider(conda.environment({
+    channels: ["conda-forge"],
+    packages: { bash: "*" },
+    systemRequirements: {
+      libc: { family: "glibc", version: "2.28" },
+      linux: "4.18",
+    },
+  })),
+  commands: { bash: "bin/bash" },
+  target,
+  layout: { kind: "prefix_materialized" },
+});
+const dev = environment("dev", { packages: ["shell"], target });
+const greet = task("greet", {
+  environment: "dev",
+  steps: [
+    bash`printf '%s\n' "$MESSAGE"`
+      .interpreter(packageCommand("shell", "bash"))
+      .env("MESSAGE", lit("two words"))
+      .build(),
+  ],
+});
+export default defineWorkspace(() =&gt; workspace({ outputs: [shell, dev, greet] }));</code></pre></div></div>
+      <div class="example-flow"><p>A literal Bash body with a pinned interpreter from Conda and a typed environment binding; no JavaScript interpolation into shell. <a href="./docs/tasks.html">Tasks guide →</a></p><pre><code class="language-bash">grip update
+grip task run greet --closed-stdin</code></pre></div>
+    </div>
+  </div>
+</section>
+
 <section id="install">
-  <div class="install-copy"><p class="eyebrow">05 / Install</p><h2 class="section">One static binary.<br>No daemon.</h2>
+  <div class="install-copy"><p class="eyebrow">06 / Install</p><h2 class="section">One static binary.<br>No daemon.</h2>
   <p class="lede">A musl-linked <code>grip</code> with its TypeScript frontend embedded. Docker Engine is needed only for container services; systemd only for schedules. Nothing runs in the background.</p></div>
   <div class="install-actions"><p class="eyebrow">Linux x86_64 / WSL2 · Alpha</p><a class="primary" href="./docs/install.html">Install v0.52.0 <span aria-hidden="true">→</span></a><a href="https://github.com/gripsack-dev/gripsack/releases/tag/core-v0.52.0">Release notes and checksums ↗</a><p>Keep your OS package manager.<br>Declare the user-space pieces you choose.</p></div>
 </section>
 
 <section id="docs">
-  <div class="section-heading"><p class="eyebrow">06 / Documentation</p><h2 class="section">Read in order,<br>or jump in.</h2><p>The guides are short and each one is a complete, runnable workspace.</p></div>
+  <div class="section-heading"><p class="eyebrow">07 / Documentation</p><h2 class="section">Read in order,<br>or jump in.</h2><p>The guides are short and each one is a complete, runnable workspace.</p></div>
   <ul class="guide-links">
     <li><a href="./docs/workspaces.html">Your first workspace</a> — scaffold, plan, apply, roll back.</li>
     <li><a href="./docs/packages.html">Packages</a> · <a href="./docs/environments.html">Environments</a> — tools from archives and Conda, on your path without a global install.</li>

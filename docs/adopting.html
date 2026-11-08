@@ -15,9 +15,9 @@
 <meta property="og:image:alt" content="gripsack — a traveler's satchel holding a config file and a terminal chip, beside the tagline 'Your environment, in one workspace.'">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
-<link rel="stylesheet" href="../assets/site.css?v=5dc94c7b">
-<script src="../assets/syntax.js?v=5dc94c7b" data-manual defer></script>
-<script src="../assets/site.js?v=5dc94c7b" defer></script>
+<link rel="stylesheet" href="../assets/site.css?v=36390b66">
+<script src="../assets/syntax.js?v=36390b66" data-manual defer></script>
+<script src="../assets/site.js?v=36390b66" defer></script>
 </head>
 <body class="docs">
 <a class="skip-link" href="#main">Skip to content</a>
@@ -103,6 +103,8 @@
 </tr>
 </tbody>
 </table>
+<figure class="diagram tall"><a href="../assets/diagrams/ownership.svg"><img src="../assets/diagrams/ownership.svg" alt="Decision tree: for a destination, if nothing is live gripsack writes; if the last file gripsack wrote is live it updates; if gripsack&#x27;s file changed since it preserves the drift; if a file gripsack never wrote is live it refuses unless --take-over adopts it. Three ownership modes: symlinkTo, trackedCopyTo, managedBlock." loading="lazy"></a><figcaption>What happens to whatever is already at a destination.</figcaption></figure>
+
 <p>Destinations must be normalized absolute or <code>~/</code>-prefixed paths outside the workspace repository. They use your privileges, not an implicit elevation mechanism.</p>
 <h2 id="capture-a-tree-and-an-executable-template">Capture a tree and an executable template</h2>
 <p>Create <code>dotfiles/editor/</code> with your configuration and a captured executable <code>scripts/editor-theme.sh.tmpl</code> containing:</p>

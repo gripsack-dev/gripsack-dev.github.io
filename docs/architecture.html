@@ -15,9 +15,9 @@
 <meta property="og:image:alt" content="gripsack — a traveler's satchel holding a config file and a terminal chip, beside the tagline 'Your environment, in one workspace.'">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
-<link rel="stylesheet" href="../assets/site.css?v=5dc94c7b">
-<script src="../assets/syntax.js?v=5dc94c7b" data-manual defer></script>
-<script src="../assets/site.js?v=5dc94c7b" defer></script>
+<link rel="stylesheet" href="../assets/site.css?v=36390b66">
+<script src="../assets/syntax.js?v=36390b66" data-manual defer></script>
+<script src="../assets/site.js?v=36390b66" defer></script>
 </head>
 <body class="docs">
 <a class="skip-link" href="#main">Skip to content</a>
@@ -90,10 +90,45 @@
 <p>A <strong>package</strong> gives a source a target platform, a layout, commands and runtime dependencies. <strong>Environments</strong>, <strong>profiles</strong> and <strong>tasks</strong> all select the same package declarations. Invocation re-admits the package's runtime closure each time rather than trusting whatever is on <code>PATH</code>.</p>
 <h2 id="deployment-and-generations">Deployment and generations</h2>
 <p>A <strong>profile</strong> combines files, retained package artifacts and launchers for one environment. <code>grip apply</code> realizes packages first, then runs the <a href="../docs/safety.html#what-apply-does">transaction</a>: journal, write with ownership checks, pre-flip checks, one atomic flip of <code>current</code>, hooks. Every applied state is a <strong>generation</strong> that keeps its package roots, file content, launcher bindings and recovery data, so <code>grip rollback</code> reuses bytes instead of re-running today's source.</p>
+<figure class="diagram"><a href="../assets/diagrams/lifecycle.svg"><img src="../assets/diagrams/lifecycle.svg" alt="From gripsack.ts through grip plan to grip apply&#x27;s six steps, into a retained generations directory, with grip rollback reselecting an earlier generation and grip gc reclaiming only what nothing retained needs." loading="lazy"></a><figcaption>An apply ends in one atomic rename; every applied state stays on disk as a generation.</figcaption></figure>
+
 <h2 id="services-tasks-and-schedules">Services, tasks and schedules</h2>
 <p><a href="../docs/services.html">Services</a> are digest-pinned containers driven through the Docker Engine API; gripsack owns only the containers and volumes it created and never runs a daemon. <a href="../docs/tasks.html">Tasks</a> are command graphs with prerequisites, locks and postconditions; <a href="../docs/schedules.html">schedules</a> register those tasks with the systemd user manager during profile application. <a href="../docs/sharing.html">Sharing</a> moves signed, passive package bundles between machines or through an OCI registry without evaluating anything on the receiving side.</p>
 <h2 id="the-rings">The rings</h2>
 <p>The code is arranged so that the decisions that matter most are smallest and best checked:</p>
+<figure class="anim a-rings" role="img" aria-label="Five nested rings: Product, Edge, Host, Protocol and Kernel. Untrusted input such as an archive, a gripsack.ts or a lockfile enters the Edge ring, where it is hash-checked and turned into typed values; those flow inward to the Kernel, whose pure decisions about commit, garbage collection and journal publication are proved in Lean since 0.52. The decision leaves as a command that carries what the kernel expects to find; the Protocol ring (proofs next) orders it, the Host ring re-checks that the live file still matches the expectation and only then acts on the filesystem. The small window between that re-check and the act is where another process could still write; gripsack detects such writes but cannot exclude them.">
+<svg viewBox="0 0 780 440" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+  <rect class="a-ring r4" x="80" y="60" width="620" height="360" rx="22"/>
+  <text class="a-ring-label" x="390" y="80" text-anchor="middle">Product — CLI · review · adopt · doctor</text>
+  <rect class="a-ring r3" x="125" y="95" width="530" height="290" rx="20"/>
+  <text class="a-ring-label" x="390" y="115" text-anchor="middle">Edge — evaluation · downloads · archives · Docker · systemd</text>
+  <rect class="a-ring r2" x="170" y="130" width="440" height="220" rx="18"/>
+  <text class="a-ring-label" x="390" y="150" text-anchor="middle">Host — driver · filesystem · locks · assumptions listed</text>
+  <rect class="a-ring r1" x="215" y="165" width="350" height="150" rx="16"/>
+  <text class="a-ring-label" x="390" y="185" text-anchor="middle">Protocol — apply · rollback · recover · gc <tspan class="a-tag next">· proofs next</tspan></text>
+  <rect class="a-ring r0" x="260" y="200" width="260" height="80" rx="14"/>
+  <text class="a-ring-label" x="390" y="220" text-anchor="middle">Kernel — pure decisions</text>
+  <text class="a-tag proved" x="390" y="238" text-anchor="middle">proved in Lean · 0.52</text>
+  <text class="a-dim" x="390" y="254" text-anchor="middle">commit · GC · journal publication</text>
+  <g class="a-station s-kernel"><text x="390" y="272" text-anchor="middle">decide</text></g>
+
+  <g class="a-world"><path d="M2 228 h70 v24 h-70 z"/><text x="37" y="243" text-anchor="middle">untrusted</text><text class="a-dim" x="37" y="268" text-anchor="middle">input</text></g>
+  <g class="a-world fs"><path d="M706 228 h70 v24 h-70 z"/><text x="741" y="243" text-anchor="middle">filesystem</text><text class="a-dim" x="741" y="268" text-anchor="middle">S1–S7 assumed</text></g>
+
+  <line class="a-path" x1="70" y1="240" x2="260" y2="240"/>
+  <line class="a-path" x1="520" y1="240" x2="710" y2="240"/>
+  <circle class="a-token in-token" cx="70" cy="240" r="6"/>
+  <circle class="a-token out-token" cx="390" cy="240" r="6"/>
+
+  <g class="a-station s-cmd"><text x="390" y="303" text-anchor="middle">command + expect · what must still be live</text></g>
+  <g class="a-station s-check"><text x="310" y="338" text-anchor="middle">re-check: live = expect?</text></g>
+  <g class="a-station s-act"><text x="452" y="338" text-anchor="middle">→ act</text></g>
+  <g class="a-window"><path d="M404 327 v-6 h22 v6"/><text x="490" y="338" text-anchor="start">← S5 window</text><text class="a-dim" x="390" y="406" text-anchor="middle">S5: between re-check and act, another process's write is only detected, never excluded</text></g>
+  <g class="a-station s-edge"><text x="390" y="373" text-anchor="middle">hash ✓ · typed values admitted · everything else refused</text></g>
+</svg>
+<figcaption>Untrusted bytes are admitted at the edge, the kernel decides, and the decision travels back out as a command that says what it expects to find. Purple is proved; red is next.</figcaption>
+</figure>
+
 <table>
 <thead>
 <tr>

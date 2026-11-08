@@ -315,6 +315,163 @@ figure.diagram.tall img { min-width: 0; max-height: 720px; width: auto; max-widt
 .trust li.next strong::before { content: "next"; display: inline-block; margin-right: 10px; padding: 1px 7px; border-radius: 3px; border: 1px solid var(--border-strong); color: var(--dim); font: 600 10.5px/1.6 var(--mono); text-transform: uppercase; letter-spacing: .06em; }
 .trust li.assume strong::before { content: "assumed"; display: inline-block; margin-right: 10px; padding: 1px 7px; border-radius: 3px; border: 1px solid var(--border-strong); color: var(--dim); font: 600 10.5px/1.6 var(--mono); text-transform: uppercase; letter-spacing: .06em; }
 .trust figure.diagram { margin-top: 0; }
+
+/* Animated figures (website/anim/*.html). Static = the complete picture;
+   motion is added only when the reader allows it. */
+figure.anim { margin: 28px 0; padding: 14px 12px 8px; border: 1px solid var(--border); border-radius: 6px; background: var(--card); overflow: auto; }
+figure.anim svg { display: block; width: 100%; height: auto; min-width: 600px; font-family: var(--mono); }
+figure.anim figcaption { font-size: 13px; color: var(--dim); margin: 10px 4px 0; }
+.home figure.anim { margin: 8px 0 0; }
+.a-rail, .a-path { stroke: var(--border-strong); stroke-width: 2; stroke-dasharray: 4 5; fill: none; }
+.a-link, .a-arrow { stroke: var(--border-strong); stroke-width: 1.5; }
+.a-box { fill: var(--deep); stroke: var(--border-strong); stroke-width: 1.5; }
+.a-box.a-key, .a-box.a-proved { stroke: var(--ink-mauve); stroke-width: 2; }
+.a-text { fill: var(--text); font-size: 12.5px; }
+.a-dim, .a-station .a-dim, .a-world .a-dim, .a-window .a-dim, .a-out .a-dim { fill: var(--dim); font-size: 10.5px; font-weight: 400; }
+.a-head { fill: var(--dim); font-size: 11px; text-transform: uppercase; letter-spacing: .06em; }
+.a-num { fill: var(--ink-blue); font-size: 11px; font-weight: 600; }
+.a-bar line { stroke: var(--ink-peach); stroke-width: 3; stroke-linecap: round; }
+.a-bar text { fill: var(--ink-peach); font-size: 10.5px; }
+.a-token { fill: var(--accent); opacity: 0; }
+.a-crash polyline { fill: none; stroke: var(--red); stroke-width: 2.5; stroke-linejoin: round; }
+.a-crash text { fill: var(--red); font-size: 11.5px; font-weight: 600; }
+.a-chip rect { fill: var(--card); stroke: var(--border-strong); stroke-width: 1.5; }
+.a-chip text { fill: var(--text); font-size: 12px; font-weight: 600; }
+.a-chip.vU rect, .a-chip.vC rect { stroke: var(--ink-green); }
+.a-chip.vA rect { stroke: var(--red); }
+.a-okbox { fill: color-mix(in srgb, var(--green) 14%, var(--card)); stroke: var(--ink-green); stroke-width: 1.5; }
+.a-keepbox { fill: color-mix(in srgb, var(--mauve) 14%, var(--card)); stroke: var(--ink-mauve); stroke-width: 1.5; }
+.a-stopbox { fill: color-mix(in srgb, var(--red) 12%, var(--card)); stroke: var(--red); stroke-width: 1.5; }
+.a-ok, .a-done text { fill: var(--text); font-size: 13px; font-weight: 600; }
+.a-done text { font-size: 12px; }
+.a-band { fill: var(--deep); stroke: var(--border); stroke-dasharray: 4 4; }
+.a-ring { stroke-width: 1.5; }
+.a-ring.r4 { fill: color-mix(in srgb, var(--blue) 8%, var(--card)); stroke: var(--ink-blue); }
+.a-ring.r3 { fill: color-mix(in srgb, var(--green) 10%, var(--card)); stroke: var(--ink-green); }
+.a-ring.r2 { fill: color-mix(in srgb, var(--peach) 12%, var(--card)); stroke: var(--ink-peach); }
+.a-ring.r1 { fill: color-mix(in srgb, var(--red) 12%, var(--card)); stroke: var(--red); }
+.a-ring.r0 { fill: color-mix(in srgb, var(--mauve) 18%, var(--card)); stroke: var(--ink-mauve); stroke-width: 2; }
+.a-ring-label { fill: var(--text); font-size: 12px; font-weight: 600; }
+.a-tag { font-size: 10.5px; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; }
+.a-tag.proved { fill: var(--ink-mauve); }
+.a-tag.next { fill: var(--red); }
+.a-world path { fill: var(--deep); stroke: var(--border-strong); }
+.a-world text { fill: var(--text); font-size: 10.5px; font-weight: 600; }
+.a-station text { fill: var(--text); font-size: 11.5px; font-weight: 600; }
+.a-window path { fill: none; stroke: var(--red); stroke-width: 1.5; }
+.a-window text { fill: var(--red); font-size: 10.5px; font-weight: 600; }
+@media (prefers-reduced-motion: no-preference) {
+  .a-apply .a-step, .a-apply .a-bar, .a-crash .a-step, .a-crash .a-chip, .a-crash .a-out, .a-crash .a-done,
+  .a-own .a-row, .a-rings .a-station, .a-rings .a-window, .a-rings .a-world.fs { opacity: .3; animation-timing-function: linear; animation-iteration-count: infinite; }
+  .a-crash .a-crash { opacity: 0; animation-timing-function: linear; animation-iteration-count: infinite; }
+  .a-apply .a-step, .a-apply .a-bar, .a-apply .a-token, .a-rings .a-station, .a-rings .a-window, .a-rings .a-world.fs, .a-rings .a-token, .a-rings .r0 { animation-duration: 12s; }
+  .a-crash .a-step, .a-crash .a-chip, .a-crash .a-out, .a-crash .a-done, .a-crash .a-crash, .a-crash .a-token { animation-duration: 20s; }
+  .a-own .a-row, .a-own .a-token { animation-duration: 16s; }
+  .a-token { opacity: 1; animation-timing-function: linear; animation-iteration-count: infinite; }
+  .a-rings .r0 { animation-iteration-count: infinite; animation-timing-function: ease-in-out; }
+  .a-apply .st1 { animation-name: ap-s1; }
+  @keyframes ap-s1 { 0%, 4% { opacity: .3 } 5%, 89% { opacity: 1 } 93%, 100% { opacity: .3 } }
+  .a-apply .st2 { animation-name: ap-s2; }
+  @keyframes ap-s2 { 0%, 16% { opacity: .3 } 17%, 89% { opacity: 1 } 93%, 100% { opacity: .3 } }
+  .a-apply .st3 { animation-name: ap-s3; }
+  @keyframes ap-s3 { 0%, 28% { opacity: .3 } 29%, 89% { opacity: 1 } 93%, 100% { opacity: .3 } }
+  .a-apply .st4 { animation-name: ap-s4; }
+  @keyframes ap-s4 { 0%, 40% { opacity: .3 } 41%, 89% { opacity: 1 } 93%, 100% { opacity: .3 } }
+  .a-apply .st5 { animation-name: ap-s5; }
+  @keyframes ap-s5 { 0%, 52% { opacity: .3 } 53%, 89% { opacity: 1 } 93%, 100% { opacity: .3 } }
+  .a-apply .st6 { animation-name: ap-s6; }
+  @keyframes ap-s6 { 0%, 64% { opacity: .3 } 65%, 89% { opacity: 1 } 93%, 100% { opacity: .3 } }
+  .a-apply .b1 { animation-name: ap-b1; }
+  @keyframes ap-b1 { 0%, 12% { opacity: .3 } 13%, 89% { opacity: 1 } 93%, 100% { opacity: .3 } }
+  .a-apply .b2 { animation-name: ap-b2; }
+  @keyframes ap-b2 { 0%, 24% { opacity: .3 } 25%, 89% { opacity: 1 } 93%, 100% { opacity: .3 } }
+  .a-apply .b4 { animation-name: ap-b4; }
+  @keyframes ap-b4 { 0%, 48% { opacity: .3 } 49%, 89% { opacity: 1 } 93%, 100% { opacity: .3 } }
+  .a-apply .b5 { animation-name: ap-b5; }
+  @keyframes ap-b5 { 0%, 60% { opacity: .3 } 61%, 89% { opacity: 1 } 93%, 100% { opacity: .3 } }
+  .a-apply .a-token { animation-name: ap-token; }
+  @keyframes ap-token { 0%, 5% { transform: translateX(0) } 17% { transform: translateX(128px) } 29% { transform: translateX(256px) } 41% { transform: translateX(384px) } 53% { transform: translateX(512px) } 65%, 89% { transform: translateX(640px) } 93%, 100% { transform: translateX(0) } }
+  .a-crash .cs1 { animation-name: cr-cs1; }
+  @keyframes cr-cs1 { 0%, 3% { opacity: .3 } 4%, 45% { opacity: 1 } 48%, 51% { opacity: .3 } 51% { opacity: .3 } 52%, 95% { opacity: 1 } 98%, 100% { opacity: .3 } }
+  .a-crash .cs2 { animation-name: cr-cs2; }
+  @keyframes cr-cs2 { 0%, 8% { opacity: .3 } 9%, 45% { opacity: 1 } 48%, 51% { opacity: .3 } 54% { opacity: .3 } 55%, 95% { opacity: 1 } 98%, 100% { opacity: .3 } }
+  .a-crash .cs3 { animation-name: cr-cs3; }
+  @keyframes cr-cs3 { 0%, 13% { opacity: .3 } 14%, 45% { opacity: 1 } 48%, 51% { opacity: .3 } 57% { opacity: .3 } 58%, 95% { opacity: 1 } 98%, 100% { opacity: .3 } }
+  .a-crash .cs4 { animation-name: cr-cs4; }
+  @keyframes cr-cs4 { 0%, 51% { opacity: .3 } 60% { opacity: .3 } 61%, 95% { opacity: 1 } 98%, 100% { opacity: .3 } }
+  .a-crash .cs5 { animation-name: cr-cs5; }
+  @keyframes cr-cs5 { 0%, 51% { opacity: .3 } 63% { opacity: .3 } 64%, 95% { opacity: 1 } 98%, 100% { opacity: .3 } }
+  .a-crash .rec { animation-name: cr-rec; }
+  @keyframes cr-rec { 0%, 21% { opacity: .3 } 22%, 45% { opacity: 1 } 48%, 51% { opacity: .3 } 70% { opacity: .3 } 71%, 95% { opacity: 1 } 98%, 100% { opacity: .3 } }
+  .a-crash .cls { animation-name: cr-cls; }
+  @keyframes cr-cls { 0%, 25% { opacity: .3 } 26%, 45% { opacity: 1 } 48%, 51% { opacity: .3 } 73% { opacity: .3 } 74%, 95% { opacity: 1 } 98%, 100% { opacity: .3 } }
+  .a-crash .vU { animation-name: cr-vU; }
+  @keyframes cr-vU { 0%, 30% { opacity: .3 } 31%, 45% { opacity: 1 } 48%, 51% { opacity: .3 } 52%, 100% { opacity: .3 } }
+  .a-crash .oU { animation-name: cr-oU; }
+  @keyframes cr-oU { 0%, 33% { opacity: .3 } 34%, 45% { opacity: 1 } 48%, 51% { opacity: .3 } 52%, 100% { opacity: .3 } }
+  .a-crash .dA { animation-name: cr-dA; }
+  @keyframes cr-dA { 0%, 37% { opacity: .3 } 38%, 45% { opacity: 1 } 48%, 51% { opacity: .3 } 52%, 100% { opacity: .3 } }
+  .a-crash .vC { animation-name: cr-vC; }
+  @keyframes cr-vC { 0%, 51% { opacity: .3 } 78% { opacity: .3 } 79%, 95% { opacity: 1 } 98%, 100% { opacity: .3 } }
+  .a-crash .oC { animation-name: cr-oC; }
+  @keyframes cr-oC { 0%, 51% { opacity: .3 } 81% { opacity: .3 } 82%, 95% { opacity: 1 } 98%, 100% { opacity: .3 } }
+  .a-crash .dB { animation-name: cr-dB; }
+  @keyframes cr-dB { 0%, 51% { opacity: .3 } 85% { opacity: .3 } 86%, 95% { opacity: 1 } 98%, 100% { opacity: .3 } }
+  .a-crash .crA { animation-name: cr-A; }
+  @keyframes cr-A { 0%, 17% { opacity: 0 } 18%, 44% { opacity: 1 } 47%, 100% { opacity: 0 } }
+  .a-crash .crB { animation-name: cr-B; }
+  @keyframes cr-B { 0%, 66% { opacity: 0 } 67%, 94% { opacity: 1 } 97%, 100% { opacity: 0 } }
+  .a-crash .c-token { animation-name: cr-token; }
+  @keyframes cr-token { 0%, 4% { transform: translateX(0); opacity: 1 } 9% { transform: translateX(128px) } 14%, 17% { transform: translateX(256px); opacity: 1 } 18%, 51% { transform: translateX(256px); opacity: 0 } 52% { transform: translateX(0); opacity: 1 } 55% { transform: translateX(128px) } 58% { transform: translateX(256px) } 61% { transform: translateX(384px) } 64%, 66% { transform: translateX(512px); opacity: 1 } 67%, 100% { transform: translateX(512px); opacity: 0 } }
+  .a-own .r1 { animation-name: ow-r1; }
+  @keyframes ow-r1 { 0%, 22% { opacity: 1 } 25%, 100% { opacity: .3 } }
+  .a-own .r1 .o-token { animation-name: ow-t1; }
+  @keyframes ow-t1 { 0% { transform: translateX(0); opacity: 1 } 18% { transform: translateX(200px); opacity: 1 } 21%, 100% { transform: translateX(200px); opacity: 0 } }
+  .a-own .r2 { animation-name: ow-r2; }
+  @keyframes ow-r2 { 0%, 24% { opacity: .3 } 25%, 47% { opacity: 1 } 50%, 100% { opacity: .3 } }
+  .a-own .r2 .o-token { animation-name: ow-t2; }
+  @keyframes ow-t2 { 0%, 24% { transform: translateX(0); opacity: 0 } 25% { transform: translateX(0); opacity: 1 } 43% { transform: translateX(200px); opacity: 1 } 46%, 100% { transform: translateX(200px); opacity: 0 } }
+  .a-own .r3 { animation-name: ow-r3; }
+  @keyframes ow-r3 { 0%, 49% { opacity: .3 } 50%, 72% { opacity: 1 } 75%, 100% { opacity: .3 } }
+  .a-own .r3 .o-token { animation-name: ow-t3; }
+  @keyframes ow-t3 { 0%, 49% { transform: translateX(0); opacity: 0 } 50% { transform: translateX(0); opacity: 1 } 68% { transform: translateX(200px); opacity: 1 } 71%, 100% { transform: translateX(200px); opacity: 0 } }
+  .a-own .r4 { animation-name: ow-r4; }
+  @keyframes ow-r4 { 0%, 74% { opacity: .3 } 75%, 97% { opacity: 1 } 100% { opacity: .3 } }
+  .a-own .r4 .o-token { animation-name: ow-t4; }
+  @keyframes ow-t4 { 0%, 74% { transform: translateX(0); opacity: 0 } 75% { transform: translateX(0); opacity: 1 } 93% { transform: translateX(200px); opacity: 1 } 96%, 100% { transform: translateX(200px); opacity: 0 } }
+  .a-rings .in-token { animation-name: rg-in; }
+  @keyframes rg-in { 0%, 2% { transform: translateX(0); opacity: 1 } 12%, 16% { transform: translateX(77px); opacity: 1 } 30% { transform: translateX(320px); opacity: 1 } 33%, 100% { transform: translateX(320px); opacity: 0 } }
+  .a-rings .out-token { animation-name: rg-out; }
+  @keyframes rg-out { 0%, 37% { transform: translateX(0); opacity: 0 } 38% { transform: translateX(0); opacity: 1 } 46% { transform: translateX(195px) } 52%, 62% { transform: translateX(242px); opacity: 1 } 68% { transform: translateX(300px); opacity: 1 } 70% { transform: translateX(320px); opacity: 1 } 73%, 100% { transform: translateX(320px); opacity: 0 } }
+  .a-rings .s-edge { animation-name: rg-s-edge; }
+  @keyframes rg-s-edge { 0%, 11% { opacity: .3 } 12%, 34% { opacity: 1 } 38%, 100% { opacity: .3 } }
+  .a-rings .s-kernel { animation-name: rg-s-kernel; }
+  @keyframes rg-s-kernel { 0%, 29% { opacity: .3 } 30%, 40% { opacity: 1 } 44%, 100% { opacity: .3 } }
+  .a-rings .s-cmd { animation-name: rg-s-cmd; }
+  @keyframes rg-s-cmd { 0%, 41% { opacity: .3 } 42%, 58% { opacity: 1 } 62%, 100% { opacity: .3 } }
+  .a-rings .s-check { animation-name: rg-s-check; }
+  @keyframes rg-s-check { 0%, 51% { opacity: .3 } 52%, 64% { opacity: 1 } 68%, 100% { opacity: .3 } }
+  .a-rings .a-window { animation-name: rg-a-window; }
+  @keyframes rg-a-window { 0%, 57% { opacity: .3 } 58%, 68% { opacity: 1 } 72%, 100% { opacity: .3 } }
+  .a-rings .s-act { animation-name: rg-s-act; }
+  @keyframes rg-s-act { 0%, 63% { opacity: .3 } 64%, 72% { opacity: 1 } 76%, 100% { opacity: .3 } }
+  .a-rings .a-world.fs { animation-name: rg-a-world-fs; }
+  @keyframes rg-a-world-fs { 0%, 67% { opacity: .3 } 68%, 84% { opacity: 1 } 88%, 100% { opacity: .3 } }
+  .a-rings .r0 { animation-name: rg-kernel; }
+  @keyframes rg-kernel { 0%, 29% { stroke-width: 2 } 31%, 37% { stroke-width: 5 } 41%, 100% { stroke-width: 2 } }
+}
+/* Landing: example tabs (radio-driven, keyboard operable, no autoplay). */
+.examples { position: relative; }
+.examples > input { position: absolute; opacity: 0; width: 1px; height: 1px; margin: 0; pointer-events: none; }
+.tabs { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 16px; }
+.tabs label { display: inline-flex; align-items: center; min-height: 44px; padding: 8px 16px; border: 1px solid var(--border-strong); border-radius: 4px; background: var(--card); color: var(--dim); font: 600 12.5px var(--mono); cursor: pointer; }
+.tabs label:hover { color: var(--text); }
+#ex-packages:checked ~ .tabs label[for="ex-packages"], #ex-service:checked ~ .tabs label[for="ex-service"], #ex-task:checked ~ .tabs label[for="ex-task"] { background: var(--text); color: var(--bg); border-color: var(--text); }
+#ex-packages:focus-visible ~ .tabs label[for="ex-packages"], #ex-service:focus-visible ~ .tabs label[for="ex-service"], #ex-task:focus-visible ~ .tabs label[for="ex-task"] { outline: 2px solid var(--accent); outline-offset: 3px; }
+.panel { display: none; grid-template-columns: minmax(0, 1.65fr) minmax(0, 1fr); gap: 40px; }
+#ex-packages:checked ~ .panel-packages, #ex-service:checked ~ .panel-service, #ex-task:checked ~ .panel-task { display: grid; }
+.panel .example-flow p { font-size: 14px; color: var(--dim); }
+.panel .example-flow pre { margin-top: 0; }
 @media (max-width: 1100px) {
   .topbar, .home .content { width: calc(100% - 56px); }
   .topbar { gap: 18px; flex-wrap: wrap; padding-block: 20px; }
@@ -337,6 +494,7 @@ figure.diagram.tall img { min-width: 0; max-height: 720px; width: auto; max-widt
   .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .example-layout { grid-template-columns: 1fr; gap: 32px; }
   .story { grid-template-columns: 1fr 1fr; }
+  .panel { grid-template-columns: 1fr; gap: 24px; }
   .trust { grid-template-columns: 1fr; gap: 28px; }
   .home #install { gap: 32px; }
   .install-actions { padding-left: 28px; }
@@ -368,6 +526,7 @@ figure.diagram.tall img { min-width: 0; max-height: 720px; width: auto; max-widt
   .gen { font-size: 11px; padding: 12px 8px; }
   .gens-cmds { grid-template-columns: 1fr; }
   figure.diagram img { min-width: 480px; }
+  figure.anim svg { min-width: 560px; }
   .card { padding: 24px; }
   .card::before { margin-bottom: 18px; }
   .install-actions { border-left: 0; border-top: 1px solid var(--border); padding: 28px 0 0; }

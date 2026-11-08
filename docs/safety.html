@@ -15,9 +15,9 @@
 <meta property="og:image:alt" content="gripsack — a traveler's satchel holding a config file and a terminal chip, beside the tagline 'Your environment, in one workspace.'">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
-<link rel="stylesheet" href="../assets/site.css?v=5dc94c7b">
-<script src="../assets/syntax.js?v=5dc94c7b" data-manual defer></script>
-<script src="../assets/site.js?v=5dc94c7b" defer></script>
+<link rel="stylesheet" href="../assets/site.css?v=36390b66">
+<script src="../assets/syntax.js?v=36390b66" data-manual defer></script>
+<script src="../assets/site.js?v=36390b66" defer></script>
 </head>
 <body class="docs">
 <a class="skip-link" href="#main">Skip to content</a>
@@ -80,7 +80,26 @@
 <p>Gripsack writes to files you care about, so this page is about what happens to them: how an apply is structured, what a crash leaves behind, how ownership and drift are decided, and what you still have to do yourself. For what is formally proved versus assumed, see <a href="../docs/guarantees.html">how gripsack stays safe</a>.</p>
 <p>Two things first. It is alpha software: keep an independent backup of anything irreplaceable. And generations protect <em>managed files and launchers</em>; they do not undo what your hooks, tasks, services or the tools themselves do.</p>
 <h2 id="what-apply-does">What apply does</h2>
-<figure class="diagram"><a href="../assets/diagrams/lifecycle.svg"><img src="../assets/diagrams/lifecycle.svg" alt="From gripsack.ts through grip plan to grip apply&#x27;s six steps, into a retained generations directory, with grip rollback reselecting an earlier generation and grip gc reclaiming only what nothing retained needs." loading="lazy"></a><figcaption>An apply is one transaction ending in one atomic rename; every applied state stays on disk as a generation.</figcaption></figure>
+<figure class="anim a-apply" role="img" aria-label="grip apply as six steps in order: 1 record intent in the journal, then a durable barrier; 2 capture the prior bytes and mode of each destination, then a barrier; 3 write each destination after re-checking that what is live is what the plan saw; 4 publish the new generation, sealed and named, then a barrier; 5 flip the current pointer with one atomic rename, then a barrier; 6 cleanup: close the journal and keep the evidence. A barrier is fsync of the file and then of its directory.">
+<svg viewBox="0 0 780 200" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+  <line class="a-rail" x1="12" y1="30" x2="768" y2="30"/>
+  <circle class="a-token" cx="71" cy="30" r="6"/>
+  <g class="a-step st1"><rect class="a-box" x="12" y="56" width="118" height="64" rx="6"/><text class="a-num" x="22" y="74">1</text><text class="a-text" x="71" y="88" text-anchor="middle">record intent</text><text class="a-dim" x="71" y="106" text-anchor="middle">journal marker</text></g>
+  <g class="a-bar b1"><line x1="135" y1="50" x2="135" y2="126"/><text x="135" y="142" text-anchor="middle">fsync</text></g>
+  <g class="a-step st2"><rect class="a-box" x="140" y="56" width="118" height="64" rx="6"/><text class="a-num" x="150" y="74">2</text><text class="a-text" x="199" y="88" text-anchor="middle">capture prior</text><text class="a-dim" x="199" y="106" text-anchor="middle">bytes · mode</text></g>
+  <g class="a-bar b2"><line x1="263" y1="50" x2="263" y2="126"/><text x="263" y="142" text-anchor="middle">fsync</text></g>
+  <g class="a-step st3"><rect class="a-box" x="268" y="56" width="118" height="64" rx="6"/><text class="a-num" x="278" y="74">3</text><text class="a-text" x="327" y="88" text-anchor="middle">write</text><text class="a-dim" x="327" y="106" text-anchor="middle">re-check, then act</text></g>
+  <g class="a-step st4"><rect class="a-box" x="396" y="56" width="118" height="64" rx="6"/><text class="a-num" x="406" y="74">4</text><text class="a-text" x="455" y="88" text-anchor="middle">publish gen N+1</text><text class="a-dim" x="455" y="106" text-anchor="middle">sealed, named</text></g>
+  <g class="a-bar b4"><line x1="519" y1="50" x2="519" y2="126"/><text x="519" y="142" text-anchor="middle">fsync</text></g>
+  <g class="a-step st5"><rect class="a-box a-key" x="524" y="56" width="118" height="64" rx="6"/><text class="a-num" x="534" y="74">5</text><text class="a-text" x="583" y="88" text-anchor="middle">flip `current`</text><text class="a-dim" x="583" y="106" text-anchor="middle">atomic rename</text></g>
+  <g class="a-bar b5"><line x1="647" y1="50" x2="647" y2="126"/><text x="647" y="142" text-anchor="middle">fsync</text></g>
+  <g class="a-step st6"><rect class="a-box" x="652" y="56" width="118" height="64" rx="6"/><text class="a-num" x="662" y="74">6</text><text class="a-text" x="711" y="88" text-anchor="middle">cleanup</text><text class="a-dim" x="711" y="106" text-anchor="middle">evidence kept</text></g>
+  <text class="a-dim" x="12" y="168">barrier = fsync(file), then fsync(directory): everything left of it is durable</text>
+  <text class="a-dim" x="12" y="182">before anything right of it can be seen after a power loss.</text>
+  <text class="a-dim" x="12" y="196">1–3 and 6 are the journal · 4 is the store · 5 is the commit point · hooks run after 6, never rolled back</text>
+</svg>
+<figcaption>One apply, in order. The durable barriers are why a crash at any point leaves either the prior state or the intended one.</figcaption>
+</figure>
 
 <ol>
 <li><strong>Realize packages</strong> into the read-only store. Content is verified, sealed read-only and published by rename, so a half-downloaded archive never becomes a package.</li>
@@ -92,7 +111,42 @@
 </ol>
 <p>Destination writes are not atomic across a whole profile: a program reading its config in the middle of step 3 can see the new file before its sibling. Stop consumers that need an uninterrupted view.</p>
 <h2 id="what-a-crash-leaves-behind">What a crash leaves behind</h2>
-<figure class="diagram"><a href="../assets/diagrams/crash.svg"><img src="../assets/diagrams/crash.svg" alt="A timeline of apply with crash points before the journal, during writes, around the flip and during hooks; the next command classifies current against previous and target as Uncommitted, Committed or Ambiguous and restores prior bytes, finishes activation, or stops." loading="lazy"></a><figcaption>Recovery runs before the next command does anything else. The classification step is proved; the surrounding machine is tested.</figcaption></figure>
+<figure class="anim a-crash" role="img" aria-label="Two crash scenarios on the apply timeline. A: the process dies while writing destinations; the next command reads the journal, classifies current against previous and target as Uncommitted because current still names the previous generation, and restores the prior bytes from the journal. B: the process dies after the flip; classification says Committed because current names the target, and activation is finished. A third verdict, Ambiguous, stops everything and reports instead of guessing. Either way the machine ends consistent.">
+<svg viewBox="0 0 780 320" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+  <line class="a-rail" x1="12" y1="24" x2="768" y2="24"/>
+  <circle class="a-token c-token" cx="71" cy="24" r="6"/>
+  <g class="a-step cs1"><rect class="a-box" x="12" y="44" width="118" height="50" rx="6"/><text class="a-text" x="71" y="66" text-anchor="middle">record intent</text><text class="a-dim" x="71" y="84" text-anchor="middle">journal</text></g>
+  <g class="a-bar on"><line x1="135" y1="40" x2="135" y2="98"/></g>
+  <g class="a-step cs2"><rect class="a-box" x="140" y="44" width="118" height="50" rx="6"/><text class="a-text" x="199" y="66" text-anchor="middle">capture prior</text><text class="a-dim" x="199" y="84" text-anchor="middle">journal</text></g>
+  <g class="a-bar on"><line x1="263" y1="40" x2="263" y2="98"/></g>
+  <g class="a-step cs3"><rect class="a-box" x="268" y="44" width="118" height="50" rx="6"/><text class="a-text" x="327" y="66" text-anchor="middle">write</text><text class="a-dim" x="327" y="84" text-anchor="middle">destinations</text></g>
+  <g class="a-step cs4"><rect class="a-box" x="396" y="44" width="118" height="50" rx="6"/><text class="a-text" x="455" y="66" text-anchor="middle">publish gen</text><text class="a-dim" x="455" y="84" text-anchor="middle">store</text></g>
+  <g class="a-bar on"><line x1="519" y1="40" x2="519" y2="98"/></g>
+  <g class="a-step cs5"><rect class="a-box a-key" x="524" y="44" width="118" height="50" rx="6"/><text class="a-text" x="583" y="66" text-anchor="middle">flip `current`</text><text class="a-dim" x="583" y="84" text-anchor="middle">atomic rename</text></g>
+  <g class="a-bar on"><line x1="647" y1="40" x2="647" y2="98"/></g>
+  <g class="a-step cs6"><rect class="a-box" x="652" y="44" width="118" height="50" rx="6"/><text class="a-text" x="711" y="66" text-anchor="middle">cleanup</text><text class="a-dim" x="711" y="84" text-anchor="middle">hooks after</text></g>
+
+  <g class="a-crash crA"><polyline points="327,6 321,22 331,22 325,40" /><text x="327" y="114" text-anchor="middle">A · crash while writing</text></g>
+  <g class="a-crash crB"><polyline points="647,6 641,22 651,22 645,40" /><text x="647" y="114" text-anchor="middle">B · crash after the flip</text></g>
+
+  <g class="a-step rec"><rect class="a-box" x="12" y="150" width="236" height="50" rx="6"/><text class="a-text" x="130" y="172" text-anchor="middle">recover</text><text class="a-dim" x="130" y="190" text-anchor="middle">next command reads the journal first</text></g>
+  <line class="a-link" x1="248" y1="175" x2="262" y2="175"/>
+  <g class="a-step cls"><rect class="a-box a-proved" x="262" y="150" width="226" height="50" rx="6"/><text class="a-text" x="375" y="172" text-anchor="middle">classify(current, prev, target)</text><text class="a-dim" x="375" y="190" text-anchor="middle">proved in Lean · 0.52</text></g>
+  <line class="a-link" x1="488" y1="175" x2="496" y2="165"/>
+  <line class="a-link" x1="488" y1="175" x2="496" y2="205"/>
+  <line class="a-link" x1="488" y1="175" x2="496" y2="245"/>
+  <g class="a-chip vU"><rect x="498" y="150" width="120" height="30" rx="4"/><text x="558" y="170" text-anchor="middle">Uncommitted</text></g>
+  <g class="a-out oU"><text class="a-text" x="626" y="164">current = previous</text><text class="a-dim" x="626" y="178">restore prior bytes</text></g>
+  <g class="a-chip vC"><rect x="498" y="190" width="120" height="30" rx="4"/><text x="558" y="210" text-anchor="middle">Committed</text></g>
+  <g class="a-out oC"><text class="a-text" x="626" y="204">current = target</text><text class="a-dim" x="626" y="218">finish activation</text></g>
+  <g class="a-chip vA"><rect x="498" y="230" width="120" height="30" rx="4"/><text x="558" y="250" text-anchor="middle">Ambiguous</text></g>
+  <g class="a-out"><text class="a-text" x="626" y="244">neither</text><text class="a-dim" x="626" y="258">stop and report</text></g>
+
+  <g class="a-done dA"><rect class="a-okbox" x="12" y="276" width="368" height="34" rx="6"/><text x="196" y="298" text-anchor="middle">A → consistent: prior or your own bytes</text></g>
+  <g class="a-done dB"><rect class="a-okbox" x="396" y="276" width="374" height="34" rx="6"/><text x="583" y="298" text-anchor="middle">B → consistent: the new generation stands</text></g>
+</svg>
+<figcaption>A crash can land anywhere. Recovery classifies first, then restores prior bytes or finishes activation; when it cannot tell, it stops instead of guessing.</figcaption>
+</figure>
 
 <p>The next <code>grip</code> command recovers before it does anything else. It compares the <code>current</code> pointer with the previous and target generation recorded for the interrupted transaction:</p>
 <ul>
@@ -103,7 +157,37 @@
 <p>Either way each destination ends up holding its prior bytes, its intended bytes, or something gripsack did not write. Recovery covers file bytes, Unix modes and symlink targets, not mtimes, ownership or extended attributes. A file you changed while the transaction was interrupted is preserved, not replaced with the snapshot.</p>
 <p>Do not delete journals, manifests or managed files to "unstick" a refusal; the <a href="../docs/runs.html">run log</a> says what recovery found.</p>
 <h2 id="ownership-and-drift">Ownership and drift</h2>
-<figure class="diagram tall"><a href="../assets/diagrams/ownership.svg"><img src="../assets/diagrams/ownership.svg" alt="Decision tree: for a destination, if nothing is live gripsack writes; if the last file gripsack wrote is live it updates; if gripsack&#x27;s file changed since it preserves the drift; if a file gripsack never wrote is live it refuses unless --take-over adopts it. Three ownership modes: symlinkTo, trackedCopyTo, managedBlock." loading="lazy"></a><figcaption>Every destination is decided on its own.</figcaption></figure>
+<figure class="anim a-own" role="img" aria-label="One destination, four possible live states, each re-checked at write time. Nothing there: gripsack writes it. The file gripsack wrote last time: gripsack updates it. Gripsack's file edited by you since: gripsack preserves your edit and skips it, in apply and in rollback. A file gripsack never wrote: gripsack refuses, unless you pass --take-over, which journals the prior bytes and adopts it.">
+<svg viewBox="0 0 780 300" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+  <text class="a-head" x="12" y="22">what is live at ~/.config/editor/config.toml?</text>
+  <text class="a-head" x="768" y="22" text-anchor="end">what gripsack does</text>
+  <rect class="a-band" x="300" y="34" width="180" height="258" rx="8"/>
+  <text class="a-dim" x="390" y="54" text-anchor="middle">re-checked at write time,</text>
+  <text class="a-dim" x="390" y="70" text-anchor="middle">not only at plan time</text>
+
+  <g class="a-row r1">
+    <rect class="a-box" x="12" y="84" width="276" height="44" rx="6"/><text class="a-text" x="24" y="111">nothing there</text>
+    <line class="a-arrow" x1="288" y1="106" x2="500" y2="106"/><circle class="a-token o-token" cx="300" cy="106" r="5"/>
+    <rect class="a-okbox" x="506" y="84" width="262" height="44" rx="6"/><text class="a-ok" x="518" y="111">write it</text>
+  </g>
+  <g class="a-row r2">
+    <rect class="a-box" x="12" y="138" width="276" height="44" rx="6"/><text class="a-text" x="24" y="165">what gripsack wrote last time</text>
+    <line class="a-arrow" x1="288" y1="160" x2="500" y2="160"/><circle class="a-token o-token" cx="300" cy="160" r="5"/>
+    <rect class="a-okbox" x="506" y="138" width="262" height="44" rx="6"/><text class="a-ok" x="518" y="165">update it</text>
+  </g>
+  <g class="a-row r3">
+    <rect class="a-box" x="12" y="192" width="276" height="44" rx="6"/><text class="a-text" x="24" y="211">gripsack's file, edited by you</text><text class="a-dim" x="24" y="227">drift</text>
+    <line class="a-arrow" x1="288" y1="214" x2="500" y2="214"/><circle class="a-token o-token" cx="300" cy="214" r="5"/>
+    <rect class="a-keepbox" x="506" y="192" width="262" height="44" rx="6"/><text class="a-ok" x="518" y="211">preserve your edit; skip</text><text class="a-dim" x="518" y="227">in apply and in rollback</text>
+  </g>
+  <g class="a-row r4">
+    <rect class="a-box" x="12" y="246" width="276" height="44" rx="6"/><text class="a-text" x="24" y="265">a file gripsack never wrote</text><text class="a-dim" x="24" y="281">foreign</text>
+    <line class="a-arrow" x1="288" y1="268" x2="500" y2="268"/><circle class="a-token o-token" cx="300" cy="268" r="5"/>
+    <rect class="a-stopbox" x="506" y="246" width="262" height="44" rx="6"/><text class="a-ok" x="518" y="265">refuse — the plan tells you</text><text class="a-dim" x="518" y="281">--take-over adopts it (prior journaled)</text>
+  </g>
+</svg>
+<figcaption>Every destination is decided on its own, and decided again at write time. Only two of the four cases ever change the file.</figcaption>
+</figure>
 
 <p>Every destination has an owner. Gripsack writes only when the destination is absent, or holds exactly what gripsack wrote last time. Two other cases are decided conservatively:</p>
 <ul>
