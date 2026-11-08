@@ -6,7 +6,7 @@ Gripsack changes files you care about. This page says exactly what protects them
 
 The code is arranged in rings. The center holds pure decisions over typed data with no IO at all. Each ring outward holds less trusted code and is checked in a cheaper way, and it trusts only the rings inside it. Code moves *inward* to gain a guarantee; nothing is modelled on the outside.
 
-{diagram:rings|Nested rings: Product, Edge, Host, Protocol and Kernel. The kernel's proved decisions flow to a Lean proof project over the shipped Rust; the host's storage assumptions point to the unproved world.|The rings as of 0.52. Purple is proved, red is the next proof target, the rest is tested.}
+{anim:rings}
 
 | Ring | What lives there | How it is checked |
 |---|---|---|

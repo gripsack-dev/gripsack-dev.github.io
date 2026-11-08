@@ -75,6 +75,8 @@ def asset_version() -> str:
         h = hashlib.sha1()
         for name in ("site.css", "syntax.js", "site.js"):
             h.update((ROOT / "website" / "assets" / name).read_bytes())
+        for path in sorted((ROOT / "website" / "anim").glob("*.html")):
+            h.update(path.read_bytes())
         _ASSET_VERSION = h.hexdigest()[:8]
     return _ASSET_VERSION
 
@@ -119,6 +121,19 @@ NAV_GROUPS: list[tuple[str, list[str]]] = [
 # `docker compose run --build --rm diagram`), copied here as static SVG.
 DIAGRAMS = ROOT / "website" / "assets" / "diagrams"
 DIAGRAM_RE = re.compile(r"^\{diagram:([a-z0-9-]+)\|([^|}]+)(?:\|([^|}]+))?(?:\|(tall))?\}$", re.M)
+
+
+# Inline CSS-animated figures (website/anim/*.html): inline SVG that
+# inherits the palette, animated only under prefers-reduced-motion:
+# no-preference, with the same story in its aria-label and caption.
+ANIM = ROOT / "website" / "anim"
+ANIM_RE = re.compile(r"^\{anim:([a-z-]+)\}$", re.M)
+
+
+def anim_figure(m: re.Match) -> str:
+    path = ANIM / f"{m.group(1)}.html"
+    assert path.is_file(), f"missing animation {path.name}"
+    return path.read_text().strip()
 
 
 def diagram_figure(m: re.Match, root: str) -> str:
@@ -308,6 +323,7 @@ def build_docs() -> None:
         text = text.replace("{release_source}", RELEASE["source"]["commit"])
         text = text.replace("{core_version}", site_version())
         text = DIAGRAM_RE.sub(lambda m: diagram_figure(m, root), text)
+        text = ANIM_RE.sub(anim_figure, text)
         body = markdown.markdown(
             text, extensions=["fenced_code", "tables", "toc", "sane_lists"]
         )
@@ -333,6 +349,7 @@ def assemble() -> None:
     index = index.replace("{release_source}", RELEASE["source"]["commit"])
     index = index.replace("<!--PALETTES-->", palette_picker())
     index = DIAGRAM_RE.sub(lambda m: diagram_figure(m, "./"), index)
+    index = ANIM_RE.sub(anim_figure, index)
     index = index.replace("./assets/site.css", f"./assets/site.css?v={asset_version()}")
     index = index.replace("./assets/site.js", f"./assets/site.js?v={asset_version()}")
     index = index.replace("./assets/syntax.js", f"./assets/syntax.js?v={asset_version()}")
@@ -346,8 +363,6 @@ def assemble() -> None:
         shutil.copy(ROOT / "website" / "assets" / name, OUT / "assets" / name)
     shutil.copy(ROOT / "doc" / "logo.svg", OUT / "assets" / "logo.svg")
     shutil.copytree(DIAGRAMS, OUT / "assets" / "diagrams")
-    (OUT / "img").mkdir(exist_ok=True)
-    shutil.copy(ROOT / "img" / "demo-rollback.gif", OUT / "img" / "demo-rollback.gif")
     # Independently supported griplint distribution endpoints stay outside
     # product navigation; /packages also serves clients that block /simple.
     if (ROOT / "simple").exists():
