@@ -15,9 +15,9 @@
 <meta property="og:image:alt" content="gripsack — a traveler's satchel holding a config file and a terminal chip, beside the tagline 'Your environment, in one workspace.'">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
-<link rel="stylesheet" href="../assets/site.css?v=0419e0ac">
-<script src="../assets/syntax.js?v=0419e0ac" data-manual defer></script>
-<script src="../assets/site.js?v=0419e0ac" defer></script>
+<link rel="stylesheet" href="../assets/site.css?v=5dc94c7b">
+<script src="../assets/syntax.js?v=5dc94c7b" data-manual defer></script>
+<script src="../assets/site.js?v=5dc94c7b" defer></script>
 </head>
 <body class="docs">
 <a class="skip-link" href="#main">Skip to content</a>
@@ -29,34 +29,41 @@
   <details class="docs-menu" open>
   <summary>Documentation <span aria-hidden="true">↕</span></summary>
   <nav aria-label="Documentation">
-    <a class="" href="../index.html">home</a>
+    <span class="rail-group">Home</span>
+    <a class="" href="../index.html">overview</a>
+    <span class="rail-group">Start</span>
     <a class="" href="../docs/install.html">install</a>
-    <a class="" href="../docs/workspaces.html">workspaces</a>
+    <a class="" href="../docs/workspaces.html">your first workspace</a>
+    <span class="rail-group">Declare</span>
     <a class="" href="../docs/packages.html">packages</a>
     <a class="" href="../docs/environments.html">environments</a>
     <a class="" href="../docs/adopting.html">profiles &amp; dotfiles</a>
     <a class="" href="../docs/services.html">Docker services</a>
-    <a class="" href="../docs/review.html">review &amp; saved plans</a>
-    <a class="" href="../docs/sharing.html">native artifact sharing</a>
-    <a class="" href="../docs/schedules.html">scheduled tasks</a>
     <a class="" href="../docs/tasks.html">tasks &amp; checks</a>
+    <a class="" href="../docs/schedules.html">scheduled tasks</a>
     <a class="" href="../docs/fetchers.html">sources &amp; locks</a>
-    <a class="" href="../docs/safety.html">safety &amp; recovery</a>
+    <span class="rail-group">Operate</span>
+    <a class="" href="../docs/review.html">review &amp; saved plans</a>
+    <a class="" href="../docs/sharing.html">sharing packages</a>
     <a class="" href="../docs/settings.html">settings</a>
     <a class="child" href="../docs/settings/reference.html">↳ settings reference</a>
     <a class="" href="../docs/runs.html">run logs</a>
-    <a class="" href="../docs/skills.html">agent guidance</a>
+    <a class="" href="../docs/skills.html">agent skills</a>
+    <span class="rail-group">Trust</span>
+    <a class="" href="../docs/guarantees.html">how it stays safe</a>
+    <a class="" href="../docs/safety.html">safety &amp; recovery</a>
+    <a class="" href="../docs/architecture.html">how it works</a>
+    <span class="rail-group">About</span>
     <a class="active" aria-current="page" href="../docs/compare.html">where it fits</a>
-    <a class="" href="../docs/architecture.html">architecture</a>
     <a class="" href="../docs/changelog.html">what&#x27;s new</a>
     <a class="gh" href="https://github.com/gripsack-dev/gripsack">github ↗</a>
   </nav>
   </details>
   <span class="rail-head">on this page</span>
   <div class="rail-toc">
-    <a href="#choose-the-scope-you-need">Choose the scope you need</a>
-    <a href="#when-gripsack-is-useful">When gripsack is useful</a>
-    <a href="#deliberate-boundaries">Deliberate boundaries</a>
+    <a href="#next-to-other-tools">Next to other tools</a>
+    <a href="#when-it-is-a-good-fit">When it is a good fit</a>
+    <a href="#boundaries">Boundaries</a>
   </div>
 
   <label class="palette-picker" hidden><span>Palette</span><select data-palette-select aria-label="Site palette"><option value="paper">Paper</option><option value="paper-dark">Paper Dark</option><option value="catppuccin-mocha">Catppuccin Mocha</option><option value="tokyo-night">Tokyo Night</option><option value="gruvbox-dark">Gruvbox Dark</option><option value="nord">Nord</option><option value="dracula">Dracula</option><option value="one-dark">One Dark</option><option value="solarized-dark">Solarized Dark</option><option value="catppuccin-latte">Catppuccin Latte</option><option value="github-light">Github Light</option><option value="one-light">One Light</option><option value="solarized-light">Solarized Light</option></select></label>
@@ -65,62 +72,55 @@
 <p class="doc-eyebrow">Gripsack / documentation</p>
 <article class="md">
 <h1 id="where-gripsack-fits">Where gripsack fits</h1>
-<p>Gripsack manages user-space tools, project environments and personal configuration. It is not an operating-system package manager. Keep apt or another system manager for the OS; select the packages and files you want in a workspace.</p>
-<h2 id="choose-the-scope-you-need">Choose the scope you need</h2>
+<p>Gripsack manages the user-space layer: tools, project environments, personal configuration and the project services next to them. It is not an operating-system package manager. Keep apt or your distribution for the OS and put the pieces you want reviewed and reversible in a workspace.</p>
+<h2 id="next-to-other-tools">Next to other tools</h2>
 <table>
 <thead>
 <tr>
 <th>Tool</th>
-<th>Typical focus</th>
-<th>Why choose it</th>
+<th>Focus</th>
+<th>Compared with gripsack</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>gripsack</td>
-<td>Typed native packages, environments, personal profiles, tasks and Docker Engine services</td>
-<td>One workspace graph with explicit source review, file ownership and retained generations</td>
-</tr>
-<tr>
 <td>Nix + Home Manager</td>
-<td>Declarative package graphs and home configuration in the Nix ecosystem</td>
-<td>Broad package ecosystem and established derivation/configuration workflows</td>
+<td>Declarative packages and home configuration in the Nix ecosystem</td>
+<td>Much larger package ecosystem and its own language. Gripsack is one static binary, TypeScript, and takes packages from upstream archives and Conda instead of a derivation set</td>
 </tr>
 <tr>
 <td>chezmoi</td>
-<td>Personal configuration source state and templates</td>
-<td>Focused dotfile management with rich templating</td>
+<td>Dotfiles with templates</td>
+<td>Deeper templating. Gripsack adds per-file ownership modes, drift detection, generations and rollback, and manages tools and services with the same file</td>
 </tr>
 <tr>
 <td>GNU Stow</td>
-<td>Symlink trees</td>
-<td>Small, direct link management without a package producer graph</td>
-</tr>
-<tr>
-<td>apt / other OS managers</td>
-<td>Distribution packages and system integration</td>
-<td>Operating-system dependency and installation policy</td>
+<td>Symlink farms</td>
+<td>Smaller and simpler. Gripsack's <code>symlinkTo</code> is the equivalent; tracked copies and managed blocks cover files that symlinks cannot</td>
 </tr>
 <tr>
 <td>mise</td>
-<td>Developer tool versions, environments and tasks</td>
-<td>Its tool ecosystem and project task workflow</td>
+<td>Developer tool versions and tasks</td>
+<td>Focused on language runtimes. Gripsack pins arbitrary archives and Conda solves, deploys launchers through generations, and adds services and schedules</td>
+</tr>
+<tr>
+<td>apt / dnf / pacman</td>
+<td>Distribution packages</td>
+<td>The OS layer. Gripsack deliberately stays out of it</td>
 </tr>
 </tbody>
 </table>
-<p>These are scope comparisons, not a claim that other tools cannot be extended or combined.</p>
-<h2 id="when-gripsack-is-useful">When gripsack is useful</h2>
+<p>These are scope comparisons; the tools combine fine.</p>
+<h2 id="when-it-is-a-good-fit">When it is a good fit</h2>
 <ul>
-<li>You want tools from release archives, captured source or a coherent Conda solve without global user-space installs.</li>
-<li>You want a project environment and a personal command launcher to select the same packages.</li>
-<li>You want an explicit, digest-pinned local database alongside native project tools.</li>
-<li>You want copied configuration with drift guards, store-owned links or small managed blocks rather than one ownership policy for every file.</li>
-<li>You want manual tasks and lifecycle checks to be named, inspectable outputs.</li>
+<li>You want tools from release archives or a coherent Conda solve without installing into a global prefix, and the same tools for project commands and personal launchers.</li>
+<li>You want dotfiles deployed with a plan you can read first, your local edits preserved, and a one-command way back.</li>
+<li>You want a project database pinned by digest on a loopback port, next to the native tools, without running a daemon.</li>
+<li>You want named tasks, pre-deployment checks and calendar schedules to be declarations you can review rather than scripts you remember.</li>
+<li>You care whether the safety claims are checked. The <a href="../docs/guarantees.html">core decisions are proved</a>, and the page says what is not.</li>
 </ul>
-<p>Start with a <a href="../docs/workspaces.html">file-only workspace</a>, a <a href="../docs/packages.html">native package</a> or <a href="../docs/services.html">PostgreSQL service</a>.</p>
-<h2 id="deliberate-boundaries">Deliberate boundaries</h2>
-<p>Current host support is Linux x86_64 and WSL2. Container services need Docker Engine; native file profiles do not. Scheduled tasks require explicit profile application and a supported user service manager. Native artifact sharing is not automatic registry deployment or container-image building.</p>
-<p>Generations and journals protect managed state, not every effect on the machine. Tracked-copy drift is preserved by default; arbitrary tasks, services and hooks are not automatically reversible. Alpha software still needs independent backups and actual consumer checks. See <a href="../docs/safety.html">safety and recovery</a> and <a href="../docs/install.html">installation</a>.</p>
+<h2 id="boundaries">Boundaries</h2>
+<p>Linux x86_64 and WSL2 only. Container services need Docker Engine; schedules need a systemd user session; file-only profiles need neither. Generations protect managed files and launchers, not database contents, task effects or hook side effects. Alpha software: keep independent backups. See <a href="../docs/safety.html">safety and recovery</a> and <a href="../docs/install.html">installation</a>.</p>
 </article>
 <footer>
   <span>© 2026 <a href="https://github.com/tknawara">Tarek Nawara</a></span>
@@ -128,7 +128,7 @@
   <a href="https://github.com/gripsack-dev">gripsack-dev</a>
   <a href="https://github.com/gripsack-dev/gripsack">source</a>
   <a href="../index.html">home</a>
-  <span class="fversion">v0.51.0</span>
+  <span class="fversion">v0.52.0</span>
 </footer>
 </main>
 </div>

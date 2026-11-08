@@ -15,9 +15,9 @@
 <meta property="og:image:alt" content="gripsack — a traveler's satchel holding a config file and a terminal chip, beside the tagline 'Your environment, in one workspace.'">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
-<link rel="stylesheet" href="../assets/site.css?v=0419e0ac">
-<script src="../assets/syntax.js?v=0419e0ac" data-manual defer></script>
-<script src="../assets/site.js?v=0419e0ac" defer></script>
+<link rel="stylesheet" href="../assets/site.css?v=5dc94c7b">
+<script src="../assets/syntax.js?v=5dc94c7b" data-manual defer></script>
+<script src="../assets/site.js?v=5dc94c7b" defer></script>
 </head>
 <body class="docs">
 <a class="skip-link" href="#main">Skip to content</a>
@@ -29,25 +29,32 @@
   <details class="docs-menu" open>
   <summary>Documentation <span aria-hidden="true">↕</span></summary>
   <nav aria-label="Documentation">
-    <a class="" href="../index.html">home</a>
+    <span class="rail-group">Home</span>
+    <a class="" href="../index.html">overview</a>
+    <span class="rail-group">Start</span>
     <a class="" href="../docs/install.html">install</a>
-    <a class="" href="../docs/workspaces.html">workspaces</a>
+    <a class="" href="../docs/workspaces.html">your first workspace</a>
+    <span class="rail-group">Declare</span>
     <a class="" href="../docs/packages.html">packages</a>
     <a class="" href="../docs/environments.html">environments</a>
     <a class="" href="../docs/adopting.html">profiles &amp; dotfiles</a>
     <a class="" href="../docs/services.html">Docker services</a>
-    <a class="" href="../docs/review.html">review &amp; saved plans</a>
-    <a class="" href="../docs/sharing.html">native artifact sharing</a>
-    <a class="active" aria-current="page" href="../docs/schedules.html">scheduled tasks</a>
     <a class="" href="../docs/tasks.html">tasks &amp; checks</a>
+    <a class="active" aria-current="page" href="../docs/schedules.html">scheduled tasks</a>
     <a class="" href="../docs/fetchers.html">sources &amp; locks</a>
-    <a class="" href="../docs/safety.html">safety &amp; recovery</a>
+    <span class="rail-group">Operate</span>
+    <a class="" href="../docs/review.html">review &amp; saved plans</a>
+    <a class="" href="../docs/sharing.html">sharing packages</a>
     <a class="" href="../docs/settings.html">settings</a>
     <a class="child" href="../docs/settings/reference.html">↳ settings reference</a>
     <a class="" href="../docs/runs.html">run logs</a>
-    <a class="" href="../docs/skills.html">agent guidance</a>
+    <a class="" href="../docs/skills.html">agent skills</a>
+    <span class="rail-group">Trust</span>
+    <a class="" href="../docs/guarantees.html">how it stays safe</a>
+    <a class="" href="../docs/safety.html">safety &amp; recovery</a>
+    <a class="" href="../docs/architecture.html">how it works</a>
+    <span class="rail-group">About</span>
     <a class="" href="../docs/compare.html">where it fits</a>
-    <a class="" href="../docs/architecture.html">architecture</a>
     <a class="" href="../docs/changelog.html">what&#x27;s new</a>
     <a class="gh" href="https://github.com/gripsack-dev/gripsack">github ↗</a>
   </nav>
@@ -71,7 +78,7 @@
 <p>Use the Linux x86_64 static release binary and a reachable supported systemd 255 user manager. WSL2 must have a usable systemd user session; merely being WSL2 is not enough. Check capability before applying:</p>
 <pre><code class="language-sh">grip jobs capability
 </code></pre>
-<p>The runner is retained with the captured registration. There is no root-service or linger fallback. Unsupported or unreachable managers fail closed. These prerequisites describe the implementation contract, not a claim that every host has been qualified.</p>
+<p>The runner is retained with the registration. There is no root-service or linger fallback; an unsupported or unreachable manager fails closed.</p>
 <h2 id="register-the-same-task-you-run-manually">Register the same task you run manually</h2>
 <p>Start from the complete Bash <code>gripsack.ts</code> in <a href="../docs/tasks.html#literal-bash-bodies">tasks</a>. Add <code>daily</code>, <code>schedule</code> and <code>profile</code> to its imports, then add these declarations before its export:</p>
 <pre><code class="language-typescript">const nightly = schedule(&quot;nightly&quot;, { task: &quot;greet&quot;, trigger: daily(&quot;03:30&quot;) });
@@ -100,7 +107,7 @@ grip jobs disable &quot;$job&quot;
 <p>Remove the schedule from the profile's selection and apply the profile to remove registration. Profile rollback restores the retained registration capture, not effects from previous task runs. Update source or pins and explicitly apply again to replace the registered capture; timers do not evaluate current TypeScript at firing time.</p>
 <h2 id="execution-boundaries">Execution boundaries</h2>
 <p>Scheduled invocation uses closed stdin, bounded logs and a 1,800-second runtime limit. Timers use <code>Persistent=false</code> with native missed-event behavior, not promised catch-up delivery. Stale callbacks are refused; already-admitted old invocations may finish. Read logs as private application output. Retain independent backups and do not assume task side effects are reversible.</p>
-<p>Tasks requiring <a href="../docs/services.html">services</a> still require already-healthy services. Scheduling does not start Docker containers implicitly. The <a href="https://github.com/gripsack-dev/gripsack/tree/3332429b2b92392e267c1df28f673fa798d43a02/examples/workspaces/04-scheduled-task">complete captured scheduled-task example</a> shows a package-command task and store lock.</p>
+<p>Tasks requiring <a href="../docs/services.html">services</a> still require already-healthy services. Scheduling does not start Docker containers implicitly. The <a href="https://github.com/gripsack-dev/gripsack/tree/328f77cdb308a27165e80cbcab3ce460648e0723/examples/workspaces/04-scheduled-task">complete captured scheduled-task example</a> shows a package-command task and store lock.</p>
 </article>
 <footer>
   <span>© 2026 <a href="https://github.com/tknawara">Tarek Nawara</a></span>
@@ -108,7 +115,7 @@ grip jobs disable &quot;$job&quot;
   <a href="https://github.com/gripsack-dev">gripsack-dev</a>
   <a href="https://github.com/gripsack-dev/gripsack">source</a>
   <a href="../index.html">home</a>
-  <span class="fversion">v0.51.0</span>
+  <span class="fversion">v0.52.0</span>
 </footer>
 </main>
 </div>

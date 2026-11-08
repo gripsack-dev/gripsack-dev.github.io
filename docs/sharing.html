@@ -3,9 +3,9 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>gripsack — native artifact sharing</title>
+<title>gripsack — sharing packages</title>
 <meta name="description" content="Declare native packages, environments, dotfiles and tasks in one workspace. Manage explicit Docker Engine services and review changes before applying.">
-<meta property="og:title" content="gripsack — native artifact sharing">
+<meta property="og:title" content="gripsack — sharing packages">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://gripsack.dev/docs/sharing.html">
 <meta property="og:description" content="Declare native packages, environments, dotfiles and tasks in one workspace. Manage explicit Docker Engine services and review changes before applying.">
@@ -15,9 +15,9 @@
 <meta property="og:image:alt" content="gripsack — a traveler's satchel holding a config file and a terminal chip, beside the tagline 'Your environment, in one workspace.'">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
-<link rel="stylesheet" href="../assets/site.css?v=0419e0ac">
-<script src="../assets/syntax.js?v=0419e0ac" data-manual defer></script>
-<script src="../assets/site.js?v=0419e0ac" defer></script>
+<link rel="stylesheet" href="../assets/site.css?v=5dc94c7b">
+<script src="../assets/syntax.js?v=5dc94c7b" data-manual defer></script>
+<script src="../assets/site.js?v=5dc94c7b" defer></script>
 </head>
 <body class="docs">
 <a class="skip-link" href="#main">Skip to content</a>
@@ -29,25 +29,32 @@
   <details class="docs-menu" open>
   <summary>Documentation <span aria-hidden="true">↕</span></summary>
   <nav aria-label="Documentation">
-    <a class="" href="../index.html">home</a>
+    <span class="rail-group">Home</span>
+    <a class="" href="../index.html">overview</a>
+    <span class="rail-group">Start</span>
     <a class="" href="../docs/install.html">install</a>
-    <a class="" href="../docs/workspaces.html">workspaces</a>
+    <a class="" href="../docs/workspaces.html">your first workspace</a>
+    <span class="rail-group">Declare</span>
     <a class="" href="../docs/packages.html">packages</a>
     <a class="" href="../docs/environments.html">environments</a>
     <a class="" href="../docs/adopting.html">profiles &amp; dotfiles</a>
     <a class="" href="../docs/services.html">Docker services</a>
-    <a class="" href="../docs/review.html">review &amp; saved plans</a>
-    <a class="active" aria-current="page" href="../docs/sharing.html">native artifact sharing</a>
-    <a class="" href="../docs/schedules.html">scheduled tasks</a>
     <a class="" href="../docs/tasks.html">tasks &amp; checks</a>
+    <a class="" href="../docs/schedules.html">scheduled tasks</a>
     <a class="" href="../docs/fetchers.html">sources &amp; locks</a>
-    <a class="" href="../docs/safety.html">safety &amp; recovery</a>
+    <span class="rail-group">Operate</span>
+    <a class="" href="../docs/review.html">review &amp; saved plans</a>
+    <a class="active" aria-current="page" href="../docs/sharing.html">sharing packages</a>
     <a class="" href="../docs/settings.html">settings</a>
     <a class="child" href="../docs/settings/reference.html">↳ settings reference</a>
     <a class="" href="../docs/runs.html">run logs</a>
-    <a class="" href="../docs/skills.html">agent guidance</a>
+    <a class="" href="../docs/skills.html">agent skills</a>
+    <span class="rail-group">Trust</span>
+    <a class="" href="../docs/guarantees.html">how it stays safe</a>
+    <a class="" href="../docs/safety.html">safety &amp; recovery</a>
+    <a class="" href="../docs/architecture.html">how it works</a>
+    <span class="rail-group">About</span>
     <a class="" href="../docs/compare.html">where it fits</a>
-    <a class="" href="../docs/architecture.html">architecture</a>
     <a class="" href="../docs/changelog.html">what&#x27;s new</a>
     <a class="gh" href="https://github.com/gripsack-dev/gripsack">github ↗</a>
   </nav>
@@ -68,8 +75,8 @@
 <main class="content" id="main" tabindex="-1">
 <p class="doc-eyebrow">Gripsack / documentation</p>
 <article class="md">
-<h1 id="native-artifact-sharing">Native artifact sharing</h1>
-<p><code>grip package</code> transfers passive Linux x86_64 artifacts. Import does not evaluate TypeScript, install tasks or schedules, run publisher checks or activate a profile. A signature authenticates an authorized publisher's claim; it does not prove the program is safe or universally relocatable.</p>
+<h1 id="sharing-packages">Sharing packages</h1>
+<p><code>grip package</code> moves a signed bundle of retained package content to another machine, directly or through an OCI registry. Importing a bundle evaluates no TypeScript, installs no task or schedule and activates no profile: the recipient's own workspace decides what to expose. A signature says who published the bytes, not that the program is safe.</p>
 <h2 id="prepare-a-native-bundle">Prepare a native bundle</h2>
 <p>This minimal example deliberately depends on the receiving host's <code>/bin/sh</code>. Create <code>input/components/app/bin/hello</code>:</p>
 <pre><code class="language-sh">#!/bin/sh
@@ -142,21 +149,21 @@ grip package pull --digest &quot;$transport_digest&quot; \
   --registry &quot;$registry&quot; --repository &quot;$repository&quot;
 </code></pre>
 <p>Push publishes blobs before the OCI artifact manifest. Pull is digest-only; a mutable tag is discovery, not a frozen selection. Registry authentication is explicit through <code>--bearer-token-file</code> or <code>--basic-credentials-file</code> (private mode <code>0600</code> JSON containing <code>username</code> and <code>password</code>). HTTPS uses rustls. There is no redirect, implicit authentication-challenge discovery, retry or fallback. Anonymous local test registries require explicit <code>--insecure-loopback</code> for HTTP.</p>
-<p>This OCI artifact is <strong>not a runnable container image</strong> and needs no Docker Engine or BuildKit worker. <a href="../docs/services.html">Services</a> separately run existing Docker images. The <a href="../docs/builds.html">source builder</a> is retired. Relocation is a declared runtime contract, not general embedded-prefix rewriting; validate actual recipient execution and host requirements before relying on a shared package.</p>
+<p>This OCI artifact is <strong>not a runnable container image</strong> and needs no Docker Engine or BuildKit worker. <a href="../docs/services.html">Services</a> separately run existing Docker images. Relocation is a declared runtime contract, not general embedded-prefix rewriting; run the shared package on the receiving host before relying on it.</p>
 <h2 id="targets-and-independent-dependencies">Targets and independent dependencies</h2>
-<p>Targets contain admitted OS, architecture, minimum kernel, CPU and ABI requirements, not free-form compatibility claims. A glibc target uses <code>abi: { "kind": "glibc", "minimum": "2.28" }</code>; the Linux ABI target above does not grant arbitrary host libraries. Import and managed consumption measure the actual receiving host. The example's <code>/bin/sh</code> prerequisite still needs separate operator qualification.</p>
+<p>Targets state OS, architecture, minimum kernel, CPU and ABI requirements that are checked on the receiving host, not free-form compatibility prose. A glibc target uses <code>abi: { "kind": "glibc", "minimum": "2.28" }</code>; the Linux ABI target above does not grant arbitrary host libraries. Import and managed consumption measure the actual receiving host. The example's <code>/bin/sh</code> prerequisite still needs separate operator qualification.</p>
 <p>A component can instead reference an already-imported independently signed package through <code>external: { manifest, namespace, publisher }</code>, with null local payload/tree/Conda fields. Packing includes the complete signed dependency closure. Every independent manifest needs its own namespace-scoped publisher authorization; the root signature cannot authorize another publisher. Independent manifest references must form an acyclic graph. Missing metadata or payloads fail offline without registry fallback. A relocatable aggregate cannot embed Conda or fixed prefixes and relabel them relocatable.</p>
 <h2 id="passive-mixed-environments">Passive mixed environments</h2>
 <p>The signed <code>layout: { "kind": "environment" }</code> selects ordered native, Conda archive-set and independent package roots. Its <code>commands</code> map binds exported names to component-relative executables and fixed arguments. It does not copy a producer's installed prefix.</p>
 <p>Environment values use typed literal or artifact bindings, such as <code>{ "kind": "literal", "value": "development" }</code> or <code>{ "kind": "artifact", "output": "python", "selector": "." }</code>. Artifact selectors resolve against the recipient's admitted component. Host paths, repository inputs, command/effect references and reserved loader/interpreter/shell-control variables are rejected; command PATH comes from selected typed commands.</p>
 <p>For an imported environment, select <code>source.package({ manifest: digest })</code> with package <code>layout: { kind: "prefix_materialized" }</code> and command paths <code>bin/&lt;exported-name&gt;</code>. This differs from the relocatable tree example's <code>components/app/bin/hello</code> path. Recipient-owned declarations grant exposure and invocation; passive import sets no shell variables, runs nothing and activates no profile.</p>
 <h2 id="conda-and-wheel-reconstruction">Conda and wheel reconstruction</h2>
-<p>Conda sharing transfers a single archive-set component with the admitted lock, original archives, core-approved pinned helper and required signed/pinned redistribution notices, not a copied installed prefix. Import reconstructs at the recipient's actual final prefix and records that realization separately. Missing originals or helper fail offline without solving, repodata access or a network fallback.</p>
+<p>Conda sharing transfers the lock, the original archives, the pinned helper and the required redistribution notices, not a copied installed prefix. Import reconstructs at the recipient's actual final prefix and records that realization separately. Missing originals or helper fail offline without solving, repodata access or a network fallback.</p>
 <p>GNU-linked Python/Conda tools declare a glibc target, for example <code>abi: { "kind": "glibc", "minimum": "2.28" }</code>, matching the environment's explicit baseline. A kernel-only Linux target does not authorize a host GNU loader. Mixed environments preserve that requirement for local and independently signed members.</p>
 <p>Binary prefix replacement is limited by the placeholders in the original Conda archives. An excessively long final store prefix is rejected, not truncated or silently redirected. Use a shorter <code>GRIPSACK_HOME</code> when necessary; arbitrary prefix lengths are not a relocation guarantee.</p>
 <p>Supported explicitly hash-pinned wheels can accompany the Conda environment, including supported wheel records selected from an imported Pixi lock. The maintained UV installer runs offline inside the core-pinned helper; core validation binds installed bytes, generated console entrypoints and receipts to original wheels and the final prefix. This does not run pip, resolve missing Python dependencies, compile bytecode or execute package-provided installers. See <a href="../docs/environments.html#hash-pinned-python-wheels">wheel authoring and limits</a>.</p>
-<p>Unsupported selected Pixi build/resolution policies or wheel records are errors, not silently omitted packages. Runtime compatibility and actual consumer behavior still require recipient qualification; this guide does not claim a completed offline reconstruction test.</p>
-<p>The <a href="https://github.com/gripsack-dev/gripsack/blob/3332429b2b92392e267c1df28f673fa798d43a02/README.md#share-native-packages-without-activating-profiles">selected core sharing reference</a>, <a href="https://github.com/gripsack-dev/gripsack/blob/3332429b2b92392e267c1df28f673fa798d43a02/e2e/test_package_sharing.py">package-sharing fixture</a> and <a href="https://github.com/gripsack-dev/gripsack/blob/3332429b2b92392e267c1df28f673fa798d43a02/e2e/test_package_conda_offline.py">offline Conda fixture</a> provide the source contract and runnable coverage definitions, not evidence that those checks ran for this site.</p>
+<p>Unsupported Pixi build or resolution policies and unsupported wheel records are errors naming the record, never silently omitted packages. Run the real tool on the receiving host before relying on a reconstructed environment.</p>
+<p>The <a href="https://github.com/gripsack-dev/gripsack/blob/328f77cdb308a27165e80cbcab3ce460648e0723/docs/sharing-reference.md">sharing reference</a> in the source repository has the complete format contract: bounds, precedence rules, relocation limits and the end-to-end fixtures that exercise them.</p>
 </article>
 <footer>
   <span>© 2026 <a href="https://github.com/tknawara">Tarek Nawara</a></span>
@@ -164,7 +171,7 @@ grip package pull --digest &quot;$transport_digest&quot; \
   <a href="https://github.com/gripsack-dev">gripsack-dev</a>
   <a href="https://github.com/gripsack-dev/gripsack">source</a>
   <a href="../index.html">home</a>
-  <span class="fversion">v0.51.0</span>
+  <span class="fversion">v0.52.0</span>
 </footer>
 </main>
 </div>

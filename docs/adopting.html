@@ -15,9 +15,9 @@
 <meta property="og:image:alt" content="gripsack — a traveler's satchel holding a config file and a terminal chip, beside the tagline 'Your environment, in one workspace.'">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
-<link rel="stylesheet" href="../assets/site.css?v=0419e0ac">
-<script src="../assets/syntax.js?v=0419e0ac" data-manual defer></script>
-<script src="../assets/site.js?v=0419e0ac" defer></script>
+<link rel="stylesheet" href="../assets/site.css?v=5dc94c7b">
+<script src="../assets/syntax.js?v=5dc94c7b" data-manual defer></script>
+<script src="../assets/site.js?v=5dc94c7b" defer></script>
 </head>
 <body class="docs">
 <a class="skip-link" href="#main">Skip to content</a>
@@ -29,25 +29,32 @@
   <details class="docs-menu" open>
   <summary>Documentation <span aria-hidden="true">↕</span></summary>
   <nav aria-label="Documentation">
-    <a class="" href="../index.html">home</a>
+    <span class="rail-group">Home</span>
+    <a class="" href="../index.html">overview</a>
+    <span class="rail-group">Start</span>
     <a class="" href="../docs/install.html">install</a>
-    <a class="" href="../docs/workspaces.html">workspaces</a>
+    <a class="" href="../docs/workspaces.html">your first workspace</a>
+    <span class="rail-group">Declare</span>
     <a class="" href="../docs/packages.html">packages</a>
     <a class="" href="../docs/environments.html">environments</a>
     <a class="active" aria-current="page" href="../docs/adopting.html">profiles &amp; dotfiles</a>
     <a class="" href="../docs/services.html">Docker services</a>
-    <a class="" href="../docs/review.html">review &amp; saved plans</a>
-    <a class="" href="../docs/sharing.html">native artifact sharing</a>
-    <a class="" href="../docs/schedules.html">scheduled tasks</a>
     <a class="" href="../docs/tasks.html">tasks &amp; checks</a>
+    <a class="" href="../docs/schedules.html">scheduled tasks</a>
     <a class="" href="../docs/fetchers.html">sources &amp; locks</a>
-    <a class="" href="../docs/safety.html">safety &amp; recovery</a>
+    <span class="rail-group">Operate</span>
+    <a class="" href="../docs/review.html">review &amp; saved plans</a>
+    <a class="" href="../docs/sharing.html">sharing packages</a>
     <a class="" href="../docs/settings.html">settings</a>
     <a class="child" href="../docs/settings/reference.html">↳ settings reference</a>
     <a class="" href="../docs/runs.html">run logs</a>
-    <a class="" href="../docs/skills.html">agent guidance</a>
+    <a class="" href="../docs/skills.html">agent skills</a>
+    <span class="rail-group">Trust</span>
+    <a class="" href="../docs/guarantees.html">how it stays safe</a>
+    <a class="" href="../docs/safety.html">safety &amp; recovery</a>
+    <a class="" href="../docs/architecture.html">how it works</a>
+    <span class="rail-group">About</span>
     <a class="" href="../docs/compare.html">where it fits</a>
-    <a class="" href="../docs/architecture.html">architecture</a>
     <a class="" href="../docs/changelog.html">what&#x27;s new</a>
     <a class="gh" href="https://github.com/gripsack-dev/gripsack">github ↗</a>
   </nav>
@@ -152,7 +159,7 @@ grip adopt ~/.config/editor --name editor --resume
 <pre><code class="language-sh">grip generations
 grip rollback
 </code></pre>
-<p>Rollback uses retained content without rerendering today's source or rebuilding packages. Keep predecessor generations and prior-state data until the actual application works with the deployed files. Journaled file transitions are not a whole-machine snapshot, and late hook failures do not automatically roll back; see <a href="../docs/safety.html">safety and recovery</a>.</p>
+<p>Rollback uses retained content without re-rendering today's source or rebuilding packages. Keep predecessor generations until the real application works with the deployed files. See <a href="../docs/safety.html">safety and recovery</a> for the full ownership and drift rules, with a diagram.</p>
 <h2 id="package-artifacts-and-launchers">Package artifacts and launchers</h2>
 <p><code>artifactFile</code> and <code>artifactTree</code> select retained package content. Tree deployment still owns individual files, not the destination directory. Use tracked copies for consumers needing real filenames, extensions or sibling resources; per-file store symlinks do not promise those properties.</p>
 <p>For command exports, prefer a profile's explicit <code>environment</code> and <code>launchers</code> declaration rather than maintaining shell wrappers. <a href="../docs/environments.html#personal-launchers">Environments</a> covers PATH, the installed core location and same-UID operation. Attach named <a href="../docs/tasks.html#profile-file-checks">checks</a> when a configuration should be validated before deployment.</p>
@@ -163,7 +170,7 @@ grip rollback
   <a href="https://github.com/gripsack-dev">gripsack-dev</a>
   <a href="https://github.com/gripsack-dev/gripsack">source</a>
   <a href="../index.html">home</a>
-  <span class="fversion">v0.51.0</span>
+  <span class="fversion">v0.52.0</span>
 </footer>
 </main>
 </div>

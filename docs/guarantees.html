@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>gripsack — how gripsack stays safe</title>
+<meta name="description" content="Declare native packages, environments, dotfiles and tasks in one workspace. Manage explicit Docker Engine services and review changes before applying.">
+<meta property="og:title" content="gripsack — how gripsack stays safe">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://gripsack.dev/docs/guarantees.html">
+<meta property="og:description" content="Declare native packages, environments, dotfiles and tasks in one workspace. Manage explicit Docker Engine services and review changes before applying.">
+<meta property="og:image" content="https://gripsack.dev/assets/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="627">
+<meta property="og:image:alt" content="gripsack — a traveler's satchel holding a config file and a terminal chip, beside the tagline 'Your environment, in one workspace.'">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../assets/site.css?v=5dc94c7b">
+<script src="../assets/syntax.js?v=5dc94c7b" data-manual defer></script>
+<script src="../assets/site.js?v=5dc94c7b" defer></script>
+</head>
+<body class="docs">
+<a class="skip-link" href="#main">Skip to content</a>
+<div class="shell">
+<aside class="rail">
+  <a class="brand" href="../index.html">
+    <img src="../assets/icon.svg" alt="gripsack icon"><span class="wordmark">gripsack</span>
+  </a>
+  <details class="docs-menu" open>
+  <summary>Documentation <span aria-hidden="true">↕</span></summary>
+  <nav aria-label="Documentation">
+    <span class="rail-group">Home</span>
+    <a class="" href="../index.html">overview</a>
+    <span class="rail-group">Start</span>
+    <a class="" href="../docs/install.html">install</a>
+    <a class="" href="../docs/workspaces.html">your first workspace</a>
+    <span class="rail-group">Declare</span>
+    <a class="" href="../docs/packages.html">packages</a>
+    <a class="" href="../docs/environments.html">environments</a>
+    <a class="" href="../docs/adopting.html">profiles &amp; dotfiles</a>
+    <a class="" href="../docs/services.html">Docker services</a>
+    <a class="" href="../docs/tasks.html">tasks &amp; checks</a>
+    <a class="" href="../docs/schedules.html">scheduled tasks</a>
+    <a class="" href="../docs/fetchers.html">sources &amp; locks</a>
+    <span class="rail-group">Operate</span>
+    <a class="" href="../docs/review.html">review &amp; saved plans</a>
+    <a class="" href="../docs/sharing.html">sharing packages</a>
+    <a class="" href="../docs/settings.html">settings</a>
+    <a class="child" href="../docs/settings/reference.html">↳ settings reference</a>
+    <a class="" href="../docs/runs.html">run logs</a>
+    <a class="" href="../docs/skills.html">agent skills</a>
+    <span class="rail-group">Trust</span>
+    <a class="active" aria-current="page" href="../docs/guarantees.html">how it stays safe</a>
+    <a class="" href="../docs/safety.html">safety &amp; recovery</a>
+    <a class="" href="../docs/architecture.html">how it works</a>
+    <span class="rail-group">About</span>
+    <a class="" href="../docs/compare.html">where it fits</a>
+    <a class="" href="../docs/changelog.html">what&#x27;s new</a>
+    <a class="gh" href="https://github.com/gripsack-dev/gripsack">github ↗</a>
+  </nav>
+  </details>
+  <span class="rail-head">on this page</span>
+  <div class="rail-toc">
+    <a href="#the-idea-rings">The idea: rings</a>
+    <a href="#what-is-proved-today-052">What is proved today (0.52)</a>
+    <a href="#what-is-tested-but-not-yet-proved">What is tested but not yet proved</a>
+    <a href="#what-is-assumed">What is assumed</a>
+    <a href="#what-is-not-claimed">What is not claimed</a>
+    <a href="#why-proofs-instead-of-more-tests">Why proofs instead of more tests</a>
+  </div>
+
+  <label class="palette-picker" hidden><span>Palette</span><select data-palette-select aria-label="Site palette"><option value="paper">Paper</option><option value="paper-dark">Paper Dark</option><option value="catppuccin-mocha">Catppuccin Mocha</option><option value="tokyo-night">Tokyo Night</option><option value="gruvbox-dark">Gruvbox Dark</option><option value="nord">Nord</option><option value="dracula">Dracula</option><option value="one-dark">One Dark</option><option value="solarized-dark">Solarized Dark</option><option value="catppuccin-latte">Catppuccin Latte</option><option value="github-light">Github Light</option><option value="one-light">One Light</option><option value="solarized-light">Solarized Light</option></select></label>
+</aside>
+<main class="content" id="main" tabindex="-1">
+<p class="doc-eyebrow">Gripsack / documentation</p>
+<article class="md">
+<h1 id="how-gripsack-stays-safe">How gripsack stays safe</h1>
+<p>Gripsack changes files you care about. This page says exactly what protects them: what is proved, what is tested, what is assumed and what is not claimed. If a sentence here is not true of the released code, it is a bug.</p>
+<h2 id="the-idea-rings">The idea: rings</h2>
+<p>The code is arranged in rings. The center holds pure decisions over typed data with no IO at all. Each ring outward holds less trusted code and is checked in a cheaper way, and it trusts only the rings inside it. Code moves <em>inward</em> to gain a guarantee; nothing is modelled on the outside.</p>
+<figure class="diagram"><a href="../assets/diagrams/rings.svg"><img src="../assets/diagrams/rings.svg" alt="Nested rings: Product, Edge, Host, Protocol and Kernel. The kernel&#x27;s proved decisions flow to a Lean proof project over the shipped Rust; the host&#x27;s storage assumptions point to the unproved world." loading="lazy"></a><figcaption>The rings as of 0.52. Purple is proved, red is the next proof target, the rest is tested.</figcaption></figure>
+
+<table>
+<thead>
+<tr>
+<th>Ring</th>
+<th>What lives there</th>
+<th>How it is checked</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Kernel</strong></td>
+<td>Pure decisions: which generation is committed, what GC may delete, in what order a journal record becomes durable</td>
+<td><strong>Proved in Lean 4</strong> over a translation of the shipped Rust</td>
+</tr>
+<tr>
+<td><strong>Protocol</strong></td>
+<td>Apply, rollback, recover and GC as state machines that observe, decide and issue one command at a time</td>
+<td>Today: crash-injection tests and model checking. Next: Lean proofs under the storage assumptions below</td>
+</tr>
+<tr>
+<td><strong>Host</strong></td>
+<td>The driver loop, filesystem access, store layout, locks</td>
+<td>Small enough to read; every assumption listed; fault injection and crash tests</td>
+</tr>
+<tr>
+<td><strong>Edge</strong></td>
+<td>TypeScript evaluation, downloads, archives, Conda, Docker, systemd</td>
+<td>Sandbox, typed admission, hash-verified bytes, fuzzing</td>
+</tr>
+<tr>
+<td><strong>Product</strong></td>
+<td>The CLI, review, adopt, doctor</td>
+<td>End-to-end flows against the real binary</td>
+</tr>
+</tbody>
+</table>
+<h2 id="what-is-proved-today-052">What is proved today (0.52)</h2>
+<p>The kernel is a dependency-free Rust crate, <code>gripsack-kernel</code>. The <code>proofs</code> release gate translates it to Lean 4 with <a href="https://github.com/AeneasVerif/aeneas">Charon and Aeneas</a> and proves 34 theorems over that translation. There is no hand-written Lean copy of the Rust: the proofs are about the bytes that ship. The gate also checks that every theorem uses only Lean's three standard axioms (<code>propext</code>, <code>Classical.choice</code>, <code>Quot.sound</code>) and that each of fourteen deliberately broken variants of the Rust fails exactly the theorem that should catch it.</p>
+<p><strong>Commit classification.</strong> After an interruption, the next command looks at three generation identities: <code>current</code>, the recorded <code>previous</code> and the recorded <code>target</code> of the interrupted transaction.</p>
+<ul>
+<li><em>Committed</em> if and only if <code>current</code> equals <code>target</code>.</li>
+<li><em>Uncommitted</em> if and only if the run was fresh with no <code>current</code>, or <code>current</code> equals <code>previous</code> and not <code>target</code>.</li>
+<li><em>Ambiguous</em> otherwise, which stops every further mutation until you look.</li>
+</ul>
+<p>A higher generation number never grants commit authority; only identity does. Each transaction carries a 32-byte identifier compared byte for byte.</p>
+<p><strong>Garbage collection.</strong> <code>grip gc</code> may proceed only when no recovery is pending and <code>current</code> names a generation in the inventory. Pruning selects exactly the oldest generations beyond your <code>keep_generations</code>, in order, never the current one and never anything newer than the cut. Deletion removes a candidate only if no root names it. Generation inventories are admitted only when strictly ascending.</p>
+<p><strong>Journal publication.</strong> A journal record becomes durable through exactly one order: stage, sync the file, publish the name, sync the directory. <code>finish</code> yields a durable record only when that sequence completed, and a mutation is authorized only by a durable run marker <em>and</em> a durable entry, never one alone.</p>
+<p>These are the first three of the kernel theorems planned in <a href="https://github.com/gripsack-dev/gripsack/blob/328f77cdb308a27165e80cbcab3ce460648e0723/plan/0056-verified-foundation.md">plan 0056</a>. The proof sources are in <a href="https://github.com/gripsack-dev/gripsack/tree/328f77cdb308a27165e80cbcab3ce460648e0723/proofs"><code>proofs/</code></a> and the kernel in <a href="https://github.com/gripsack-dev/gripsack/tree/328f77cdb308a27165e80cbcab3ce460648e0723/crates/gripsack-kernel"><code>crates/gripsack-kernel</code></a>.</p>
+<h2 id="what-is-tested-but-not-yet-proved">What is tested but not yet proved</h2>
+<p>Everything else on the <a href="../docs/safety.html">safety page</a> is enforced by code and checked by tests, fault injection and a TLA+ model, not by a proof:</p>
+<ul>
+<li><strong>Ownership and drift.</strong> A tracked copy that you changed is preserved; a file gripsack never wrote is refused unless you pass <code>--take-over</code>; a managed block touches only the bytes between its markers.</li>
+<li><strong>Crash recovery as a whole.</strong> Prior state and intent are journaled before any destination write; the flip is one atomic rename; recovery restores prior bytes or finishes activation. The <em>classification</em> step inside it is proved; the surrounding machine is the next proof target.</li>
+<li><strong>Generation identity.</strong> New generation numbers exceed the durable high-water mark; published generations are immutable.</li>
+<li><strong>Source approval.</strong> Approval binds the exact captured source bundle and policy; evaluation runs in a Deno sandbox with no environment, network or subprocess access.</li>
+<li><strong>Content integrity.</strong> Downloads are hashed and verified before extraction; the store is sealed read-only and published by rename.</li>
+</ul>
+<p>Moving these inward, in roughly this order, is the roadmap: ownership and drift decisions and the managed-block splice first, then the protocol machines.</p>
+<h2 id="what-is-assumed">What is assumed</h2>
+<p>The protocol proofs, when they land, rest on a written storage model. These assumptions are stated, fault-tested on an in-memory filesystem that injects crashes, and never proved:</p>
+<ul>
+<li><strong>S1</strong> <code>rename</code> within a directory is atomic and replaces the target; <code>RENAME_NOREPLACE</code> and exclusive <code>mkdir</code> fail if the name exists; <code>remove_dir_all</code> is a sequence of unlinks, not atomic.</li>
+<li><strong>S2</strong> File data is durable after <code>fsync(file)</code>; a name is durable after <code>fsync(parent)</code>.</li>
+<li><strong>S3</strong> Two crash kinds: a <em>kill</em> loses nothing already in the page cache, a <em>power loss</em> may lose any subset of non-durable operations consistent with completed barriers.</li>
+<li><strong>S4</strong> One lifecycle writer at a time, held by an advisory lock released when the holder dies.</li>
+<li><strong>S5</strong> External writers exist and are only <em>detected</em>, see below.</li>
+<li><strong>S6</strong> The filesystem distinguishes names at least as finely as gripsack does. A case-insensitive mount such as WSL's <code>/mnt/c</code> violates this today.</li>
+<li><strong>S7</strong> Equal SHA-256 digests mean equal bytes.</li>
+</ul>
+<p>Also trusted, as every verified program trusts them: the Rust compiler, the Charon/Aeneas translation, Lean 4 and its kernel, and the Linux kernel.</p>
+<h2 id="what-is-not-claimed">What is not claimed</h2>
+<ul>
+<li><strong>The external-writer window.</strong> Between the moment gripsack re-checks a destination and the moment it acts, another process can change it. Every external write gripsack <em>sees</em> is preserved; a write inside that window is not. This is a named residual risk, not a solved problem.</li>
+<li><strong>Effects outside managed files.</strong> Hooks, tasks, services and anything a package's own program does are not transactions. Rollback restores files and launchers; it does not undo a database migration or a command you scheduled.</li>
+<li><strong>Liveness.</strong> The proofs say what a recovery <em>may</em> leave behind, not that it always completes.</li>
+<li><strong>The world.</strong> Docker Engine, systemd, Deno, Conda channels, registries, the OS and the hardware are outside every proof.</li>
+<li><strong>Platform.</strong> Linux x86_64 and WSL2 only.</li>
+</ul>
+<h2 id="why-proofs-instead-of-more-tests">Why proofs instead of more tests</h2>
+<p>Gripsack's guarantees used to be documented one review at a time, each with its own model and its own evidence receipt. That did not scale and it was hard to read. Since 0.52 the rule is simple: a guarantee is a theorem over the shipped code, a test that guards behavior you can see, or a bug-finder that has caught a real bug. Anything else goes. A release is the exact source passing its gates, and the proof gate runs alongside the test suites, not as a separate evidence process.</p>
+</article>
+<footer>
+  <span>© 2026 <a href="https://github.com/tknawara">Tarek Nawara</a></span>
+  <span>MIT license</span>
+  <a href="https://github.com/gripsack-dev">gripsack-dev</a>
+  <a href="https://github.com/gripsack-dev/gripsack">source</a>
+  <a href="../index.html">home</a>
+  <span class="fversion">v0.52.0</span>
+</footer>
+</main>
+</div>
+</body>
+</html>

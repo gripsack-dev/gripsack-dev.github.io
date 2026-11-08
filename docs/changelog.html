@@ -15,9 +15,9 @@
 <meta property="og:image:alt" content="gripsack — a traveler's satchel holding a config file and a terminal chip, beside the tagline 'Your environment, in one workspace.'">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
-<link rel="stylesheet" href="../assets/site.css?v=0419e0ac">
-<script src="../assets/syntax.js?v=0419e0ac" data-manual defer></script>
-<script src="../assets/site.js?v=0419e0ac" defer></script>
+<link rel="stylesheet" href="../assets/site.css?v=5dc94c7b">
+<script src="../assets/syntax.js?v=5dc94c7b" data-manual defer></script>
+<script src="../assets/site.js?v=5dc94c7b" defer></script>
 </head>
 <body class="docs">
 <a class="skip-link" href="#main">Skip to content</a>
@@ -29,32 +29,41 @@
   <details class="docs-menu" open>
   <summary>Documentation <span aria-hidden="true">↕</span></summary>
   <nav aria-label="Documentation">
-    <a class="" href="../index.html">home</a>
+    <span class="rail-group">Home</span>
+    <a class="" href="../index.html">overview</a>
+    <span class="rail-group">Start</span>
     <a class="" href="../docs/install.html">install</a>
-    <a class="" href="../docs/workspaces.html">workspaces</a>
+    <a class="" href="../docs/workspaces.html">your first workspace</a>
+    <span class="rail-group">Declare</span>
     <a class="" href="../docs/packages.html">packages</a>
     <a class="" href="../docs/environments.html">environments</a>
     <a class="" href="../docs/adopting.html">profiles &amp; dotfiles</a>
     <a class="" href="../docs/services.html">Docker services</a>
-    <a class="" href="../docs/review.html">review &amp; saved plans</a>
-    <a class="" href="../docs/sharing.html">native artifact sharing</a>
-    <a class="" href="../docs/schedules.html">scheduled tasks</a>
     <a class="" href="../docs/tasks.html">tasks &amp; checks</a>
+    <a class="" href="../docs/schedules.html">scheduled tasks</a>
     <a class="" href="../docs/fetchers.html">sources &amp; locks</a>
-    <a class="" href="../docs/safety.html">safety &amp; recovery</a>
+    <span class="rail-group">Operate</span>
+    <a class="" href="../docs/review.html">review &amp; saved plans</a>
+    <a class="" href="../docs/sharing.html">sharing packages</a>
     <a class="" href="../docs/settings.html">settings</a>
     <a class="child" href="../docs/settings/reference.html">↳ settings reference</a>
     <a class="" href="../docs/runs.html">run logs</a>
-    <a class="" href="../docs/skills.html">agent guidance</a>
+    <a class="" href="../docs/skills.html">agent skills</a>
+    <span class="rail-group">Trust</span>
+    <a class="" href="../docs/guarantees.html">how it stays safe</a>
+    <a class="" href="../docs/safety.html">safety &amp; recovery</a>
+    <a class="" href="../docs/architecture.html">how it works</a>
+    <span class="rail-group">About</span>
     <a class="" href="../docs/compare.html">where it fits</a>
-    <a class="" href="../docs/architecture.html">architecture</a>
     <a class="active" aria-current="page" href="../docs/changelog.html">what&#x27;s new</a>
     <a class="gh" href="https://github.com/gripsack-dev/gripsack">github ↗</a>
   </nav>
   </details>
   <span class="rail-head">on this page</span>
   <div class="rail-toc">
-    <a href="#release-history">Release history</a>
+    <a href="#0520-verified-foundation-phase-one">0.52.0 — Verified foundation, phase one</a>
+    <a href="#0510-native-workspaces">0.51.0 — Native workspaces</a>
+    <a href="#0500-one-workspace">0.50.0 — One workspace</a>
   </div>
 
   <label class="palette-picker" hidden><span>Palette</span><select data-palette-select aria-label="Site palette"><option value="paper">Paper</option><option value="paper-dark">Paper Dark</option><option value="catppuccin-mocha">Catppuccin Mocha</option><option value="tokyo-night">Tokyo Night</option><option value="gruvbox-dark">Gruvbox Dark</option><option value="nord">Nord</option><option value="dracula">Dracula</option><option value="one-dark">One Dark</option><option value="solarized-dark">Solarized Dark</option><option value="catppuccin-latte">Catppuccin Latte</option><option value="github-light">Github Light</option><option value="one-light">One Light</option><option value="solarized-light">Solarized Light</option></select></label>
@@ -63,10 +72,31 @@
 <p class="doc-eyebrow">Gripsack / documentation</p>
 <article class="md">
 <h1 id="whats-new">What's new</h1>
-<p>The 0.51 product line brings native packages, environments, profiles, tasks and Docker Engine services into one typed workspace, with semantic review and native artifact sharing. Source recipes and container-image building are retired. Start with the <a href="../docs/workspaces.html">workspace guide</a>, then explore <a href="../docs/services.html">services</a>, <a href="../docs/review.html">review</a> or <a href="../docs/sharing.html">sharing</a>. Release links below follow the published source selected for this site; these notes do not themselves announce publication.</p>
-<h2 id="release-history">Release history</h2>
-<p>The canonical <a href="https://github.com/gripsack-dev/gripsack/blob/3332429b2b92392e267c1df28f673fa798d43a02/CHANGELOG.md">changelog</a> lives with the core source. <a href="https://github.com/gripsack-dev/gripsack/releases">Release notes and downloads</a> carry version-specific installation instructions, checksums and verification records.</p>
-<p>This site documents the selected core source; it does not mirror historical API guides or release evidence into the product tutorials. See <a href="../docs/install.html">installation</a> for current prerequisites and <a href="../docs/safety.html">safety</a> for operational boundaries.</p>
+<p>User-visible changes per release. The <a href="https://github.com/gripsack-dev/gripsack/blob/328f77cdb308a27165e80cbcab3ce460648e0723/CHANGELOG.md">full changelog</a> and <a href="https://github.com/gripsack-dev/gripsack/releases">release downloads</a> live with the source. This site documents core <strong>0.52.0</strong>.</p>
+<h2 id="0520-verified-foundation-phase-one">0.52.0 — Verified foundation, phase one</h2>
+<p>A foundation release: no command or workspace authoring changes.</p>
+<ul>
+<li>Commit classification after a crash, garbage-collection admission and pruning, and journal record publication now run from <code>gripsack-kernel</code>, a dependency-free crate whose Rust is translated to Lean 4 and proved there: 34 theorems, standard axioms only, each calibrated against deliberately broken variants. Behaviour is unchanged; the proofs cover the exact code that ships. See <a href="../docs/guarantees.html">how gripsack stays safe</a>.</li>
+<li>Release assets no longer include the release-evidence JSON, runtime-evidence JSON or qualification bundle. The core tarball, Conda helper, SDK tarball, checksums and <code>install.sh</code> are unchanged in form.</li>
+<li>Internally, a release is now local qualification of the exact source plus one script that publishes the same bytes. The committed evidence logs and receipt checkers are gone.</li>
+</ul>
+<h2 id="0510-native-workspaces">0.51.0 — Native workspaces</h2>
+<ul>
+<li>Literal <code>bash</code> template blocks with a pinned interpreter, typed environment bindings and strict shell options; JavaScript interpolation into shell text is rejected. See <a href="../docs/tasks.html#literal-bash-bodies">tasks</a>.</li>
+<li><a href="../docs/services.html">Docker Engine services</a>: digest-pinned images, loopback ports, retained named volumes, health commands and dependency ordering. Tasks can require healthy services without starting them.</li>
+<li><a href="../docs/schedules.html">Scheduled tasks</a> on systemd user managers, registered by profile application and sharing the manual task runner, locks and logs.</li>
+<li><a href="../docs/review.html">Offline semantic review</a>: snapshots, generation diffs, configuration views and private saved plans that refuse to apply when their bindings go stale.</li>
+<li><a href="../docs/sharing.html">Signed package bundles</a> with complete dependency closures and OCI registry transport; recipients select imported content from their own workspace.</li>
+<li>Conda reconstruction from original archives and explicitly hash-pinned wheels, including wheel records from an imported Pixi lock.</li>
+<li>Removed: macOS/Homebrew authoring and the BuildKit source-build and image backend.</li>
+</ul>
+<h2 id="0500-one-workspace">0.50.0 — One workspace</h2>
+<ul>
+<li>One authoring surface: <code>gripsack.ts</code> describes packages, environments, profiles, tasks and more, through <code>@gripsack/core</code>.</li>
+<li><code>grip init</code> scaffolds a workspace; <code>grip adopt</code> brings an existing configuration directory into one.</li>
+<li>Removed the legacy module DSL and macOS/Lima backends. Linux x86_64 and WSL2 is the target.</li>
+<li><code>store-verify</code> audits retained native packages and environments.</li>
+</ul>
 </article>
 <footer>
   <span>© 2026 <a href="https://github.com/tknawara">Tarek Nawara</a></span>
@@ -74,7 +104,7 @@
   <a href="https://github.com/gripsack-dev">gripsack-dev</a>
   <a href="https://github.com/gripsack-dev/gripsack">source</a>
   <a href="../index.html">home</a>
-  <span class="fversion">v0.51.0</span>
+  <span class="fversion">v0.52.0</span>
 </footer>
 </main>
 </div>
