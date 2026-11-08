@@ -82,26 +82,54 @@ def asset_version() -> str:
 # Canonical product docs: url-slug -> (source file, nav label).
 PAGES: dict[str, tuple[str, str]] = {
     "install": ("doc/install.md", "install"),
-    "workspaces": ("doc/workspaces.md", "workspaces"),
+    "workspaces": ("doc/workspaces.md", "your first workspace"),
     "packages": ("doc/packages.md", "packages"),
     "environments": ("doc/environments.md", "environments"),
     "adopting": ("doc/adopting.md", "profiles & dotfiles"),
-    "builds": ("doc/builds.md", "retired source builder"),
     "services": ("doc/services.md", "Docker services"),
-    "review": ("doc/review.md", "review & saved plans"),
-    "sharing": ("doc/sharing.md", "native artifact sharing"),
-    "schedules": ("doc/schedules.md", "scheduled tasks"),
     "tasks": ("doc/tasks.md", "tasks & checks"),
+    "schedules": ("doc/schedules.md", "scheduled tasks"),
     "fetchers": ("doc/fetchers.md", "sources & locks"),
-    "safety": ("doc/safety.md", "safety & recovery"),
+    "review": ("doc/review.md", "review & saved plans"),
+    "sharing": ("doc/sharing.md", "sharing packages"),
     "settings": ("doc/settings.md", "settings"),
     "settings/reference": ("doc/settings/reference.md", "settings reference"),
     "runs": ("doc/runs.md", "run logs"),
-    "skills": ("doc/skills.md", "agent guidance"),
+    "skills": ("doc/skills.md", "agent skills"),
+    "guarantees": ("doc/guarantees.md", "how it stays safe"),
+    "safety": ("doc/safety.md", "safety & recovery"),
+    "architecture": ("doc/architecture.md", "how it works"),
     "compare": ("doc/compare.md", "where it fits"),
-    "architecture": ("doc/architecture.md", "architecture"),
     "changelog": ("doc/changelog.md", "what's new"),
+    "builds": ("doc/builds.md", "retired source builder"),
 }
+
+# Rail grouping: the reading order a newcomer needs, not the file list.
+# Slugs absent from every group (builds) stay reachable but unlisted.
+NAV_GROUPS: list[tuple[str, list[str]]] = [
+    ("Start", ["install", "workspaces"]),
+    ("Declare", ["packages", "environments", "adopting", "services", "tasks",
+                 "schedules", "fetchers"]),
+    ("Operate", ["review", "sharing", "settings", "settings/reference", "runs", "skills"]),
+    ("Trust", ["guarantees", "safety", "architecture"]),
+    ("About", ["compare", "changelog"]),
+]
+
+# Diagrams rendered from the core repository's docs/diagrams/*.d2 (d2 via
+# `docker compose run --build --rm diagram`), copied here as static SVG.
+DIAGRAMS = ROOT / "website" / "assets" / "diagrams"
+DIAGRAM_RE = re.compile(r"^\{diagram:([a-z0-9-]+)\|([^|}]+)(?:\|([^|}]+))?(?:\|(tall))?\}$", re.M)
+
+
+def diagram_figure(m: re.Match, root: str) -> str:
+    name, alt, caption = m.group(1), m.group(2).strip(), (m.group(3) or "").strip()
+    assert (DIAGRAMS / f"{name}.svg").is_file(), f"missing diagram {name}.svg"
+    cap = f"<figcaption>{html.escape(caption)}</figcaption>" if caption else ""
+    classes = "diagram tall" if m.group(4) else "diagram"
+    return (f'<figure class="{classes}"><a href="{root}assets/diagrams/{name}.svg">'
+            f'<img src="{root}assets/diagrams/{name}.svg" alt="{html.escape(alt)}" loading="lazy">'
+            f"</a>{cap}</figure>")
+
 
 # Palette hexes -> site CSS vars, so inlined SVGs re-theme with the
 # palette picker (an <img> can't inherit page CSS).
@@ -144,11 +172,6 @@ def themed_logo() -> str:
     return svg
 
 
-RAIL_LINKS = [("index.html", "home")] + [
-    (f"docs/{slug}.html", label) for slug, (_, label) in PAGES.items()
-    if slug != "builds"
-]
-
 PALETTE_DOTS = [
     ("paper", "#18765b"),
     ("paper-dark", "#9bc7ac"),
@@ -178,19 +201,22 @@ def palette_picker() -> str:
 
 
 def rail(active: str, toc: list[tuple[str, str]], root: str = "../") -> str:
-    # Nested canonical pages render indented under their parent.
-    entries = []
-    for href, label in RAIL_LINKS:
-        child = href.count("/") > 1
+    def link(href: str, label: str, child: bool = False) -> str:
         classes = " ".join(name for name, enabled in (
             ("active", href == active), ("child", child),
         ) if enabled)
         current = ' aria-current="page"' if href == active else ""
-        entries.append(
-            f'    <a class="{classes}"{current} href="{root}{href}">'
-            f'{"↳ " if child else ""}{html.escape(label)}</a>\n'
+        return (f'    <a class="{classes}"{current} href="{root}{href}">'
+                f'{"↳ " if child else ""}{html.escape(label)}</a>\n')
+
+    groups = [f'    <span class="rail-group">Home</span>\n{link("index.html", "overview")}']
+    for group, slugs in NAV_GROUPS:
+        entries = "".join(
+            link(f"docs/{slug}.html", PAGES[slug][1], child=slug.count("/") > 0)
+            for slug in slugs
         )
-    links = "".join(entries)
+        groups.append(f'    <span class="rail-group">{group}</span>\n{entries}')
+    links = "".join(groups)
     toc_html = "".join(f'    <a href="#{anchor}">{label}</a>\n' for label, anchor in toc)
     toc_block = (
         f'  <span class="rail-head">on this page</span>\n  <div class="rail-toc">\n{toc_html}  </div>\n'
@@ -281,6 +307,7 @@ def build_docs() -> None:
         text = (ROOT / src).read_text()
         text = text.replace("{release_source}", RELEASE["source"]["commit"])
         text = text.replace("{core_version}", site_version())
+        text = DIAGRAM_RE.sub(lambda m: diagram_figure(m, root), text)
         body = markdown.markdown(
             text, extensions=["fenced_code", "tables", "toc", "sane_lists"]
         )
@@ -305,6 +332,7 @@ def assemble() -> None:
     index = index.replace("{version}", site_version())
     index = index.replace("{release_source}", RELEASE["source"]["commit"])
     index = index.replace("<!--PALETTES-->", palette_picker())
+    index = DIAGRAM_RE.sub(lambda m: diagram_figure(m, "./"), index)
     index = index.replace("./assets/site.css", f"./assets/site.css?v={asset_version()}")
     index = index.replace("./assets/site.js", f"./assets/site.js?v={asset_version()}")
     index = index.replace("./assets/syntax.js", f"./assets/syntax.js?v={asset_version()}")
@@ -317,6 +345,9 @@ def assemble() -> None:
     for name in ("icon.svg", "favicon.svg", "og.png", "site.css", "syntax.js", "site.js", "SYNTAX-LICENSE"):
         shutil.copy(ROOT / "website" / "assets" / name, OUT / "assets" / name)
     shutil.copy(ROOT / "doc" / "logo.svg", OUT / "assets" / "logo.svg")
+    shutil.copytree(DIAGRAMS, OUT / "assets" / "diagrams")
+    (OUT / "img").mkdir(exist_ok=True)
+    shutil.copy(ROOT / "img" / "demo-rollback.gif", OUT / "img" / "demo-rollback.gif")
     # Independently supported griplint distribution endpoints stay outside
     # product navigation; /packages also serves clients that block /simple.
     if (ROOT / "simple").exists():
