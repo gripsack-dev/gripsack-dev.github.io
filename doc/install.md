@@ -1,6 +1,6 @@
 # Installation
 
-Install `grip`, create a `gripsack.ts` workspace, and start with one profile or package. The TypeScript frontend is embedded in the core binary; a separate SDK is optional for editor support or a deliberate frontend pin.
+One static binary, `grip`, with the TypeScript frontend embedded. The separate SDK archive is optional: install it for editor types or to pin the frontend deliberately.
 
 ## Supported platforms
 
@@ -32,7 +32,7 @@ grip doctor
 Keep that versioned directory on your shell's `PATH`. This leaves an existing
 installation intact rather than replacing a binary used by managed launchers.
 
-Use the distribution method actually listed by the release; do not assume a corresponding npm or crates.io publication. Checksums detect byte changes but are not authenticated signatures. The signed installer and `grip self-update` require signed release metadata; use manual archive instructions when a release does not supply it. Release-specific authenticity and verification records stay with the release, not the product tutorial.
+Checksums detect corruption, not tampering. The signed installer (`install.sh`) and `grip self-update` need signed release metadata; when a release ships without it, use the manual steps above.
 
 Keep the installed path stable: profile launchers record the absolute core location and private state path. If you move the binary, restore its location or reapply profiles using the replacement installation.
 
@@ -51,4 +51,4 @@ Use the SDK archive matching the installed core if you want editor types or expl
 
 ## First workspace
 
-Follow [workspaces](workspaces.md) for a complete file-only example, [packages](packages.md) for a native tool, or [environments](environments.md) for a coherent Conda toolchain. Review source approval prompts and `grip plan` before applying. Keep an independent backup of irreplaceable configuration.
+Continue with [your first workspace](workspaces.md). For a native tool see [packages](packages.md); for a Conda toolchain see [environments](environments.md). Keep an independent backup of anything irreplaceable while you are getting started.

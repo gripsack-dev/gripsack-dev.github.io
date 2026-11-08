@@ -42,7 +42,7 @@ grip plan personal
 grip apply personal
 ```
 
-Review and approve the source and changed lock when prompted. `grip run` executes without deploying the personal profile; `grip apply` deploys its explicit launchers through a generation.
+Review the lock change and approve the source when prompted. `grip run` executes without deploying anything personal; `grip apply personal` deploys the launchers through a generation.
 
 Package constraints are Conda MatchSpecs: `"*"`, `"==25.07.1"` for exact equality, `"=25.07"` for a prefix or `">=25.07.1,<26"` for a range. A bare `"25.07.1"` is not a valid constraint. The lock fixes exact archive identities regardless of the authored range.
 
@@ -58,7 +58,7 @@ Source distributions, editable packages, executable startup files (`.pth`, `site
 
 ## Solve baselines
 
-`systemRequirements` selects Linux solve virtuals explicitly. Without a declared libc/kernel capability the updater uses measured host facts. The recorded policy is checked on frozen use, alongside actual archive, CPU and runtime admission. A baseline is not a guarantee that every selected archive runs on every distribution.
+`systemRequirements` fixes the libc and kernel baseline the solve assumes. Without one, `grip update` measures the host it runs on. The recorded baseline is checked again on every host that runs the result, together with CPU and runtime requirements. A baseline is not a guarantee that every selected archive runs on every distribution.
 
 Keep required libraries in the complete closure. For example, a pyright environment can need an explicit `xorg-libx11` dependency. A successful version command alone does not prove editor, language-server or graphical behavior. Exercise the actual consumer on the host where you deploy it.
 

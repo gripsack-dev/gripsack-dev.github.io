@@ -1,10 +1,10 @@
-# Workspaces
+# Your first workspace
 
-A workspace describes the user-space environment you want, not a sequence of machine setup commands. Put a root `gripsack.ts` in your repository and export `defineWorkspace(() => workspace({ outputs }))`.
+A workspace is one `gripsack.ts` at the root of a repository. It describes the user-space environment you want, not the commands that would build it. This page takes you from nothing to a deployed profile you can roll back.
 
-## Create a workspace
+## Scaffold one
 
-After [installing grip](install.md), scaffold a small workspace:
+After [installing grip](install.md):
 
 ```sh
 grip init my-env
@@ -14,25 +14,9 @@ grip plan hello
 grip apply hello
 ```
 
-`init` writes a root `gripsack.ts`, a file-only `hello` profile, captured sample configuration and editor settings. Review the generated files and source approval before applying. Its sample deploys under `~/.config/hello/`; replace it with the files or packages you want. You can also write the complete example below directly without scaffolding.
+`init` writes a root `gripsack.ts`, a file-only `hello` profile that deploys under `~/.config/hello/`, sample configuration and editor settings. The first `grip check` asks you to approve the captured source; `grip plan` shows every file that would change; `grip apply` makes generation 1. Replace the sample with the files or packages you actually want.
 
-
-## Choose your outputs
-
-| Output | Purpose | Use it with |
-|---|---|---|
-| `pkg` | A named package with a producer, commands and runtime contract | `grip build`, an environment or an image |
-| `recipe` | A source build with an explicit toolchain and steps | `grip build` or a package producer |
-| `environment` | A process-scoped selection of packages and environment values | `grip run`, `grip shell` or a profile |
-| `profile` | Personal files and selected environment launchers | `grip plan`, `grip apply` |
-| `image` | Packages and configuration exported as an OCI archive | `grip build` |
-| `task` | A manually invoked command graph | `grip task` |
-| `check` | An explicit validation command | File validation, build validation or task postconditions |
-| `hook` | An explicit profile lifecycle action | Profile activation |
-
-These are ordinary typed values. Reuse a function to produce declarations; include every referenced output in `workspace.outputs`. Names are unique across the catalog. Invalid references and dependency cycles are errors, not an implicit execution order.
-
-## A complete file-only workspace
+## Or write it by hand
 
 ```typescript
 import {
@@ -50,7 +34,7 @@ const dotfiles = profile("dotfiles", {
 export default defineWorkspace(() => workspace({ outputs: [dotfiles] }));
 ```
 
-Create `config/editor.toml` with the configuration you want to deploy. The destination must be outside the workspace repository. No Docker, package producer or `env.toml` is needed for this example.
+Create `config/editor.toml` next to it. The destination must be outside the repository. No Docker, no package download and no `env.toml` are needed.
 
 ```sh
 grip check
@@ -58,28 +42,43 @@ grip plan dotfiles
 grip apply dotfiles
 ```
 
-Review the captured source and policy when prompted, then inspect the plan before applying. `trackedCopyTo` deploys a real file and preserves local drift by default. An existing foreign destination needs an explicit ownership decision; see [profiles and dotfiles](adopting.md).
+`trackedCopyTo` deploys a real file and preserves your later edits rather than overwriting them. If something already lives at the destination, the plan says so and asks for an explicit decision; see [profiles and dotfiles](adopting.md).
 
-## Select without deploying everything
+## What you can declare
 
-`grip plan dotfiles` and `grip apply dotfiles` select that profile; they do not apply or prune unselected profiles. With no selection, apply processes the declared profile graph. Keep frequently edited configuration in its own profile to make the deployment scope clear.
+| Output | Purpose | Used by |
+|---|---|---|
+| `pkg` | A package: a source, a target platform, commands and runtime dependencies | `grip build`, environments, profiles, tasks |
+| `environment` | A selection of packages and environment values for one process | `grip run`, `grip shell`, a profile's launchers |
+| `profile` | Personal files and launchers, deployed through generations | `grip plan`, `grip apply`, `grip rollback` |
+| `service` | A digest-pinned Docker Engine container | `grip up`, `grip down`, `grip services` |
+| `task` | A named command graph with prerequisites and postconditions | `grip task run` |
+| `check` | A validation command attached to a file, a source or a task | File checks, task postconditions |
+| `hook` | A profile lifecycle action | Profile activation |
+| `schedule` | A systemd user timer for a task | A profile's `schedules` |
 
-Selection is not a trust bypass: approval still covers the exact whole captured source bundle and policy. Changes outside the selected profile remain part of review.
+These are ordinary typed values: build them with functions, reuse them, and list every referenced output in `workspace.outputs`. Names are unique; invalid references and cycles are errors at `grip check`.
 
-## Separate production, execution and deployment
+## Select what you deploy
 
-- [Packages](packages.md) describe how tools are produced and exposed.
-- [Environments](environments.md) select tools for project commands without deploying personal files.
-- [Profiles](adopting.md) deploy files and launchers through the generation transaction.
-- [Services](services.md) run digest-pinned Docker Engine containers independently of native package realization.
-- [Tasks and checks](tasks.md) make explicit actions and validation discoverable.
+`grip plan dotfiles` and `grip apply dotfiles` act on that profile only; unselected profiles are neither applied nor pruned. Without a selection, apply processes the declared profile graph. Keep frequently edited configuration in its own profile so the scope of each apply is obvious.
 
-`grip update` refreshes external source and frontend/import pins in `gripsack.lock`. Review its diff and approve the changed capture before frozen consumers run. File-only declarations use the approved repository snapshot and need no external package solve.
+Selection does not narrow approval: you approve the whole captured source, and a change outside the selected profile still needs review.
 
-`grip check` validates declarations; it does not start services or register scheduled jobs. `grip build` realizes native outputs without personal activation. A cold `grip apply` realizes required packages before changing destinations; a separate pre-build is optional. Explicit profile application owns [scheduled task registration](schedules.md).
+## The commands, in order
 
-## Authoring and execution
+- `grip check` validates declarations. It starts no service and registers no timer.
+- `grip update` resolves external sources and frontend pins into `gripsack.lock`. Review the diff; file-only workspaces never need it.
+- `grip build NAME` realizes a package without deploying anything personal. A cold `grip apply` does this itself.
+- `grip plan` / `grip apply` deploy a profile through a [generation](safety.md#what-apply-does).
+- `grip generations` / `grip rollback` list and reselect retained states.
 
-Evaluation runs in provisioned Deno with restricted captured-source reads and no environment, network or subprocess grants. Use `repoFile`, `repoTree` and named `inputFile` declarations for source data instead of evaluation-time filesystem walks. Host facts come from the injected context.
+## Where to next
 
-Use the frontend embedded in your installed core, or a deliberately selected matching SDK. See [installation](install.md), [source capture](settings.md) and the [complete SDK reference](https://github.com/gripsack-dev/gripsack/blob/{release_source}/typescript/README.md). The [workspace examples](https://github.com/gripsack-dev/gripsack/tree/{release_source}/examples/workspaces) show complete repositories, including captured executable files.
+- [Packages](packages.md): a tool from a release archive.
+- [Environments](environments.md): a Conda toolchain for `grip run`, with launchers on your path.
+- [Profiles and dotfiles](adopting.md): ownership modes and adopting files you already have.
+- [Services](services.md), [tasks](tasks.md), [schedules](schedules.md): project plumbing.
+- The [SDK reference](https://github.com/gripsack-dev/gripsack/blob/{release_source}/typescript/README.md) and [example workspaces](https://github.com/gripsack-dev/gripsack/tree/{release_source}/examples/workspaces).
+
+Evaluation runs in a sandbox: use `repoFile`, `repoTree` and named `inputFile` declarations for source data instead of reading the filesystem from TypeScript, and expect host facts to arrive through the injected context.

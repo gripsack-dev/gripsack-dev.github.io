@@ -1,37 +1,71 @@
 # Safety and recovery
 
-Gripsack makes source approval, file ownership and retained state explicit. Review the plan, keep independent backups of irreplaceable configuration, and exercise the actual consumer before discarding recovery data. It is alpha software, not a whole-machine backup system.
+Gripsack writes to files you care about, so this page is about what happens to them: how an apply is structured, what a crash leaves behind, how ownership and drift are decided, and what you still have to do yourself. For what is formally proved versus assumed, see [how gripsack stays safe](guarantees.md).
 
-## What is protected
+Two things first. It is alpha software: keep an independent backup of anything irreplaceable. And generations protect *managed files and launchers*; they do not undo what your hooks, tasks, services or the tools themselves do.
 
-| Surface | Boundary |
-|---|---|
-| Store publication | Verified content is sealed read-only and published by final-name rename |
-| Generation selection | One atomic `current` flip selects the generation |
-| Managed destination changes | Journaled prior/intended state with postcondition checks and crash recovery |
-| Failed pre-commit transition | Compensation is attempted; unresolved recovery blocks further mutation |
-| Tracked-copy drift | Preserved by default in apply and rollback |
-| Retained generations | Keep their package roots and prior-state blobs available |
-| Native tasks, hooks and external tools | Effects outside journaled destinations are not automatically undone |
+## What apply does
 
-Destination changes are not atomic across a whole profile. Stop dependent consumers when a transition requires uninterrupted file or command availability. The generation flip is a commit boundary, not a guarantee that no intermediate destination state was observable.
+{diagram:lifecycle|From gripsack.ts through grip plan to grip apply's six steps, into a retained generations directory, with grip rollback reselecting an earlier generation and grip gc reclaiming only what nothing retained needs.|An apply is one transaction ending in one atomic rename; every applied state stays on disk as a generation.}
+
+1. **Realize packages** into the read-only store. Content is verified, sealed read-only and published by rename, so a half-downloaded archive never becomes a package.
+2. **Journal** the prior state and the intended end state of every destination, durably, before touching any of them.
+3. **Write destinations** one at a time, re-reading each through a pinned directory handle and refusing if what is live is not what the plan saw.
+4. **Run pre-flip checks** you attached to files, still inside the transaction.
+5. **Flip `current`**: one atomic rename selects the new generation. This is the commit point.
+6. **Run hooks** (`post_link`, `post_activate`). Hook failures are reported; they never roll the committed generation back.
+
+Destination writes are not atomic across a whole profile: a program reading its config in the middle of step 3 can see the new file before its sibling. Stop consumers that need an uninterrupted view.
+
+## What a crash leaves behind
+
+{diagram:crash|A timeline of apply with crash points before the journal, during writes, around the flip and during hooks; the next command classifies current against previous and target as Uncommitted, Committed or Ambiguous and restores prior bytes, finishes activation, or stops.|Recovery runs before the next command does anything else. The classification step is proved; the surrounding machine is tested.}
+
+The next `grip` command recovers before it does anything else. It compares the `current` pointer with the previous and target generation recorded for the interrupted transaction:
+
+- **Uncommitted** (`current` still names the previous generation): prior bytes are restored from the journal.
+- **Committed** (`current` names the target): activation finishes; pending hooks resume under the same intent id.
+- **Ambiguous** (neither): nothing else mutates until you look. Corrupt manifests and quarantined journal entries are reported, not treated as disposable.
+
+Either way each destination ends up holding its prior bytes, its intended bytes, or something gripsack did not write. Recovery covers file bytes, Unix modes and symlink targets, not mtimes, ownership or extended attributes. A file you changed while the transaction was interrupted is preserved, not replaced with the snapshot.
+
+Do not delete journals, manifests or managed files to "unstick" a refusal; the [run log](runs.md) says what recovery found.
+
+## Ownership and drift
+
+{diagram:ownership|Decision tree: for a destination, if nothing is live gripsack writes; if the last file gripsack wrote is live it updates; if gripsack's file changed since it preserves the drift; if a file gripsack never wrote is live it refuses unless --take-over adopts it. Three ownership modes: symlinkTo, trackedCopyTo, managedBlock.|Every destination is decided on its own.|tall}
+
+Every destination has an owner. Gripsack writes only when the destination is absent, or holds exactly what gripsack wrote last time. Two other cases are decided conservatively:
+
+- **Drift.** A `trackedCopyTo` file that the application (or you) changed since the last apply is *yours*. Apply and rollback both leave it alone and say so. To adopt the change, copy it back into the repository, review, approve and apply.
+- **Foreign files.** A file gripsack never wrote is refused. `grip plan --take-over` shows what adoption would do; `grip apply --take-over` journals the prior bytes and adopts the selected destinations only. It is not a general ownership transfer and does not cross workspaces.
+
+`symlinkTo` links the destination to read-only store content; `managedBlock` reconciles one delimited section of a shared text file and leaves every byte outside the markers alone. See [profiles and dotfiles](adopting.md) for choosing between them.
+
+## Rollback, retention and GC
+
+```sh
+grip generations
+grip rollback
+grip gc --dry-run
+```
+
+`grip rollback` reselects a retained generation: files, launchers and package roots come from retained bytes, nothing is re-solved or rebuilt, and drift is preserved exactly as during apply. Rollback is a new activation and may run the retained generation's hooks; it is not an undo of commands run since then.
+
+`grip gc` refuses while recovery is pending or `current` is not in the inventory. It never removes the current generation or anything a retained generation or recovery root references. `keep_generations` in [settings](settings/reference.md) controls how many predecessors are kept; keep them until the real application has worked with the deployed files.
 
 ## Source approval
 
-Evaluation uses a captured source bundle and provisioned Deno with restricted reads and no environment, network or subprocess grants. Approval binds the **exact bundle and policy**, including captured inputs, frontend/runtime identity and capture exclusions.
+Workspace code is evaluated in a sandboxed Deno with no environment, network or subprocess access, over a captured copy of the repository. Before evaluation you approve the **exact captured bundle and policy**, so a changed file, a changed exclusion or a changed frontend needs a fresh approval. There is no repository-wide "trust everything"; `GRIPSACK_TRUST_ALL=1` is refused.
 
 ```sh
 grip trust inspect --json
 grip trust add
 ```
 
-Interactive approval displays inventory and policy for review; inspect actual changed content too. Profile selection and `--focus` narrow deployment or display, not approval authority. A lockfile write or an out-of-focus source change still requires review. Inspection and approval themselves do not evaluate workspace code.
+`--focus` and profile selection narrow what is *displayed* or *deployed*, never what is approved. Approval also says nothing about what the packages and hooks you declared will do when they run: those run with your privileges.
 
-The evaluator restriction is not a sandbox for later native execution. Package tools, explicit host commands and helper executables run with their declared authority and your privileges. A checksum does not make malicious code safe. Same-UID or privileged modification of trusted runtime storage is outside this protection.
-
-## Unattended approval
-
-Record expected bundle and policy digests **separately from the machine operation**, after reviewing the source. Compare both before approving:
+For unattended machines, record the bundle and policy digests when you review the source, and compare before approving:
 
 ```sh
 set -eu
@@ -45,47 +79,23 @@ grip trust add --bundle "$expected_bundle" --policy "$expected_policy"
 grip check
 ```
 
-This requires `jq`. Do not derive the expected values from the inspection being approved. Keep deployment configuration outside the captured checkout. Stop and re-review on a mismatch; a change between inspection and approval also fails closed.
-
-There is no floating repository-wide approval. `GRIPSACK_TRUST_ALL=1` is refused. Approving a changed Pixi manifest/lock permits evaluation but does not waive frozen-input checks: explicitly import it with `grip update`, review the resulting lock, then approve the new capture.
-
-## File ownership and journal recovery
-
-Every journaled mutation records prior state and intended end state before changing the destination. It re-reads the result through a pinned directory handle and checks the postcondition. Before commit, failed changes trigger compensation; unresolved recovery retains the journal and blocks later mutation.
-
-Recovery covers recorded file bytes, Unix modes and symlink targets, not mtimes, ownership or extended attributes. Drift is not promoted to managed content merely because a previous transition was interrupted. A changed live file is preserved rather than blindly replaced with the prior snapshot.
-
-The current-generation pointer must equal the recorded previous or target generation for recovery to decide its state. Unexpected state blocks rather than guessing. Corrupt manifests and quarantined journal entries remain visible recovery problems, not disposable cache files.
-
-Recorded ownership does not transfer merely because another workspace wants the same path. `--take-over` is a deliberate foreign-file adoption permission, not blanket ownership reassignment. Do not delete managed files, journals or manifests to force admission. See [profile ownership](adopting.md).
+Never derive the expected values from the inspection you are about to approve.
 
 ## Hooks and checks
 
-Rendered-file checks run before destination mutation. Deployed `pre_flip` checks run after candidate writes but before commit, within compensation. `post_link` and `post_activate` failures do not automatically roll back a committed generation.
+Rendered-file checks run before any destination is written. Deployed `pre_flip` checks run after candidate writes but before the flip, inside the transaction. `post_link` and `post_activate` run after commit and are never auto-rolled back.
 
-Hooks have durable activation intents. Ambiguous interrupted delivery can run again with the same identity, so hooks must be idempotent. Terminal outcomes are not automatically retried. Explicit rollback is a new activation and may run the retained generation's hooks. Arbitrary task, service and external-tool effects are not reversed by restoring managed files.
+Hooks have durable intents. An interrupted delivery can run again under the same intent id, so write idempotent hooks. Failed intents are not retried automatically. See [tasks and checks](tasks.md).
 
-See [tasks and checks](tasks.md) for lifecycle stages and invocation receipts.
+## Host libraries and launchers
 
-## Host runtime dependencies
+A Linux GNU package may declare `hostRuntime: { libraryDirectories: [...] }`. Those directories are trusted host input: review who controls them. They are package-scoped and never widen what the evaluator or other packages can see.
 
-Linux GNU packages may declare `hostRuntime: { libraryDirectories: ["/opt/vendor/lib64"] }`. Review who controls those directories as well as the package bytes. This is package-scoped runtime authority, not an evaluator read grant or arbitrary ambient loader fallback.
+Managed launchers embed the absolute path of the installed core and its private state directory. If you move the binary, reapply with the new one rather than editing launchers. Run as the UID that owns the state; placing a launcher in `/usr/local/bin` does not make the store multi-user.
 
-The dependency graph, ABI and search paths are re-admitted on invocation. Host libraries remain mutable trusted host inputs; they are not retained portable artifacts. Prefer complete retained package closures when portability matters.
+## What is not covered
 
-Managed launchers retain the absolute installed core location and private state path. Keep both available. If the core moves, restore it or reapply using the replacement binary; do not edit launcher bodies. Putting a launcher in a shared directory does not make private state a multi-user installation. Run as the owning UID and keep trust, journals and retained state private.
-
-## Retention and garbage collection
-
-```sh
-grip generations
-grip gc --dry-run
-```
-
-GC does not remove the current generation or content referenced by retained generations and recovery roots. Unreadable inventory, corrupt manifests or missing current state stop reclamation before deletion. Keep predecessor generations, captured prior blobs and unresolved recovery data until you have checked deployed behavior and recovery.
-
-`grip rollback` restores retained managed state without rebuilding packages or rerendering current inputs. Tracked-copy drift remains protected. Rollback is not a reversal of every command run since that generation.
-
-## Further technical detail
-
-[Run logs](runs.md) help diagnose a failure but are not recovery authority. The source repository's [guarantee ledger](https://github.com/gripsack-dev/gripsack/blob/{release_source}/verification/guarantees.md) records technical trust boundaries and research; release-specific verification belongs to [release notes](https://github.com/gripsack-dev/gripsack/releases), not a blanket assurance about your host.
+- Effects of hooks, tasks, services and the programs you deploy. Rollback does not undo a database migration.
+- Writes by another process in the window between gripsack's re-check and its own write ([a named residual risk](guarantees.md#what-is-not-claimed)).
+- Same-UID or privileged tampering with the store, journals or trust records.
+- Anything outside Linux x86_64 and WSL2.

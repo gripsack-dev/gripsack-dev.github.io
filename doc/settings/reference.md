@@ -65,7 +65,7 @@ Units are `s`, `min` and `hr`. Bucket state persists in the private state root s
 | `GITHUB_TOKEN`, `GH_TOKEN` | Public GitHub credentials, in that precedence |
 | `GITHUB_ENTERPRISE_TOKEN`, `GH_ENTERPRISE_TOKEN` | Enterprise credentials, requiring a matching `GH_HOST` or `GITHUB_HOST` |
 
-`GRIPSACK_TRUST_ALL=1` is refused. Use exact-digest [source approval](safety.md#unattended-approval), not a floating trust setting.
+`GRIPSACK_TRUST_ALL=1` is refused. Use exact-digest [source approval](safety.md#source-approval), not a floating trust setting.
 
 ## Command map
 

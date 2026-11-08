@@ -15,7 +15,7 @@ For editor types without selecting a separate runtime frontend:
 exclude = ["node_modules/@gripsack/core"]
 ```
 
-This literal exclusion disables that runtime pin before dereference. A glob cannot carve files out of an admitted SDK root. If `node_modules` itself is symlinked, use real ancestry or exclude that whole parent deliberately. Frontend changes can require a lock refresh and renewed source approval.
+This literal exclusion turns the installed SDK off as a runtime frontend. A glob cannot carve individual files out of an SDK root. If `node_modules` itself is symlinked, use real ancestry or exclude that whole parent deliberately. Frontend changes can require a lock refresh and renewed source approval.
 
 ## Source capture
 
@@ -28,9 +28,9 @@ exclude = [".venv", "**/__pycache__", ".ruff_cache/**"]
 
 Literal entries exclude normalized relative subtrees. Globs support `*` within a component, `?` for one character and whole-component `**` across components. They are case-sensitive and bounded. Absolute paths, parent traversal and `~` are not valid shortcuts.
 
-Required configuration, entrypoints, lock authority and admitted SDK roots are protected. Prefix-scoped globs require real, unaliased ancestry; use a leading suffix glob such as `**/__pycache__` for aliased content trees where appropriate. Exclusions never grant access to excluded files.
+Required configuration, entrypoints, the lockfile and selected SDK roots cannot be excluded. Prefix-scoped globs require real, unaliased ancestry; use a leading suffix glob such as `**/__pycache__` for aliased content trees where appropriate. Exclusions never grant access to excluded files.
 
-`repoTree` selection is separate: its `include`/`exclude` prefixes are literal, not globs, and cannot bypass capture admission. Exclude an irrelevant outbound virtual-environment link at the capture boundary before evaluating tree declarations.
+`repoTree` selection is separate: its `include`/`exclude` prefixes are literal, not globs, and cannot reach past the capture boundary. Exclude an irrelevant outbound virtual-environment link at the capture boundary before evaluating tree declarations.
 
 ## Review the whole capture
 
@@ -41,7 +41,7 @@ grip trust add
 
 Interactive `trust add` shows the capture and policy before asking for approval. Review actual changed content as well as inventory paths. `--focus PREFIX` narrows the displayed changed-path list only: approval still binds the exact whole bundle and policy, and JSON stays complete. An out-of-focus change requires renewed approval too.
 
-For noninteractive execution, compare separately reviewed expected digests before approval; see [unattended approval](safety.md#unattended-approval).
+For noninteractive execution, compare separately reviewed expected digests before approval; see [unattended approval](safety.md#source-approval).
 
 ## State, temporary files and storage
 

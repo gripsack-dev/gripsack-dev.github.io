@@ -1,6 +1,6 @@
-# Agent guidance
+# Agent skills
 
-Gripsack's source repository includes reusable guidance for agents that help inspect or operate a workspace. Guidance is not executable enforcement and does not grant permission to approve source, overwrite files or discard recovery data.
+Two skills in the source repository teach a coding agent (Claude Code, for example) how to operate gripsack well. They are guidance, not enforcement: the agent still has to review source, inspect plans and leave recovery data alone.
 
 ## Workspace adoption
 
@@ -12,7 +12,7 @@ The [workspace guide](workspaces.md) and [SDK reference](https://github.com/grip
 
 The [gripsack-debug skill](https://github.com/gripsack-dev/gripsack/tree/{release_source}/skills/gripsack-debug) explains structured logs, span chains and diagnostic codes. Give the agent the failing command and exact run-log filename rather than only `latest`, which another invocation may replace.
 
-Logs are diagnostic evidence, not recovery authority. Keep journals, generation manifests and retained state intact while investigating. See [run logs](runs.md) and [safety](safety.md).
+Logs are for diagnosis, not something recovery reads. Keep journals, generation manifests and retained state intact while investigating. See [run logs](runs.md) and [safety](safety.md).
 
 ## Use with your agent
 

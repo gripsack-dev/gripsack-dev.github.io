@@ -1,32 +1,27 @@
 # Where gripsack fits
 
-Gripsack manages user-space tools, project environments and personal configuration. It is not an operating-system package manager. Keep apt or another system manager for the OS; select the packages and files you want in a workspace.
+Gripsack manages the user-space layer: tools, project environments, personal configuration and the project services next to them. It is not an operating-system package manager. Keep apt or your distribution for the OS and put the pieces you want reviewed and reversible in a workspace.
 
-## Choose the scope you need
+## Next to other tools
 
-| Tool | Typical focus | Why choose it |
+| Tool | Focus | Compared with gripsack |
 |---|---|---|
-| gripsack | Typed native packages, environments, personal profiles, tasks and Docker Engine services | One workspace graph with explicit source review, file ownership and retained generations |
-| Nix + Home Manager | Declarative package graphs and home configuration in the Nix ecosystem | Broad package ecosystem and established derivation/configuration workflows |
-| chezmoi | Personal configuration source state and templates | Focused dotfile management with rich templating |
-| GNU Stow | Symlink trees | Small, direct link management without a package producer graph |
-| apt / other OS managers | Distribution packages and system integration | Operating-system dependency and installation policy |
-| mise | Developer tool versions, environments and tasks | Its tool ecosystem and project task workflow |
+| Nix + Home Manager | Declarative packages and home configuration in the Nix ecosystem | Much larger package ecosystem and its own language. Gripsack is one static binary, TypeScript, and takes packages from upstream archives and Conda instead of a derivation set |
+| chezmoi | Dotfiles with templates | Deeper templating. Gripsack adds per-file ownership modes, drift detection, generations and rollback, and manages tools and services with the same file |
+| GNU Stow | Symlink farms | Smaller and simpler. Gripsack's `symlinkTo` is the equivalent; tracked copies and managed blocks cover files that symlinks cannot |
+| mise | Developer tool versions and tasks | Focused on language runtimes. Gripsack pins arbitrary archives and Conda solves, deploys launchers through generations, and adds services and schedules |
+| apt / dnf / pacman | Distribution packages | The OS layer. Gripsack deliberately stays out of it |
 
-These are scope comparisons, not a claim that other tools cannot be extended or combined.
+These are scope comparisons; the tools combine fine.
 
-## When gripsack is useful
+## When it is a good fit
 
-- You want tools from release archives, captured source or a coherent Conda solve without global user-space installs.
-- You want a project environment and a personal command launcher to select the same packages.
-- You want an explicit, digest-pinned local database alongside native project tools.
-- You want copied configuration with drift guards, store-owned links or small managed blocks rather than one ownership policy for every file.
-- You want manual tasks and lifecycle checks to be named, inspectable outputs.
+- You want tools from release archives or a coherent Conda solve without installing into a global prefix, and the same tools for project commands and personal launchers.
+- You want dotfiles deployed with a plan you can read first, your local edits preserved, and a one-command way back.
+- You want a project database pinned by digest on a loopback port, next to the native tools, without running a daemon.
+- You want named tasks, pre-deployment checks and calendar schedules to be declarations you can review rather than scripts you remember.
+- You care whether the safety claims are checked. The [core decisions are proved](guarantees.md), and the page says what is not.
 
-Start with a [file-only workspace](workspaces.md), a [native package](packages.md) or [PostgreSQL service](services.md).
+## Boundaries
 
-## Deliberate boundaries
-
-Current host support is Linux x86_64 and WSL2. Container services need Docker Engine; native file profiles do not. Scheduled tasks require explicit profile application and a supported user service manager. Native artifact sharing is not automatic registry deployment or container-image building.
-
-Generations and journals protect managed state, not every effect on the machine. Tracked-copy drift is preserved by default; arbitrary tasks, services and hooks are not automatically reversible. Alpha software still needs independent backups and actual consumer checks. See [safety and recovery](safety.md) and [installation](install.md).
+Linux x86_64 and WSL2 only. Container services need Docker Engine; schedules need a systemd user session; file-only profiles need neither. Generations protect managed files and launchers, not database contents, task effects or hook side effects. Alpha software: keep independent backups. See [safety and recovery](safety.md) and [installation](install.md).

@@ -34,7 +34,7 @@ grip build ripgrep
 grip run --env search -- rg --version
 ```
 
-Review source approval prompts and the lockfile change between commands. `update` fixes the resolved release and archive identity; later consumers use those pins. This is an authoring example, not a promise about every upstream release or host. To request a particular release, set `githubRelease.version` to its exact tag.
+`grip update` resolves the release and records the archive hash in `gripsack.lock`; review that diff and approve the source when prompted. To pin a particular release, set `githubRelease.version` to its exact tag.
 
 ## Roots and layouts
 
@@ -46,13 +46,11 @@ Choose the layout that matches the producer:
 - `prefix_materialized` for a coherent Conda or imported Pixi environment whose prefix is materialized by the core.
 - `fixed_prefix` with an explicit `prefix` when the package requires that location; an environment selecting it must declare the matching prefix.
 
-Native provider packages need no synthetic recipe or build worker. The former source-recipe backend is [retired](builds.md).
-
 ## Runtime dependencies are part of the package
 
 Declare required package edges with `runtime: ["runtime-package"]`. A selected ABI identifies compatibility and loader behavior; it does not grant arbitrary host library access. Keep libraries and sibling resources in the retained closure when the tool needs them.
 
-A Linux GNU package can explicitly opt into reviewed host libraries with `hostRuntime: { libraryDirectories: ["/opt/vendor/lib64"] }`. Those directories remain mutable trusted host inputs, not portable package content. See [runtime safety](safety.md#host-runtime-dependencies).
+A Linux GNU package can explicitly opt into reviewed host libraries with `hostRuntime: { libraryDirectories: ["/opt/vendor/lib64"] }`. Those directories remain mutable trusted host inputs, not portable package content. See [runtime safety](safety.md#host-libraries-and-launchers).
 
 Some tools locate resources through their resolved executable pathname. A managed launcher does not promise the original `/proc/self/exe` pathname. For tools requiring a real sibling tree, use an explicit tracked-copy deployment and captured executable wrapper rather than assuming a launcher can repair the upstream layout. [File policies](adopting.md#choose-file-ownership) explain the difference.
 

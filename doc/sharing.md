@@ -1,6 +1,6 @@
-# Native artifact sharing
+# Sharing packages
 
-`grip package` transfers passive Linux x86_64 artifacts. Import does not evaluate TypeScript, install tasks or schedules, run publisher checks or activate a profile. A signature authenticates an authorized publisher's claim; it does not prove the program is safe or universally relocatable.
+`grip package` moves a signed bundle of retained package content to another machine, directly or through an OCI registry. Importing a bundle evaluates no TypeScript, installs no task or schedule and activates no profile: the recipient's own workspace decides what to expose. A signature says who published the bytes, not that the program is safe.
 
 ## Prepare a native bundle
 
@@ -100,11 +100,11 @@ grip package pull --digest "$transport_digest" \
 
 Push publishes blobs before the OCI artifact manifest. Pull is digest-only; a mutable tag is discovery, not a frozen selection. Registry authentication is explicit through `--bearer-token-file` or `--basic-credentials-file` (private mode `0600` JSON containing `username` and `password`). HTTPS uses rustls. There is no redirect, implicit authentication-challenge discovery, retry or fallback. Anonymous local test registries require explicit `--insecure-loopback` for HTTP.
 
-This OCI artifact is **not a runnable container image** and needs no Docker Engine or BuildKit worker. [Services](services.md) separately run existing Docker images. The [source builder](builds.md) is retired. Relocation is a declared runtime contract, not general embedded-prefix rewriting; validate actual recipient execution and host requirements before relying on a shared package.
+This OCI artifact is **not a runnable container image** and needs no Docker Engine or BuildKit worker. [Services](services.md) separately run existing Docker images. Relocation is a declared runtime contract, not general embedded-prefix rewriting; run the shared package on the receiving host before relying on it.
 
 ## Targets and independent dependencies
 
-Targets contain admitted OS, architecture, minimum kernel, CPU and ABI requirements, not free-form compatibility claims. A glibc target uses `abi: { "kind": "glibc", "minimum": "2.28" }`; the Linux ABI target above does not grant arbitrary host libraries. Import and managed consumption measure the actual receiving host. The example's `/bin/sh` prerequisite still needs separate operator qualification.
+Targets state OS, architecture, minimum kernel, CPU and ABI requirements that are checked on the receiving host, not free-form compatibility prose. A glibc target uses `abi: { "kind": "glibc", "minimum": "2.28" }`; the Linux ABI target above does not grant arbitrary host libraries. Import and managed consumption measure the actual receiving host. The example's `/bin/sh` prerequisite still needs separate operator qualification.
 
 A component can instead reference an already-imported independently signed package through `external: { manifest, namespace, publisher }`, with null local payload/tree/Conda fields. Packing includes the complete signed dependency closure. Every independent manifest needs its own namespace-scoped publisher authorization; the root signature cannot authorize another publisher. Independent manifest references must form an acyclic graph. Missing metadata or payloads fail offline without registry fallback. A relocatable aggregate cannot embed Conda or fixed prefixes and relabel them relocatable.
 
@@ -118,7 +118,7 @@ For an imported environment, select `source.package({ manifest: digest })` with 
 
 ## Conda and wheel reconstruction
 
-Conda sharing transfers a single archive-set component with the admitted lock, original archives, core-approved pinned helper and required signed/pinned redistribution notices, not a copied installed prefix. Import reconstructs at the recipient's actual final prefix and records that realization separately. Missing originals or helper fail offline without solving, repodata access or a network fallback.
+Conda sharing transfers the lock, the original archives, the pinned helper and the required redistribution notices, not a copied installed prefix. Import reconstructs at the recipient's actual final prefix and records that realization separately. Missing originals or helper fail offline without solving, repodata access or a network fallback.
 
 GNU-linked Python/Conda tools declare a glibc target, for example `abi: { "kind": "glibc", "minimum": "2.28" }`, matching the environment's explicit baseline. A kernel-only Linux target does not authorize a host GNU loader. Mixed environments preserve that requirement for local and independently signed members.
 
@@ -126,6 +126,6 @@ Binary prefix replacement is limited by the placeholders in the original Conda a
 
 Supported explicitly hash-pinned wheels can accompany the Conda environment, including supported wheel records selected from an imported Pixi lock. The maintained UV installer runs offline inside the core-pinned helper; core validation binds installed bytes, generated console entrypoints and receipts to original wheels and the final prefix. This does not run pip, resolve missing Python dependencies, compile bytecode or execute package-provided installers. See [wheel authoring and limits](environments.md#hash-pinned-python-wheels).
 
-Unsupported selected Pixi build/resolution policies or wheel records are errors, not silently omitted packages. Runtime compatibility and actual consumer behavior still require recipient qualification; this guide does not claim a completed offline reconstruction test.
+Unsupported Pixi build or resolution policies and unsupported wheel records are errors naming the record, never silently omitted packages. Run the real tool on the receiving host before relying on a reconstructed environment.
 
-The [selected core sharing reference](https://github.com/gripsack-dev/gripsack/blob/{release_source}/README.md#share-native-packages-without-activating-profiles), [package-sharing fixture](https://github.com/gripsack-dev/gripsack/blob/{release_source}/e2e/test_package_sharing.py) and [offline Conda fixture](https://github.com/gripsack-dev/gripsack/blob/{release_source}/e2e/test_package_conda_offline.py) provide the source contract and runnable coverage definitions, not evidence that those checks ran for this site.
+The [sharing reference](https://github.com/gripsack-dev/gripsack/blob/{release_source}/docs/sharing-reference.md) in the source repository has the complete format contract: bounds, precedence rules, relocation limits and the end-to-end fixtures that exercise them.

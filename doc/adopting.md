@@ -97,7 +97,7 @@ grip generations
 grip rollback
 ```
 
-Rollback uses retained content without rerendering today's source or rebuilding packages. Keep predecessor generations and prior-state data until the actual application works with the deployed files. Journaled file transitions are not a whole-machine snapshot, and late hook failures do not automatically roll back; see [safety and recovery](safety.md).
+Rollback uses retained content without re-rendering today's source or rebuilding packages. Keep predecessor generations until the real application works with the deployed files. See [safety and recovery](safety.md) for the full ownership and drift rules, with a diagram.
 
 ## Package artifacts and launchers
 

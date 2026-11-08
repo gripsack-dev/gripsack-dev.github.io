@@ -6,7 +6,7 @@ Services are explicit workspace outputs for existing container images. `grip up`
 
 Use Linux x86_64 or WSL2 with a reachable local Linux Docker Engine Unix socket and permission to use it. Docker access is powerful host authority: source approval is not a container-security guarantee. For a nondefault local socket, pass `grip up --socket /path/to/docker.sock postgres`; later inspection and down use recorded state.
 
-Images must use immutable `name@sha256:DIGEST` references, not floating tags. The PostgreSQL 18 digest below was obtained from an actual Docker pull and inspected repository digest during release preparation; that alone is not evidence of a Gripsack runtime test. Cold startup requires registry access and disk space.
+Images must use immutable `name@sha256:DIGEST` references, not floating tags. The PostgreSQL 18 digest below was taken from the image's repository digest at writing time; check it against the registry before relying on it. Cold startup needs registry access and disk space.
 
 ## PostgreSQL workspace
 
@@ -72,6 +72,6 @@ Changing a running service definition requires explicit `grip down postgres` fol
 
 Status, logs and down inspect recorded owned state without evaluating current workspace source. They do not adopt or delete arbitrary containers. Profile generations and rollback do **not** roll back database contents, migrations, task effects or external services. No automatic database rollback is promised.
 
-## Three different uses of OCI
+## Services are not the only OCI
 
-These services run pre-existing container images through Docker Engine. [Native sharing](sharing.md) transports retained native artifacts through an OCI registry without making them container images. The old [BuildKit source builder and image exporter](builds.md) are retired.
+Services run existing container images through Docker Engine. [Sharing](sharing.md) also uses an OCI registry, but as a transport for signed native package bundles, not as container images. Gripsack does not build images.

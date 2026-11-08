@@ -1,6 +1,6 @@
 # Sources and locks
 
-A source describes where package or recipe input bytes come from. A provider package wraps the source directly; a recipe transforms source into a new output. Source resolution and personal deployment are separate operations.
+A source says where a package's bytes come from. `grip update` resolves sources into `gripsack.lock`; everything that runs later uses those pins and nothing else. Resolving sources and deploying files are separate steps.
 
 ## Choose an input
 
