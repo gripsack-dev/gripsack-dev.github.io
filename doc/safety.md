@@ -6,7 +6,7 @@ Two things first. It is alpha software: keep an independent backup of anything i
 
 ## What apply does
 
-{diagram:lifecycle|From gripsack.ts through grip plan to grip apply's six steps, into a retained generations directory, with grip rollback reselecting an earlier generation and grip gc reclaiming only what nothing retained needs.|An apply is one transaction ending in one atomic rename; every applied state stays on disk as a generation.}
+{anim:apply}
 
 1. **Realize packages** into the read-only store. Content is verified, sealed read-only and published by rename, so a half-downloaded archive never becomes a package.
 2. **Journal** the prior state and the intended end state of every destination, durably, before touching any of them.
@@ -19,7 +19,7 @@ Destination writes are not atomic across a whole profile: a program reading its 
 
 ## What a crash leaves behind
 
-{diagram:crash|A timeline of apply with crash points before the journal, during writes, around the flip and during hooks; the next command classifies current against previous and target as Uncommitted, Committed or Ambiguous and restores prior bytes, finishes activation, or stops.|Recovery runs before the next command does anything else. The classification step is proved; the surrounding machine is tested.}
+{anim:crash}
 
 The next `grip` command recovers before it does anything else. It compares the `current` pointer with the previous and target generation recorded for the interrupted transaction:
 
@@ -33,7 +33,7 @@ Do not delete journals, manifests or managed files to "unstick" a refusal; the [
 
 ## Ownership and drift
 
-{diagram:ownership|Decision tree: for a destination, if nothing is live gripsack writes; if the last file gripsack wrote is live it updates; if gripsack's file changed since it preserves the drift; if a file gripsack never wrote is live it refuses unless --take-over adopts it. Three ownership modes: symlinkTo, trackedCopyTo, managedBlock.|Every destination is decided on its own.|tall}
+{anim:ownership}
 
 Every destination has an owner. Gripsack writes only when the destination is absent, or holds exactly what gripsack wrote last time. Two other cases are decided conservatively:
 

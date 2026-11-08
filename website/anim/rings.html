@@ -1,0 +1,32 @@
+<figure class="anim a-rings" role="img" aria-label="Five nested rings: Product, Edge, Host, Protocol and Kernel. Untrusted input such as an archive, a gripsack.ts or a lockfile enters the Edge ring, where it is hash-checked and turned into typed values; those flow inward to the Kernel, whose pure decisions about commit, garbage collection and journal publication are proved in Lean since 0.52. The decision leaves as a command that carries what the kernel expects to find; the Protocol ring (proofs next) orders it, the Host ring re-checks that the live file still matches the expectation and only then acts on the filesystem. The small window between that re-check and the act is where another process could still write; gripsack detects such writes but cannot exclude them.">
+<svg viewBox="0 0 780 440" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+  <rect class="a-ring r4" x="80" y="60" width="620" height="360" rx="22"/>
+  <text class="a-ring-label" x="390" y="80" text-anchor="middle">Product — CLI · review · adopt · doctor</text>
+  <rect class="a-ring r3" x="125" y="95" width="530" height="290" rx="20"/>
+  <text class="a-ring-label" x="390" y="115" text-anchor="middle">Edge — evaluation · downloads · archives · Docker · systemd</text>
+  <rect class="a-ring r2" x="170" y="130" width="440" height="220" rx="18"/>
+  <text class="a-ring-label" x="390" y="150" text-anchor="middle">Host — driver · filesystem · locks · assumptions listed</text>
+  <rect class="a-ring r1" x="215" y="165" width="350" height="150" rx="16"/>
+  <text class="a-ring-label" x="390" y="185" text-anchor="middle">Protocol — apply · rollback · recover · gc <tspan class="a-tag next">· proofs next</tspan></text>
+  <rect class="a-ring r0" x="260" y="200" width="260" height="80" rx="14"/>
+  <text class="a-ring-label" x="390" y="220" text-anchor="middle">Kernel — pure decisions</text>
+  <text class="a-tag proved" x="390" y="238" text-anchor="middle">proved in Lean · 0.52</text>
+  <text class="a-dim" x="390" y="254" text-anchor="middle">commit · GC · journal publication</text>
+  <g class="a-station s-kernel"><text x="390" y="272" text-anchor="middle">decide</text></g>
+
+  <g class="a-world"><path d="M2 228 h70 v24 h-70 z"/><text x="37" y="243" text-anchor="middle">untrusted</text><text class="a-dim" x="37" y="268" text-anchor="middle">input</text></g>
+  <g class="a-world fs"><path d="M706 228 h70 v24 h-70 z"/><text x="741" y="243" text-anchor="middle">filesystem</text><text class="a-dim" x="741" y="268" text-anchor="middle">S1–S7 assumed</text></g>
+
+  <line class="a-path" x1="70" y1="240" x2="260" y2="240"/>
+  <line class="a-path" x1="520" y1="240" x2="710" y2="240"/>
+  <circle class="a-token in-token" cx="70" cy="240" r="6"/>
+  <circle class="a-token out-token" cx="390" cy="240" r="6"/>
+
+  <g class="a-station s-cmd"><text x="390" y="303" text-anchor="middle">command + expect · what must still be live</text></g>
+  <g class="a-station s-check"><text x="310" y="338" text-anchor="middle">re-check: live = expect?</text></g>
+  <g class="a-station s-act"><text x="452" y="338" text-anchor="middle">→ act</text></g>
+  <g class="a-window"><path d="M404 327 v-6 h22 v6"/><text x="490" y="338" text-anchor="start">← S5 window</text><text class="a-dim" x="390" y="406" text-anchor="middle">S5: between re-check and act, another process's write is only detected, never excluded</text></g>
+  <g class="a-station s-edge"><text x="390" y="373" text-anchor="middle">hash ✓ · typed values admitted · everything else refused</text></g>
+</svg>
+<figcaption>Untrusted bytes are admitted at the edge, the kernel decides, and the decision travels back out as a command that says what it expects to find. Purple is proved; red is next.</figcaption>
+</figure>

@@ -1,0 +1,36 @@
+<figure class="anim a-crash" role="img" aria-label="Two crash scenarios on the apply timeline. A: the process dies while writing destinations; the next command reads the journal, classifies current against previous and target as Uncommitted because current still names the previous generation, and restores the prior bytes from the journal. B: the process dies after the flip; classification says Committed because current names the target, and activation is finished. A third verdict, Ambiguous, stops everything and reports instead of guessing. Either way the machine ends consistent.">
+<svg viewBox="0 0 780 320" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+  <line class="a-rail" x1="12" y1="24" x2="768" y2="24"/>
+  <circle class="a-token c-token" cx="71" cy="24" r="6"/>
+  <g class="a-step cs1"><rect class="a-box" x="12" y="44" width="118" height="50" rx="6"/><text class="a-text" x="71" y="66" text-anchor="middle">record intent</text><text class="a-dim" x="71" y="84" text-anchor="middle">journal</text></g>
+  <g class="a-bar on"><line x1="135" y1="40" x2="135" y2="98"/></g>
+  <g class="a-step cs2"><rect class="a-box" x="140" y="44" width="118" height="50" rx="6"/><text class="a-text" x="199" y="66" text-anchor="middle">capture prior</text><text class="a-dim" x="199" y="84" text-anchor="middle">journal</text></g>
+  <g class="a-bar on"><line x1="263" y1="40" x2="263" y2="98"/></g>
+  <g class="a-step cs3"><rect class="a-box" x="268" y="44" width="118" height="50" rx="6"/><text class="a-text" x="327" y="66" text-anchor="middle">write</text><text class="a-dim" x="327" y="84" text-anchor="middle">destinations</text></g>
+  <g class="a-step cs4"><rect class="a-box" x="396" y="44" width="118" height="50" rx="6"/><text class="a-text" x="455" y="66" text-anchor="middle">publish gen</text><text class="a-dim" x="455" y="84" text-anchor="middle">store</text></g>
+  <g class="a-bar on"><line x1="519" y1="40" x2="519" y2="98"/></g>
+  <g class="a-step cs5"><rect class="a-box a-key" x="524" y="44" width="118" height="50" rx="6"/><text class="a-text" x="583" y="66" text-anchor="middle">flip `current`</text><text class="a-dim" x="583" y="84" text-anchor="middle">atomic rename</text></g>
+  <g class="a-bar on"><line x1="647" y1="40" x2="647" y2="98"/></g>
+  <g class="a-step cs6"><rect class="a-box" x="652" y="44" width="118" height="50" rx="6"/><text class="a-text" x="711" y="66" text-anchor="middle">cleanup</text><text class="a-dim" x="711" y="84" text-anchor="middle">hooks after</text></g>
+
+  <g class="a-crash crA"><polyline points="327,6 321,22 331,22 325,40" /><text x="327" y="114" text-anchor="middle">A · crash while writing</text></g>
+  <g class="a-crash crB"><polyline points="647,6 641,22 651,22 645,40" /><text x="647" y="114" text-anchor="middle">B · crash after the flip</text></g>
+
+  <g class="a-step rec"><rect class="a-box" x="12" y="150" width="236" height="50" rx="6"/><text class="a-text" x="130" y="172" text-anchor="middle">recover</text><text class="a-dim" x="130" y="190" text-anchor="middle">next command reads the journal first</text></g>
+  <line class="a-link" x1="248" y1="175" x2="262" y2="175"/>
+  <g class="a-step cls"><rect class="a-box a-proved" x="262" y="150" width="226" height="50" rx="6"/><text class="a-text" x="375" y="172" text-anchor="middle">classify(current, prev, target)</text><text class="a-dim" x="375" y="190" text-anchor="middle">proved in Lean · 0.52</text></g>
+  <line class="a-link" x1="488" y1="175" x2="496" y2="165"/>
+  <line class="a-link" x1="488" y1="175" x2="496" y2="205"/>
+  <line class="a-link" x1="488" y1="175" x2="496" y2="245"/>
+  <g class="a-chip vU"><rect x="498" y="150" width="120" height="30" rx="4"/><text x="558" y="170" text-anchor="middle">Uncommitted</text></g>
+  <g class="a-out oU"><text class="a-text" x="626" y="164">current = previous</text><text class="a-dim" x="626" y="178">restore prior bytes</text></g>
+  <g class="a-chip vC"><rect x="498" y="190" width="120" height="30" rx="4"/><text x="558" y="210" text-anchor="middle">Committed</text></g>
+  <g class="a-out oC"><text class="a-text" x="626" y="204">current = target</text><text class="a-dim" x="626" y="218">finish activation</text></g>
+  <g class="a-chip vA"><rect x="498" y="230" width="120" height="30" rx="4"/><text x="558" y="250" text-anchor="middle">Ambiguous</text></g>
+  <g class="a-out"><text class="a-text" x="626" y="244">neither</text><text class="a-dim" x="626" y="258">stop and report</text></g>
+
+  <g class="a-done dA"><rect class="a-okbox" x="12" y="276" width="368" height="34" rx="6"/><text x="196" y="298" text-anchor="middle">A → consistent: prior or your own bytes</text></g>
+  <g class="a-done dB"><rect class="a-okbox" x="396" y="276" width="374" height="34" rx="6"/><text x="583" y="298" text-anchor="middle">B → consistent: the new generation stands</text></g>
+</svg>
+<figcaption>A crash can land anywhere. Recovery classifies first, then restores prior bytes or finishes activation; when it cannot tell, it stops instead of guessing.</figcaption>
+</figure>

@@ -10,6 +10,8 @@ A profile declares the files and environment launchers you want to deploy. Start
 | `trackedCopyTo(path)` | Real files the application may rewrite; trees requiring physical sibling layout | Local byte or mode drift is detected and preserved by default |
 | `managedBlock(path, marker)` | One delimited section of a shared text file | Gripsack reconciles its block, not the whole file |
 
+{diagram:ownership|Decision tree: for a destination, if nothing is live gripsack writes; if the last file gripsack wrote is live it updates; if gripsack's file changed since it preserves the drift; if a file gripsack never wrote is live it refuses unless --take-over adopts it. Three ownership modes: symlinkTo, trackedCopyTo, managedBlock.|What happens to whatever is already at a destination.|tall}
+
 Destinations must be normalized absolute or `~/`-prefixed paths outside the workspace repository. They use your privileges, not an implicit elevation mechanism.
 
 ## Capture a tree and an executable template

@@ -22,6 +22,8 @@ A **package** gives a source a target platform, a layout, commands and runtime d
 
 A **profile** combines files, retained package artifacts and launchers for one environment. `grip apply` realizes packages first, then runs the [transaction](safety.md#what-apply-does): journal, write with ownership checks, pre-flip checks, one atomic flip of `current`, hooks. Every applied state is a **generation** that keeps its package roots, file content, launcher bindings and recovery data, so `grip rollback` reuses bytes instead of re-running today's source.
 
+{diagram:lifecycle|From gripsack.ts through grip plan to grip apply's six steps, into a retained generations directory, with grip rollback reselecting an earlier generation and grip gc reclaiming only what nothing retained needs.|An apply ends in one atomic rename; every applied state stays on disk as a generation.}
+
 ## Services, tasks and schedules
 
 [Services](services.md) are digest-pinned containers driven through the Docker Engine API; gripsack owns only the containers and volumes it created and never runs a daemon. [Tasks](tasks.md) are command graphs with prerequisites, locks and postconditions; [schedules](schedules.md) register those tasks with the systemd user manager during profile application. [Sharing](sharing.md) moves signed, passive package bundles between machines or through an OCI registry without evaluating anything on the receiving side.
@@ -29,6 +31,8 @@ A **profile** combines files, retained package artifacts and launchers for one e
 ## The rings
 
 The code is arranged so that the decisions that matter most are smallest and best checked:
+
+{anim:rings}
 
 | Ring | Crates | Checked by |
 |---|---|---|
