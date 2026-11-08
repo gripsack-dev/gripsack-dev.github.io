@@ -41,7 +41,7 @@ and above. `GRIPSACK_LOG=debug grip check` enables debug console output,
 but does **not** lower the JSONL layer's fixed info threshold. Machine-readable
 command output such as `grip check --json` remains on stdout separately.
 
-Logs are diagnostic evidence, not retention roots or recovery authority.
+Logs are for diagnosis; recovery and garbage collection never read them.
 Keep journals, generation manifests and retained content intact when
 investigating a failed transition; see [safety](safety.md). Review logs for
 private paths or command details before sharing them.
@@ -51,6 +51,5 @@ private paths or command details before sharing them.
 The [debugging skill](https://github.com/gripsack-dev/gripsack/tree/{release_source}/skills/gripsack-debug)
 provides a debugging workflow and diagnostic references. See [skills](skills.md)
 for installation. Give the agent the specific run log and the failing command,
-not only `latest`, which another command may replace. For captured-source
-approval and evaluation receipts, use the separate [source-trust guidance](safety.md);
-a completed evaluation receipt is not a successful build or apply receipt.
+not only `latest`, which another command may replace. A completed evaluation is not a successful build or apply; read the
+spans for the stage that actually failed.

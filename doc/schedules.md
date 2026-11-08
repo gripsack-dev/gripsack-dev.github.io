@@ -10,7 +10,7 @@ Use the Linux x86_64 static release binary and a reachable supported systemd 255
 grip jobs capability
 ```
 
-The runner is retained with the captured registration. There is no root-service or linger fallback. Unsupported or unreachable managers fail closed. These prerequisites describe the implementation contract, not a claim that every host has been qualified.
+The runner is retained with the registration. There is no root-service or linger fallback; an unsupported or unreachable manager fails closed.
 
 ## Register the same task you run manually
 

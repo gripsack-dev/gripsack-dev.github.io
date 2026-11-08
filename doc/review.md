@@ -14,9 +14,9 @@ grip diff /tmp/gripsack-before.json current --json
 
 Selectors include `current`, `generation:N`, `snapshot:FILE`, a bare snapshot filename and `proposed:IRFILE`. The proposed selector consumes already-emitted IR with the repository's `gripsack.lock` offline; it is not another hand-authored configuration format or permission to execute it. Snapshots are private files (mode `0600`).
 
-Semantic review is offline: it does not evaluate TypeScript, fetch packages, start services, run tasks or change generations. New generations retain private immutable declaration/dependency evidence, actual evaluation facts and probes, selected captured inputs, locks and available artifact receipts. Rollback and comparison read that frozen evidence rather than today's checkout. An unchanged or provenance-only apply reuses prior evidence instead of rewriting history.
+Semantic review is offline: it does not evaluate TypeScript, fetch packages, start services, run tasks or change generations. Each generation keeps the declarations, dependency graph, evaluation facts, captured inputs, locks and receipts it was made from, so comparison and rollback read what was actually applied rather than today's checkout.
 
-Older generations without retained review artifacts remain readable but incomplete. Missing declarations, probes, locks, receipts and redacted values remain unknown, even in a self-comparison; they are not inferred from current source.
+Generations from before this data was retained remain readable but incomplete: missing declarations, probes, locks and redacted values are reported as unknown, never inferred from current source.
 
 For `diff` and `diff-config`, exit 0 means complete and unchanged, 2 complete and changed, 3 incomplete (including fallback), and 1 an error. Automation must distinguish these results rather than treating incomplete comparison as equality.
 
@@ -41,7 +41,7 @@ grip plan dotfiles --save /tmp/gripsack-dotfiles-plan.json
 grip apply --saved-plan /tmp/gripsack-dotfiles-plan.json
 ```
 
-Review the plan before the second command. Save outside the captured repository so writing the plan does not stale its own source binding. The private plan retains exact admitted IR and can contain authored literal configuration; never put secrets in service literals. Inherited secret references are not resolved or stored while saving.
+Review the plan before the second command. Save outside the captured repository so writing the plan does not stale its own source binding. The private plan contains the exact evaluated IR and can contain literal configuration values; never put secrets in service literals. Inherited secret references are not resolved or stored while saving.
 
 Saving does not grant execution authority. Saved apply checks source, lock, trust, facts, probes, base generation, scope and destination bindings. A stale plan is refused; make a new plan rather than forcing it or silently evaluating different source. Existing ownership, crash recovery and per-mutation checks still apply. External filesystem writers can race operating-system operations.
 

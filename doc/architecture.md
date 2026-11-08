@@ -1,42 +1,45 @@
-# Architecture
+# How it works
 
-Gripsack separates declarations, production, execution and personal deployment. A workspace is the shared graph; each operation takes only the authority needed for its stage.
+One binary, `grip`, with the TypeScript frontend embedded. It evaluates your workspace in a sandbox, turns the result into a typed intermediate representation, and executes that against a content-addressed store with generations. This page follows one declaration from file to deployed state and names the parts along the way.
 
-## From source to declared graph
+## From `gripsack.ts` to a plan
 
-1. **Capture:** the core snapshots repository inputs under an explicit capture policy.
-2. **Approve:** the operator reviews the exact source bundle and policy identities.
-3. **Evaluate:** the matching TypeScript frontend runs in provisioned Deno with restricted reads and no ambient network, environment or subprocess access.
-4. **Admit:** the Rust core validates the resulting intermediate representation, references, dependency graph and execution contracts.
+1. **Capture.** The core snapshots the repository (minus explicit [exclusions](settings.md#source-capture)). Git ignore rules are not a policy; everything in the tree is part of what you approve.
+2. **Approve.** You review and approve the exact bundle and policy digests ([source approval](safety.md#source-approval)).
+3. **Evaluate.** A pinned, checksum-verified Deno runs the embedded frontend over the captured source with no environment, network or subprocess access. Host facts arrive as inputs; anything that needs to look at the machine is an explicit probe.
+4. **Admit.** The Rust core validates the resulting IR: references, dependency graph, command contracts, provenance for every declaration.
+5. **Plan.** The core compares the desired state with what is live and prints exactly what would change.
 
-The public authoring surface is `gripsack.ts` and `@gripsack/core`. The intermediate representation is an implementation contract, not a second hand-maintained configuration language. Use matching core and frontend bytes rather than assuming a wire version grants another implementation's authority.
+The public authoring surface is `gripsack.ts` and `@gripsack/core`. The IR is an internal contract; you never write it by hand.
 
-## Sources and packages
+## Sources, packages and the store
 
-Providers acquire immutable source inputs and package closures. Native Conda solves a coherent environment; explicit Pixi imports consume a captured manifest/lock selection. `gripsack.lock` binds platform-keyed source and frontend/import identities. `grip update` refreshes those records without deploying files.
+Sources (`githubRelease`, `tarball`, `git`, `conda.environment`, `pixi.fromLock`, …) describe where bytes come from. `grip update` resolves them and records platform-keyed pins in `gripsack.lock`; that lockfile is the only source of versions at apply time. Downloads are hashed into private spools, verified, bounded, extracted and sealed read-only in the store before they get a final name.
 
-A package gives a native provider's output a target, layout, commands and runtime dependencies. Packages can be selected into environments, profiles and tasks without duplicating source resolution policy. See [packages](packages.md) and [sources](fetchers.md).
+A **package** gives a source a target platform, a layout, commands and runtime dependencies. **Environments**, **profiles** and **tasks** all select the same package declarations. Invocation re-admits the package's runtime closure each time rather than trusting whatever is on `PATH`.
 
-## Services and transport
+## Deployment and generations
 
-[Services](services.md) declare digest-pinned Docker Engine containers, named volumes, loopback ports and readiness checks. Startup is explicit; Gripsack does not run a daemon. Service data is outside profile generations.
+A **profile** combines files, retained package artifacts and launchers for one environment. `grip apply` realizes packages first, then runs the [transaction](safety.md#what-apply-does): journal, write with ownership checks, pre-flip checks, one atomic flip of `current`, hooks. Every applied state is a **generation** that keeps its package roots, file content, launcher bindings and recovery data, so `grip rollback` reuses bytes instead of re-running today's source.
 
-[Native artifact sharing](sharing.md) moves retained native closures. Its OCI registry transport is not a container image builder or runtime. The previous [source builder](builds.md) has been retired.
+## Services, tasks and schedules
 
-## Native execution
+[Services](services.md) are digest-pinned containers driven through the Docker Engine API; gripsack owns only the containers and volumes it created and never runs a daemon. [Tasks](tasks.md) are command graphs with prerequisites, locks and postconditions; [schedules](schedules.md) register those tasks with the systemd user manager during profile application. [Sharing](sharing.md) moves signed, passive package bundles between machines or through an OCI registry without evaluating anything on the receiving side.
 
-An environment selects compatible packages and explicit command exports. Native invocation admits the selected runtime closure instead of treating arbitrary `PATH` or ambient loader search as authority. Host-runtime dependencies are explicit opt-ins and remain mutable host inputs, not portable image content.
+## The rings
 
-Tasks add command graphs, prerequisites, declared mutation locks and postconditions. Their receipts describe invocation outcomes. [Scheduling](schedules.md) requires explicit registration with the user service manager; declaring a schedule does not register a timer.
+The code is arranged so that the decisions that matter most are smallest and best checked:
 
-## Personal deployment
+| Ring | Crates | Checked by |
+|---|---|---|
+| Kernel | `gripsack-kernel` | Lean 4 proofs over the shipped Rust |
+| Protocol | transaction machines in `gripsack-store`, `gripsack-exec` | crash-injection tests, TLA+ model; Lean proofs next |
+| Host | `gripsack-fs`, `gripsack-process`, store layout | small, every assumption listed, fault injection |
+| Edge | `gripsack-ir`, `gripsack-fetch`, `gripsack-conda`, services, schedules | sandbox, typed admission, hash-verified bytes, fuzzing |
+| Product | `gripsack` (the CLI) | end-to-end flows |
 
-Profiles combine captured files, retained artifacts and selected environment launchers. Apply realizes required packages before changing destinations, then uses journaled ownership transitions and an atomic generation-selection flip. Destination writes are not atomic across the entire profile.
-
-Retained generations preserve package roots, file content, launcher bindings and recovery information. Rollback reuses retained bytes rather than re-running today's source or build. Local tracked-copy drift remains protected. Hooks and explicit native commands can have effects outside managed files; those are not whole-machine transactions.
-
-See [profiles](adopting.md) and [safety](safety.md) for exact ownership and recovery boundaries.
+[How gripsack stays safe](guarantees.md) spells out what each ring guarantees and what it does not.
 
 ## Where the implementation lives
 
-The [core source](https://github.com/gripsack-dev/gripsack/tree/{release_source}/crates), [TypeScript SDK](https://github.com/gripsack-dev/gripsack/tree/{release_source}/typescript) and [technical guarantee ledger](https://github.com/gripsack-dev/gripsack/blob/{release_source}/verification/guarantees.md) hold implementation contracts and evidence. Product examples use public authoring declarations, not historical internal envelopes.
+The [core crates](https://github.com/gripsack-dev/gripsack/tree/{release_source}/crates), the [TypeScript SDK](https://github.com/gripsack-dev/gripsack/tree/{release_source}/typescript), the [proofs](https://github.com/gripsack-dev/gripsack/tree/{release_source}/proofs) and the [design records](https://github.com/gripsack-dev/gripsack/tree/{release_source}/plan) are all in one repository.
