@@ -61,6 +61,7 @@
   </details>
   <span class="rail-head">on this page</span>
   <div class="rail-toc">
+    <a href="#0530-proved-ownership-and-rollback">0.53.0 — Proved ownership and rollback</a>
     <a href="#0520-verified-foundation-phase-one">0.52.0 — Verified foundation, phase one</a>
     <a href="#0510-native-workspaces">0.51.0 — Native workspaces</a>
     <a href="#0500-one-workspace">0.50.0 — One workspace</a>
@@ -72,7 +73,15 @@
 <p class="doc-eyebrow">Gripsack / documentation</p>
 <article class="md">
 <h1 id="whats-new">What's new</h1>
-<p>User-visible changes per release. The <a href="https://github.com/gripsack-dev/gripsack/blob/5af45a6e746fad9c93b0c60e0c05d1fc3fecab56/CHANGELOG.md">full changelog</a> and <a href="https://github.com/gripsack-dev/gripsack/releases">release downloads</a> live with the source. This site documents core <strong>0.52.0</strong>.</p>
+<p>User-visible changes per release. The <a href="https://github.com/gripsack-dev/gripsack/blob/8940e70513ee29f7e74dea1c61e477a158c3f496/CHANGELOG.md">full changelog</a> and <a href="https://github.com/gripsack-dev/gripsack/releases">release downloads</a> live with the source. This site documents core <strong>0.53.0</strong>.</p>
+<h2 id="0530-proved-ownership-and-rollback">0.53.0 — Proved ownership and rollback</h2>
+<ul>
+<li><code>rollback</code> restores exactly what the target generation recorded (bytes and mode, or link target), from bytes gripsack retained, or refuses before switching. It used to guess a missing mode, re-render old templates, skip a destination it could not restore and still switch, and write a shell profile into a pre-0.22 generation; all four are fixed.</li>
+<li><code>apply</code> no longer re-points a gripsack-managed symlink you replaced with your own file; it stops and names it, and <code>--take-over</code> absorbs it. A link you made into gripsack's store is no longer treated as gripsack's.</li>
+<li><code>install.sh</code> and <code>grip self-update</code> work again: they verify the published SHA-256 and install atomically, with no GitHub CLI, Python or signed manifest.</li>
+<li>Crash recovery refuses by name, instead of wedging, when a destination became a directory, FIFO, socket or device; <code>grip doctor</code> shows the pending journal.</li>
+<li>The recover machine, the per-file ownership decision and the rollback machine now run from <code>gripsack-kernel</code> and are proved in Lean: 157 theorems. See <a href="../docs/guarantees.html">how gripsack stays safe</a>.</li>
+</ul>
 <h2 id="0520-verified-foundation-phase-one">0.52.0 — Verified foundation, phase one</h2>
 <p>A foundation release: no command or workspace authoring changes.</p>
 <ul>
@@ -104,7 +113,7 @@
   <a href="https://github.com/gripsack-dev">gripsack-dev</a>
   <a href="https://github.com/gripsack-dev/gripsack">source</a>
   <a href="../index.html">home</a>
-  <span class="fversion">v0.52.0</span>
+  <span class="fversion">v0.53.0</span>
 </footer>
 </main>
 </div>

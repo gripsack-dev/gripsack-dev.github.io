@@ -98,7 +98,7 @@ grip task log &quot;$invocation&quot;
 <h2 id="dependencies-and-mutation">Dependencies and mutation</h2>
 <p><code>deps</code> names unordered prerequisite tasks that must succeed in the same invocation. A task's <code>steps</code> are ordered locally; <code>checks</code> are its invocation postconditions. Declare live mutation paths with <code>context: { kind: "host", mutable_paths: [...] }</code> and shared mutation keys with <code>locks: [lock("user", "editor-config")]</code> or store-scoped locks.</p>
 <p>Locks coordinate declared effects; they do not grant execution authority or infer dependencies from shell text. <code>--skip-busy</code> can skip an active conflict, not bypass an unknown interrupted owner. <code>--timeout-seconds</code> bounds realization, prerequisites and verification together. Interrupted or indeterminate outcomes are not recorded as success.</p>
-<p>Use typed <code>packageCommand</code>, <code>lit</code> and explicit <code>env</code>/<code>argv</code> values for commands. A <code>runBash</code> body requires a declared package-command interpreter; it does not discover ambient Bash. Host executable commands are explicit trusted host execution, not sealed package-closure proof. Consult the <a href="https://github.com/gripsack-dev/gripsack/blob/5af45a6e746fad9c93b0c60e0c05d1fc3fecab56/typescript/README.md">SDK command reference</a> for shell bodies and task postconditions.</p>
+<p>Use typed <code>packageCommand</code>, <code>lit</code> and explicit <code>env</code>/<code>argv</code> values for commands. A <code>runBash</code> body requires a declared package-command interpreter; it does not discover ambient Bash. Host executable commands are explicit trusted host execution, not sealed package-closure proof. Consult the <a href="https://github.com/gripsack-dev/gripsack/blob/8940e70513ee29f7e74dea1c61e477a158c3f496/typescript/README.md">SDK command reference</a> for shell bodies and task postconditions.</p>
 <h2 id="literal-bash-bodies">Literal Bash bodies</h2>
 <p>Create this complete <code>gripsack.ts</code> in a separate example directory:</p>
 <pre><code class="language-typescript">import {
@@ -175,7 +175,7 @@ export default defineWorkspace(() =&gt; workspace({ outputs: [syntax, dotfiles] 
   <a href="https://github.com/gripsack-dev">gripsack-dev</a>
   <a href="https://github.com/gripsack-dev/gripsack">source</a>
   <a href="../index.html">home</a>
-  <span class="fversion">v0.52.0</span>
+  <span class="fversion">v0.53.0</span>
 </footer>
 </main>
 </div>

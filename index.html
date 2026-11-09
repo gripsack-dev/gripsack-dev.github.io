@@ -34,7 +34,7 @@
   <h1 class="tagline">Your environment,<br>in <span class="accent">one workspace.</span></h1>
   <p class="sub">Describe the tools and configuration you rely on in one typed TypeScript file. <code>grip</code> shows you the exact changes, applies them as a transaction, keeps every state it ever applied, and rolls back in one command. The decisions that make that safe are being proved, not just tested.</p>
   <div class="cta"><a class="primary" href="./docs/install.html">Install grip <span aria-hidden="true">→</span></a><a href="#how">See how it works ↓</a></div>
-  <p class="alt">Linux x86_64 &amp; WSL2 <span aria-hidden="true">/</span> Alpha <span aria-hidden="true">/</span> MIT <span aria-hidden="true">/</span> v0.52.0</p>
+  <p class="alt">Linux x86_64 &amp; WSL2 <span aria-hidden="true">/</span> Alpha <span aria-hidden="true">/</span> MIT <span aria-hidden="true">/</span> v0.53.0</p>
   </div>
   <aside class="workspace-card" aria-label="What a workspace holds">
     <div class="workspace-label"><span>gripsack.ts</span><span>one file</span></div>
@@ -111,7 +111,9 @@
       <li class="proved"><strong>Commit classification</strong>After a crash, the next run decides Committed, Uncommitted or Ambiguous from the current, previous and target generation, and never guesses. Proved in Lean since 0.52.</li>
       <li class="proved"><strong>Garbage collection</strong>GC refuses while recovery is pending, prunes only the oldest generations beyond your retention and never deletes the current one or anything a root names. Proved.</li>
       <li class="proved"><strong>Journal publication</strong>A record becomes durable only in the order stage → sync file → publish name → sync directory; a mutation needs a durable run marker and a durable entry. Proved.</li>
-      <li class="next"><strong>Crash anywhere, then recover</strong>The apply, rollback, recover and GC machines are next: a proof that any crash followed by recovery leaves every destination at its prior bytes, its intended bytes, or something you wrote yourself.</li>
+      <li class="proved"><strong>Your edits are yours</strong>Gripsack writes a file only over absence, over exactly what it last wrote, or over something you hand it with <code>--take-over</code>. Proved since 0.53.</li>
+      <li class="proved"><strong>Exact rollback</strong>Rollback installs exactly what the target generation recorded, from retained bytes, or refuses before switching. Proved since 0.53.</li>
+      <li class="next"><strong>Crash anywhere, then recover</strong>The recover and rollback machines are proved; apply and GC are next, then a proof that any crash followed by recovery leaves every destination at its prior bytes, its intended bytes, or something you wrote yourself.</li>
       <li class="assume"><strong>The filesystem and the world</strong>Atomic rename, fsync durability, SHA-256 identity and a single lifecycle writer are stated assumptions, fault-tested rather than proved. Docker, systemd, Deno and your own hooks are outside every proof.</li>
     </ul>
     <div>
@@ -293,7 +295,7 @@ grip task run greet --closed-stdin</code></pre></div>
 <section id="install">
   <div class="install-copy"><p class="eyebrow">06 / Install</p><h2 class="section">One static binary.<br>No daemon.</h2>
   <p class="lede">A musl-linked <code>grip</code> with its TypeScript frontend embedded. Docker Engine is needed only for container services; systemd only for schedules. Nothing runs in the background.</p></div>
-  <div class="install-actions"><p class="eyebrow">Linux x86_64 / WSL2 · Alpha</p><a class="primary" href="./docs/install.html">Install v0.52.0 <span aria-hidden="true">→</span></a><a href="https://github.com/gripsack-dev/gripsack/releases/tag/core-v0.52.0">Release notes and checksums ↗</a><p>Keep your OS package manager.<br>Declare the user-space pieces you choose.</p></div>
+  <div class="install-actions"><p class="eyebrow">Linux x86_64 / WSL2 · Alpha</p><a class="primary" href="./docs/install.html">Install v0.53.0 <span aria-hidden="true">→</span></a><a href="https://github.com/gripsack-dev/gripsack/releases/tag/core-v0.53.0">Release notes and checksums ↗</a><p>Keep your OS package manager.<br>Declare the user-space pieces you choose.</p></div>
 </section>
 
 <section id="docs">
@@ -304,7 +306,7 @@ grip task run greet --closed-stdin</code></pre></div>
     <li><a href="./docs/adopting.html">Profiles &amp; dotfiles</a> — ownership modes, drift, adopting files you already have.</li>
     <li><a href="./docs/services.html">Docker services</a> · <a href="./docs/tasks.html">Tasks</a> · <a href="./docs/schedules.html">Schedules</a> — project plumbing without a daemon.</li>
     <li><a href="./docs/guarantees.html">How it stays safe</a> · <a href="./docs/safety.html">Safety &amp; recovery</a> — what is proved, assumed and not claimed.</li>
-    <li><a href="https://github.com/gripsack-dev/gripsack/blob/5af45a6e746fad9c93b0c60e0c05d1fc3fecab56/typescript/README.md">SDK reference</a> · <a href="https://github.com/gripsack-dev/gripsack/tree/5af45a6e746fad9c93b0c60e0c05d1fc3fecab56/examples/workspaces">Example workspaces</a> · <a href="./docs/changelog.html">What's new</a>.</li>
+    <li><a href="https://github.com/gripsack-dev/gripsack/blob/8940e70513ee29f7e74dea1c61e477a158c3f496/typescript/README.md">SDK reference</a> · <a href="https://github.com/gripsack-dev/gripsack/tree/8940e70513ee29f7e74dea1c61e477a158c3f496/examples/workspaces">Example workspaces</a> · <a href="./docs/changelog.html">What's new</a>.</li>
   </ul>
 </section>
 
