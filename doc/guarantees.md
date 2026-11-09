@@ -11,14 +11,14 @@ The code is arranged in rings. The center holds pure decisions over typed data w
 | Ring | What lives there | How it is checked |
 |---|---|---|
 | **Kernel** | Pure decisions: which generation is committed, what GC may delete, in what order a journal record becomes durable | **Proved in Lean 4** over a translation of the shipped Rust |
-| **Protocol** | Apply, rollback, recover and GC as state machines that observe, decide and issue one command at a time | Today: crash-injection tests and model checking. Next: Lean proofs under the storage assumptions below |
+| **Protocol** | Apply, rollback, recover and GC as state machines that observe, decide and issue one command at a time | Recover and rollback: proved in Lean. Apply, GC and activation: crash-injection tests and model checking, being moved into the kernel |
 | **Host** | The driver loop, filesystem access, store layout, locks | Small enough to read; every assumption listed; fault injection and crash tests |
 | **Edge** | TypeScript evaluation, downloads, archives, Conda, Docker, systemd | Sandbox, typed admission, hash-verified bytes, fuzzing |
 | **Product** | The CLI, review, adopt, doctor | End-to-end flows against the real binary |
 
-## What is proved today (0.52)
+## What is proved today (0.53)
 
-The kernel is a dependency-free Rust crate, `gripsack-kernel`. The `proofs` release gate translates it to Lean 4 with [Charon and Aeneas](https://github.com/AeneasVerif/aeneas) and proves 34 theorems over that translation. There is no hand-written Lean copy of the Rust: the proofs are about the bytes that ship. The gate also checks that every theorem uses only Lean's three standard axioms (`propext`, `Classical.choice`, `Quot.sound`) and that each of fourteen deliberately broken variants of the Rust fails exactly the theorem that should catch it.
+The kernel is a dependency-free Rust crate, `gripsack-kernel`. The `proofs` release gate translates it to Lean 4 with [Charon and Aeneas](https://github.com/AeneasVerif/aeneas) and proves 157 theorems over that translation. There is no hand-written Lean copy of the Rust: the proofs are about the bytes that ship. The gate also checks that every theorem uses only Lean's three standard axioms (`propext`, `Classical.choice`, `Quot.sound`) and that each of 31 deliberately broken variants of the Rust fails exactly the theorem that should catch it.
 
 **Commit classification.** After an interruption, the next command looks at three generation identities: `current`, the recorded `previous` and the recorded `target` of the interrupted transaction.
 
@@ -32,19 +32,25 @@ A higher generation number never grants commit authority; only identity does. Ea
 
 **Journal publication.** A journal record becomes durable through exactly one order: stage, sync the file, publish the name, sync the directory. `finish` yields a durable record only when that sequence completed, and a mutation is authorized only by a durable run marker *and* a durable entry, never one alone.
 
-These are the first three of the kernel theorems planned in [plan 0056](https://github.com/gripsack-dev/gripsack/blob/{release_source}/plan/0056-verified-foundation.md). The proof sources are in [`proofs/`](https://github.com/gripsack-dev/gripsack/tree/{release_source}/proofs) and the kernel in [`crates/gripsack-kernel`](https://github.com/gripsack-dev/gripsack/tree/{release_source}/crates/gripsack-kernel).
+**Crash recovery.** Recovery is a machine in the kernel that observes one destination at a time and issues one command at a time. It mutates only after the interrupted transaction is classified, never restores a destination it cannot restore exactly (it refuses by name instead), and removes the journal's run marker only after the record barrier.
+
+**Ownership and drift.** For every file and link, the decision to write is proved to land only on absence, on exactly what gripsack last wrote there, or on an object you explicitly consented to take over with `--take-over`. A file you changed is never written; a file gripsack never recorded is refused.
+
+**Rollback.** Every write a rollback makes installs exactly the identity the target generation recorded, from retained bytes only, never inside a published generation, and only over absence or gripsack's own write. A destination counts as restored only when the landed object is that identity. The switch happens only after every destination is settled, with a fresh transaction identifier, and a destination that cannot be restored aborts the rollback before the switch.
+
+These are kernel theorems from [plan 0056](https://github.com/gripsack-dev/gripsack/blob/{release_source}/plan/0056-verified-foundation.md). The proof sources are in [`proofs/`](https://github.com/gripsack-dev/gripsack/tree/{release_source}/proofs) and the kernel in [`crates/gripsack-kernel`](https://github.com/gripsack-dev/gripsack/tree/{release_source}/crates/gripsack-kernel).
 
 ## What is tested but not yet proved
 
 Everything else on the [safety page](safety.md) is enforced by code and checked by tests, fault injection and a TLA+ model, not by a proof:
 
-- **Ownership and drift.** A tracked copy that you changed is preserved; a file gripsack never wrote is refused unless you pass `--take-over`; a managed block touches only the bytes between its markers.
-- **Crash recovery as a whole.** Prior state and intent are journaled before any destination write; the flip is one atomic rename; recovery restores prior bytes or finishes activation. The *classification* step inside it is proved; the surrounding machine is the next proof target.
+- **Managed blocks.** A managed block touches only the bytes between its markers.
+- **Crash safety end to end.** Prior state and intent are journaled before any destination write; the flip is one atomic rename. The recover and rollback machines are proved; that a crash at any point followed by recovery leaves every destination at its prior or intended identity is the next proof, under the storage model below.
 - **Generation identity.** New generation numbers exceed the durable high-water mark; published generations are immutable.
 - **Source approval.** Approval binds the exact captured source bundle and policy; evaluation runs in a Deno sandbox with no environment, network or subprocess access.
 - **Content integrity.** Downloads are hashed and verified before extraction; the store is sealed read-only and published by rename.
 
-Moving these inward, in roughly this order, is the roadmap: ownership and drift decisions and the managed-block splice first, then the protocol machines.
+Moving these inward is the roadmap: the managed-block splice and garbage-collection roots next, then activation and apply, then the crash-safety proofs over the storage model.
 
 ## What is assumed
 

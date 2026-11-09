@@ -2,6 +2,14 @@
 
 User-visible changes per release. The [full changelog](https://github.com/gripsack-dev/gripsack/blob/{release_source}/CHANGELOG.md) and [release downloads](https://github.com/gripsack-dev/gripsack/releases) live with the source. This site documents core **{core_version}**.
 
+## 0.53.0 — Proved ownership and rollback
+
+- `rollback` restores exactly what the target generation recorded (bytes and mode, or link target), from bytes gripsack retained, or refuses before switching. It used to guess a missing mode, re-render old templates, skip a destination it could not restore and still switch, and write a shell profile into a pre-0.22 generation; all four are fixed.
+- `apply` no longer re-points a gripsack-managed symlink you replaced with your own file; it stops and names it, and `--take-over` absorbs it. A link you made into gripsack's store is no longer treated as gripsack's.
+- `install.sh` and `grip self-update` work again: they verify the published SHA-256 and install atomically, with no GitHub CLI, Python or signed manifest.
+- Crash recovery refuses by name, instead of wedging, when a destination became a directory, FIFO, socket or device; `grip doctor` shows the pending journal.
+- The recover machine, the per-file ownership decision and the rollback machine now run from `gripsack-kernel` and are proved in Lean: 157 theorems. See [how gripsack stays safe](guarantees.md).
+
 ## 0.52.0 — Verified foundation, phase one
 
 A foundation release: no command or workspace authoring changes.
