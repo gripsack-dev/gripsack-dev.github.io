@@ -18,6 +18,7 @@ grip apply hello
 
 ## Or write it by hand
 
+<!-- example: examples/workspaces/05-first-workspace/gripsack.ts -->
 ```typescript
 import {
   defineWorkspace, file, identity, profile, repoFile, trackedCopyTo, workspace,

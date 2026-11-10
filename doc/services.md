@@ -12,6 +12,7 @@ Images must use immutable `name@sha256:DIGEST` references, not floating tags. Th
 
 Create `gripsack.ts`:
 
+<!-- example: examples/workspaces/10-docker-service/gripsack.ts -->
 ```typescript
 import {
   defineWorkspace, exec, lit, service, task, workspace,

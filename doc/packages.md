@@ -4,15 +4,16 @@ A package names a producer, a target platform and the commands or artifacts cons
 
 ## A release archive
 
-This workspace exposes ripgrep from its upstream Linux musl archive:
+This workspace exposes ripgrep from its upstream static Linux archive:
 
+<!-- example: examples/workspaces/06-release-archive/gripsack.ts -->
 ```typescript
 import {
   defineWorkspace, environment, githubRelease, pkg, provider,
   targetPlatform, workspace,
 } from "@gripsack/core";
 
-const target = targetPlatform({ os: "linux", arch: "x86_64", abi: "musl" });
+const target = targetPlatform({ os: "linux", arch: "x86_64" });
 const ripgrep = pkg("ripgrep", {
   producer: provider(githubRelease({
     repo: "BurntSushi/ripgrep",
@@ -36,6 +37,8 @@ grip run --env search -- rg --version
 
 `grip update` resolves the release and records the archive hash in `gripsack.lock`; review that diff and approve the source when prompted. To pin a particular release, set `githubRelease.version` to its exact tag.
 
+The target names only the OS and architecture. Gripsack reads the ABI from each executable: a static binary like this one runs on any Linux x86_64 host, and a dynamically linked one must name the host's platform loader. An `abi` you do declare is checked against the executable, not against the host.
+
 ## Roots and layouts
 
 `archiveRoot: { kind: "single_directory" }` selects exactly one real top-level payload directory. Multiple roots, root-level metadata siblings and symlink roots are refused. Commands and `artifactFile`/`artifactTree` selectors are literal paths relative to that selected root: version placeholders belong in source asset patterns, not selectors.
@@ -48,7 +51,7 @@ Choose the layout that matches the producer:
 
 ## Runtime dependencies are part of the package
 
-Declare required package edges with `runtime: ["runtime-package"]`. A selected ABI identifies compatibility and loader behavior; it does not grant arbitrary host library access. Keep libraries and sibling resources in the retained closure when the tool needs them.
+Declare required package edges with `runtime: ["runtime-package"]`. The executable's ABI selects its loader; it does not grant arbitrary host library access. Keep libraries and sibling resources in the retained closure when the tool needs them.
 
 A Linux GNU package can explicitly opt into reviewed host libraries with `hostRuntime: { libraryDirectories: ["/opt/vendor/lib64"] }`. Those directories remain mutable trusted host inputs, not portable package content. See [runtime safety](safety.md#host-libraries-and-launchers).
 
