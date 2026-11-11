@@ -43,13 +43,14 @@ Use typed `packageCommand`, `lit` and explicit `env`/`argv` values for commands.
 
 Create this complete `gripsack.ts` in a separate example directory:
 
+<!-- example: examples/workspaces/11-bash-task/gripsack.ts -->
 ```typescript
 import {
   bash, conda, defineWorkspace, environment, lit, packageCommand,
   pkg, provider, targetPlatform, task, workspace,
 } from "@gripsack/core";
 
-const target = targetPlatform({ os: "linux", arch: "x86_64", abi: "gnu" });
+const target = targetPlatform({ os: "linux", arch: "x86_64" });
 const shell = pkg("shell", {
   producer: provider(conda.environment({
     channels: ["conda-forge"],
@@ -84,6 +85,7 @@ The same command works in task steps, check runs and hook runs. Use `runBash({ i
 
 This complete workspace validates a captured shell configuration before writing its destination. It deliberately uses the host's `/bin/sh` syntax checker, so that executable is a prerequisite and trusted host input:
 
+<!-- example: examples/workspaces/12-file-check/gripsack.ts -->
 ```typescript
 import {
   check, defineWorkspace, exec, file, identity, lit, profile, repoFile,

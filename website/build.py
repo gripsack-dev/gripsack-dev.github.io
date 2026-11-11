@@ -30,6 +30,7 @@ import shutil
 import subprocess
 import tomllib
 from pathlib import Path
+from typing import Callable
 
 import markdown
 
@@ -315,11 +316,33 @@ def rewrite(body: str, slugs: set[str], root: str = "../") -> str:
 
 
 
+# A complete workspace on a page is a core `examples/workspaces/*` directory,
+# which the core's e2e gate evaluates and applies on a stock glibc host
+# (plan/0059 step 1). The comment line binds the fenced block after it to that
+# file at the documented commit; any drift fails the build.
+EXAMPLE_RE = re.compile(
+    r"^<!-- example: (examples/workspaces/[a-z0-9-]+/gripsack\.ts) -->\n"
+    r"```(?:ts|typescript)\n(.*?)^```$", re.M | re.S)
+FENCE_RE = re.compile(r"^```(?:ts|typescript)\n(.*?)^```$", re.M | re.S)
+
+
+def check_examples(src: str, text: str) -> None:
+    bound = EXAMPLE_RE.findall(text)
+    for path, body in bound:
+        assert body == CORE_BLOB(path).decode("utf-8"), \
+            f"{src}: example block drifted from {path} at {RELEASE['source']['commit']}"
+    complete = [body for body in FENCE_RE.findall(text)
+                if "export default" in body and "@gripsack/core" in body]
+    assert len(complete) == len(bound), \
+        f"{src}: a complete workspace block has no `<!-- example: ... -->` binding"
+
+
 def build_docs() -> None:
     slugs = set(PAGES)
     for slug, (src, _) in PAGES.items():
         root = "../" * (1 + slug.count("/"))
         text = (ROOT / src).read_text()
+        check_examples(src, text)
         text = text.replace("{release_source}", RELEASE["source"]["commit"])
         text = text.replace("{core_version}", site_version())
         text = DIAGRAM_RE.sub(lambda m: diagram_figure(m, root), text)
@@ -371,7 +394,7 @@ def assemble() -> None:
     print("copied landing page + assets")
 
 
-def local_core_inputs(core: Path, reference: str) -> tuple[dict, dict[str, bytes]]:
+def local_core_inputs(core: Path, reference: str) -> tuple[dict, dict[str, bytes], Callable[[str], bytes]]:
     commit = subprocess.check_output(
         ["git", "-C", str(core), "rev-parse", "--verify", "--end-of-options",
          reference + "^{commit}"], text=True,
@@ -383,7 +406,7 @@ def local_core_inputs(core: Path, reference: str) -> tuple[dict, dict[str, bytes
     manifest = tomllib.loads(blob("Cargo.toml").decode("utf-8"))
     files = {"install.sh": blob("install.sh")}
     return {"version": manifest["workspace"]["package"]["version"],
-            "source": {"commit": commit}}, files
+            "source": {"commit": commit}}, files, blob
 
 
 if __name__ == "__main__":
@@ -392,7 +415,7 @@ if __name__ == "__main__":
     parser.add_argument("--core-ref", default="HEAD", help="core commit or tag to document")
     args = parser.parse_args()
     # Resolve every input before replacing generated output.
-    RELEASE, RELEASE_FILES = local_core_inputs(args.core.resolve(), args.core_ref)
+    RELEASE, RELEASE_FILES, CORE_BLOB = local_core_inputs(args.core.resolve(), args.core_ref)
     print(f"documenting core {RELEASE['version']} at {RELEASE['source']['commit']}")
     assemble()
     build_docs()

@@ -81,11 +81,12 @@
   <div class="trust">
     <ul>
       <li class="proved"><strong>Commit classification</strong>After a crash, the next run decides Committed, Uncommitted or Ambiguous from the current, previous and target generation, and never guesses. Proved in Lean since 0.52.</li>
-      <li class="proved"><strong>Garbage collection</strong>GC refuses while recovery is pending, prunes only the oldest generations beyond your retention and never deletes the current one or anything a root names. Proved.</li>
+      <li class="proved"><strong>Garbage collection</strong>GC refuses while recovery is pending, prunes only the oldest generations beyond your retention and never deletes the current one or anything a retained generation references. Proved.</li>
       <li class="proved"><strong>Journal publication</strong>A record becomes durable only in the order stage → sync file → publish name → sync directory; a mutation needs a durable run marker and a durable entry. Proved.</li>
       <li class="proved"><strong>Your edits are yours</strong>Gripsack writes a file only over absence, over exactly what it last wrote, or over something you hand it with <code>--take-over</code>. Proved since 0.53.</li>
       <li class="proved"><strong>Exact rollback</strong>Rollback installs exactly what the target generation recorded, from retained bytes, or refuses before switching. Proved since 0.53.</li>
-      <li class="next"><strong>Crash anywhere, then recover</strong>The recover and rollback machines are proved; apply and GC are next, then a proof that any crash followed by recovery leaves every destination at its prior bytes, its intended bytes, or something you wrote yourself.</li>
+      <li class="proved"><strong>Apply as a machine</strong>Every write, release and switch in <code>grip apply</code> is decided by the proved kernel; managed blocks touch only the bytes between their markers; a hook never runs after its generation stopped being current. Proved since 0.54.</li>
+      <li class="next"><strong>Crash anywhere, then recover</strong>Apply, rollback, recovery and GC are proved decision by decision and crash-tested at every step; next is a proof that any crash followed by recovery leaves every destination at its prior bytes, its intended bytes, or something you wrote yourself.</li>
       <li class="assume"><strong>The filesystem and the world</strong>Atomic rename, fsync durability, SHA-256 identity and a single lifecycle writer are stated assumptions, fault-tested rather than proved. Docker, systemd, Deno and your own hooks are outside every proof.</li>
     </ul>
     <div>

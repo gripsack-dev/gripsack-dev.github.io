@@ -29,6 +29,8 @@ export default defineWorkspace(() => workspace({
 }));
 ```
 
+The [assembled workspace](https://github.com/gripsack-dev/gripsack/blob/{release_source}/examples/workspaces/13-scheduled-bash-task/gripsack.ts) is checked with the other documented examples.
+
 ```sh
 grip update
 grip task run greet --closed-stdin

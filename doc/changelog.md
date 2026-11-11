@@ -2,6 +2,16 @@
 
 User-visible changes per release. The [full changelog](https://github.com/gripsack-dev/gripsack/blob/{release_source}/CHANGELOG.md) and [release downloads](https://github.com/gripsack-dev/gripsack/releases) live with the source. This site documents core **{core_version}**.
 
+## 0.54.0 — The whole apply, proved
+
+- Changing only the case of a file name on a case-insensitive filesystem (WSL's `/mnt/c`, macOS) no longer deletes the file during `apply` or `rollback`; two spellings that resolve to the same object are one destination.
+- A post-activation hook no longer runs after its generation stopped being current.
+- `grip apply` streams progress as it works, and each check or hook prints one separated block with its output under a gutter and a pass/fail line; `--verbose` shows passing output in full. Piped and `NO_COLOR` output has no colour codes.
+- `apply` and `rollback` re-check each destination right before writing it, so a concurrent change stops the run instead of being overwritten.
+- Release-archive targets no longer need `abi`: it is read from the executable. Conda environments use conda-forge's host platform libraries (X11, GL, ALSA) as conda-forge expects; `strict: true` refuses them.
+- Every complete workspace in these docs is a tested example the release gate runs.
+- `grip apply`, managed blocks, garbage collection, the journal run, activation and `grip update`'s lock decision now run from `gripsack-kernel` and are proved in Lean: 579 theorems. See [how gripsack stays safe](guarantees.md).
+
 ## 0.53.0 — Proved ownership and rollback
 
 - `rollback` restores exactly what the target generation recorded (bytes and mode, or link target), from bytes gripsack retained, or refuses before switching. It used to guess a missing mode, re-render old templates, skip a destination it could not restore and still switch, and write a shell profile into a pre-0.22 generation; all four are fixed.

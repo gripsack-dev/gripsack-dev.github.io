@@ -25,6 +25,7 @@ printf '%s\n' '{{ theme }}'
 
 Set its executable bit in the repository with `chmod +x scripts/editor-theme.sh.tmpl`. Then declare:
 
+<!-- example: examples/workspaces/09-dotfile-tree/gripsack.ts -->
 ```typescript
 import {
   defineWorkspace, file, identity, profile, repoFile, repoTree,
