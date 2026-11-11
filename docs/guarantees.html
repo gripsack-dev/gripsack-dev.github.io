@@ -62,7 +62,7 @@
   <span class="rail-head">on this page</span>
   <div class="rail-toc">
     <a href="#the-idea-rings">The idea: rings</a>
-    <a href="#what-is-proved-today-053">What is proved today (0.53)</a>
+    <a href="#what-is-proved-today-054">What is proved today (0.54)</a>
     <a href="#what-is-tested-but-not-yet-proved">What is tested but not yet proved</a>
     <a href="#what-is-assumed">What is assumed</a>
     <a href="#what-is-not-claimed">What is not claimed</a>
@@ -122,13 +122,13 @@
 <tbody>
 <tr>
 <td><strong>Kernel</strong></td>
-<td>Pure decisions: which generation is committed, what GC may delete, in what order a journal record becomes durable</td>
+<td>Pure decisions: which generation is committed, what may be written or deleted, in what order a journal record becomes durable, when a lock may be published</td>
 <td><strong>Proved in Lean 4</strong> over a translation of the shipped Rust</td>
 </tr>
 <tr>
 <td><strong>Protocol</strong></td>
 <td>Apply, rollback, recover and GC as state machines that observe, decide and issue one command at a time</td>
-<td>Recover and rollback: proved in Lean. Apply, GC and activation: crash-injection tests and model checking, being moved into the kernel</td>
+<td>Apply, rollback, recover, GC, the journal run and activation: each decision proved in Lean; crash safety end to end crash-injection tested over an in-memory filesystem</td>
 </tr>
 <tr>
 <td><strong>Host</strong></td>
@@ -147,8 +147,8 @@
 </tr>
 </tbody>
 </table>
-<h2 id="what-is-proved-today-053">What is proved today (0.53)</h2>
-<p>The kernel is a dependency-free Rust crate, <code>gripsack-kernel</code>. The <code>proofs</code> release gate translates it to Lean 4 with <a href="https://github.com/AeneasVerif/aeneas">Charon and Aeneas</a> and proves 157 theorems over that translation. There is no hand-written Lean copy of the Rust: the proofs are about the bytes that ship. The gate also checks that every theorem uses only Lean's three standard axioms (<code>propext</code>, <code>Classical.choice</code>, <code>Quot.sound</code>) and that each of 31 deliberately broken variants of the Rust fails exactly the theorem that should catch it.</p>
+<h2 id="what-is-proved-today-054">What is proved today (0.54)</h2>
+<p>The kernel is a dependency-free Rust crate, <code>gripsack-kernel</code>. The <code>proofs</code> release gate translates it to Lean 4 with <a href="https://github.com/AeneasVerif/aeneas">Charon and Aeneas</a> and proves 579 theorems over that translation. There is no hand-written Lean copy of the Rust: the proofs are about the bytes that ship. The gate also checks that every theorem uses only Lean's three standard axioms (<code>propext</code>, <code>Classical.choice</code>, <code>Quot.sound</code>) and that each of 113 deliberately broken variants of the Rust fails exactly the theorem that should catch it.</p>
 <p><strong>Commit classification.</strong> After an interruption, the next command looks at three generation identities: <code>current</code>, the recorded <code>previous</code> and the recorded <code>target</code> of the interrupted transaction.</p>
 <ul>
 <li><em>Committed</em> if and only if <code>current</code> equals <code>target</code>.</li>
@@ -156,22 +156,24 @@
 <li><em>Ambiguous</em> otherwise, which stops every further mutation until you look.</li>
 </ul>
 <p>A higher generation number never grants commit authority; only identity does. Each transaction carries a 32-byte identifier compared byte for byte.</p>
-<p><strong>Garbage collection.</strong> <code>grip gc</code> may proceed only when no recovery is pending and <code>current</code> names a generation in the inventory. Pruning selects exactly the oldest generations beyond your <code>keep_generations</code>, in order, never the current one and never anything newer than the cut. Deletion removes a candidate only if no root names it. Generation inventories are admitted only when strictly ascending.</p>
-<p><strong>Journal publication.</strong> A journal record becomes durable through exactly one order: stage, sync the file, publish the name, sync the directory. <code>finish</code> yields a durable record only when that sequence completed, and a mutation is authorized only by a durable run marker <em>and</em> a durable entry, never one alone.</p>
+<p><strong>Garbage collection.</strong> <code>grip gc</code> may proceed only when no recovery is pending and <code>current</code> names a generation in the inventory. Pruning selects exactly the oldest generations beyond your <code>keep_generations</code>, in order, never the current one and never anything newer than the cut. Every deletion GC makes is decided by the kernel: a store path is removed only if no retained generation references it, the retained set is closed under references, and the current generation is never retired.</p>
+<p><strong>Journal publication.</strong> A journal record becomes durable through exactly one order: stage, sync the file, publish the name, sync the directory. Every destination write in a run happens only after its intent is durable, a write is accepted only when what landed is what was intended, and the run marker is removed only after the record barrier.</p>
 <p><strong>Crash recovery.</strong> Recovery is a machine in the kernel that observes one destination at a time and issues one command at a time. It mutates only after the interrupted transaction is classified, never restores a destination it cannot restore exactly (it refuses by name instead), and removes the journal's run marker only after the record barrier.</p>
-<p><strong>Ownership and drift.</strong> For every file and link, the decision to write is proved to land only on absence, on exactly what gripsack last wrote there, or on an object you explicitly consented to take over with <code>--take-over</code>. A file you changed is never written; a file gripsack never recorded is refused.</p>
+<p><strong>Apply, ownership and drift.</strong> <code>grip apply</code> is a machine in the kernel. Over every run, a write lands only on absence, on exactly what gripsack last wrote there, or on an object you explicitly consented to take over with <code>--take-over</code>, and it installs exactly what the unit declares. A file you changed is never written; a file gripsack never recorded is refused. A destination is released only when no unit of the run still claims it, so changing only the case of a name on a case-insensitive filesystem no longer deletes the file. The switch to the new generation comes only after every unit and every directory step is settled, and a refusal stops the run before it.</p>
+<p><strong>Managed blocks.</strong> A managed block changes only the bytes between its markers: everything outside is preserved exactly, applying the same block twice changes nothing, and removing a block you did not edit restores the file as it was.</p>
+<p><strong>Activation.</strong> Hooks run in ledger order, and each hook re-checks that its generation is still current right before it starts, so a hook never runs for a generation you have already switched away from. Generation numbers are allocated above the durable high-water mark, and a generation is published once.</p>
+<p><strong>Updates.</strong> <code>grip update</code> writes a lock only when every selected package was checked, none failed and something changed; each package is counted exactly once.</p>
 <p><strong>Rollback.</strong> Every write a rollback makes installs exactly the identity the target generation recorded, from retained bytes only, never inside a published generation, and only over absence or gripsack's own write. A destination counts as restored only when the landed object is that identity. The switch happens only after every destination is settled, with a fresh transaction identifier, and a destination that cannot be restored aborts the rollback before the switch.</p>
-<p>These are kernel theorems from <a href="https://github.com/gripsack-dev/gripsack/blob/8940e70513ee29f7e74dea1c61e477a158c3f496/plan/0056-verified-foundation.md">plan 0056</a>. The proof sources are in <a href="https://github.com/gripsack-dev/gripsack/tree/8940e70513ee29f7e74dea1c61e477a158c3f496/proofs"><code>proofs/</code></a> and the kernel in <a href="https://github.com/gripsack-dev/gripsack/tree/8940e70513ee29f7e74dea1c61e477a158c3f496/crates/gripsack-kernel"><code>crates/gripsack-kernel</code></a>.</p>
+<p>These are kernel theorems from <a href="https://github.com/gripsack-dev/gripsack/blob/e1a452239550ef504fc8ee1866bcaa64cdc4ac79/plan/0056-verified-foundation.md">plan 0056</a>. The proof sources are in <a href="https://github.com/gripsack-dev/gripsack/tree/e1a452239550ef504fc8ee1866bcaa64cdc4ac79/proofs"><code>proofs/</code></a> and the kernel in <a href="https://github.com/gripsack-dev/gripsack/tree/e1a452239550ef504fc8ee1866bcaa64cdc4ac79/crates/gripsack-kernel"><code>crates/gripsack-kernel</code></a>.</p>
 <h2 id="what-is-tested-but-not-yet-proved">What is tested but not yet proved</h2>
 <p>Everything else on the <a href="../docs/safety.html">safety page</a> is enforced by code and checked by tests, fault injection and a TLA+ model, not by a proof:</p>
 <ul>
-<li><strong>Managed blocks.</strong> A managed block touches only the bytes between its markers.</li>
-<li><strong>Crash safety end to end.</strong> Prior state and intent are journaled before any destination write; the flip is one atomic rename. The recover and rollback machines are proved; that a crash at any point followed by recovery leaves every destination at its prior or intended identity is the next proof, under the storage model below.</li>
-<li><strong>Generation identity.</strong> New generation numbers exceed the durable high-water mark; published generations are immutable.</li>
+<li><strong>Crash safety end to end.</strong> Every decision in apply, rollback and recovery is proved; that a crash at any point followed by recovery leaves every destination at its prior or intended identity is crash-injection tested at every step of a run over an in-memory filesystem, and is the next proof, under the storage model below.</li>
+<li><strong>Directory changes.</strong> When a directory changes shape, the kernel decides when each step runs and that nothing else writes inside it; the steps themselves are host code checked by a TLA+ model and end-to-end tests.</li>
 <li><strong>Source approval.</strong> Approval binds the exact captured source bundle and policy; evaluation runs in a Deno sandbox with no environment, network or subprocess access.</li>
 <li><strong>Content integrity.</strong> Downloads are hashed and verified before extraction; the store is sealed read-only and published by rename.</li>
 </ul>
-<p>Moving these inward is the roadmap: the managed-block splice and garbage-collection roots next, then activation and apply, then the crash-safety proofs over the storage model.</p>
+<p>Moving these inward is the roadmap: the crash-safety proofs over the storage model next, then the directory steps themselves.</p>
 <h2 id="what-is-assumed">What is assumed</h2>
 <p>The protocol proofs, when they land, rest on a written storage model. These assumptions are stated, fault-tested on an in-memory filesystem that injects crashes, and never proved:</p>
 <ul>
@@ -180,7 +182,7 @@
 <li><strong>S3</strong> Two crash kinds: a <em>kill</em> loses nothing already in the page cache, a <em>power loss</em> may lose any subset of non-durable operations consistent with completed barriers.</li>
 <li><strong>S4</strong> One lifecycle writer at a time, held by an advisory lock released when the holder dies.</li>
 <li><strong>S5</strong> External writers exist and are only <em>detected</em>, see below.</li>
-<li><strong>S6</strong> The filesystem distinguishes names at least as finely as gripsack does. A case-insensitive mount such as WSL's <code>/mnt/c</code> violates this today.</li>
+<li><strong>S6</strong> Two names are the same destination when the filesystem resolves them to the same object. Gripsack detects case-only aliases (as on WSL's <code>/mnt/c</code>); names a filesystem treats as equal only after Unicode normalization are not detected.</li>
 <li><strong>S7</strong> Equal SHA-256 digests mean equal bytes.</li>
 </ul>
 <p>Also trusted, as every verified program trusts them: the Rust compiler, the Charon/Aeneas translation, Lean 4 and its kernel, and the Linux kernel.</p>
@@ -201,7 +203,7 @@
   <a href="https://github.com/gripsack-dev">gripsack-dev</a>
   <a href="https://github.com/gripsack-dev/gripsack">source</a>
   <a href="../index.html">home</a>
-  <span class="fversion">v0.53.0</span>
+  <span class="fversion">v0.54.0</span>
 </footer>
 </main>
 </div>

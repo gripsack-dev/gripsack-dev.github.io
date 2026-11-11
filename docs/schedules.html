@@ -89,6 +89,7 @@ const personal = profile(&quot;personal&quot;, { schedules: [&quot;nightly&quot;
   outputs: [shell, dev, greet, nightly, personal],
 }));
 </code></pre>
+<p>The <a href="https://github.com/gripsack-dev/gripsack/blob/e1a452239550ef504fc8ee1866bcaa64cdc4ac79/examples/workspaces/13-scheduled-bash-task/gripsack.ts">assembled workspace</a> is checked with the other documented examples.</p>
 <pre><code class="language-sh">grip update
 grip task run greet --closed-stdin
 grip plan personal
@@ -107,7 +108,7 @@ grip jobs disable &quot;$job&quot;
 <p>Remove the schedule from the profile's selection and apply the profile to remove registration. Profile rollback restores the retained registration capture, not effects from previous task runs. Update source or pins and explicitly apply again to replace the registered capture; timers do not evaluate current TypeScript at firing time.</p>
 <h2 id="execution-boundaries">Execution boundaries</h2>
 <p>Scheduled invocation uses closed stdin, bounded logs and a 1,800-second runtime limit. Timers use <code>Persistent=false</code> with native missed-event behavior, not promised catch-up delivery. Stale callbacks are refused; already-admitted old invocations may finish. Read logs as private application output. Retain independent backups and do not assume task side effects are reversible.</p>
-<p>Tasks requiring <a href="../docs/services.html">services</a> still require already-healthy services. Scheduling does not start Docker containers implicitly. The <a href="https://github.com/gripsack-dev/gripsack/tree/8940e70513ee29f7e74dea1c61e477a158c3f496/examples/workspaces/04-scheduled-task">complete captured scheduled-task example</a> shows a package-command task and store lock.</p>
+<p>Tasks requiring <a href="../docs/services.html">services</a> still require already-healthy services. Scheduling does not start Docker containers implicitly. The <a href="https://github.com/gripsack-dev/gripsack/tree/e1a452239550ef504fc8ee1866bcaa64cdc4ac79/examples/workspaces/04-scheduled-task">complete captured scheduled-task example</a> shows a package-command task and store lock.</p>
 </article>
 <footer>
   <span>© 2026 <a href="https://github.com/tknawara">Tarek Nawara</a></span>
@@ -115,7 +116,7 @@ grip jobs disable &quot;$job&quot;
   <a href="https://github.com/gripsack-dev">gripsack-dev</a>
   <a href="https://github.com/gripsack-dev/gripsack">source</a>
   <a href="../index.html">home</a>
-  <span class="fversion">v0.53.0</span>
+  <span class="fversion">v0.54.0</span>
 </footer>
 </main>
 </div>

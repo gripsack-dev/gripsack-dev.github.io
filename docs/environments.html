@@ -78,12 +78,14 @@
 <p>An environment selects packages and command exports for native execution. A profile can expose that same environment to your shell and editor through managed launchers. Neither requires Docker.</p>
 <h2 id="a-coherent-conda-toolchain">A coherent Conda toolchain</h2>
 <p><code>conda.environment</code> solves one coherent environment, including its transitive dependencies. This complete workspace exposes ripgrep both to project commands and to a personal profile:</p>
+<!-- example: examples/workspaces/07-conda-launchers/gripsack.ts -->
+
 <pre><code class="language-typescript">import {
   conda, defineWorkspace, environment, pkg, profile, provider,
   targetPlatform, workspace,
 } from &quot;@gripsack/core&quot;;
 
-const target = targetPlatform({ os: &quot;linux&quot;, arch: &quot;x86_64&quot;, abi: &quot;gnu&quot; });
+const target = targetPlatform({ os: &quot;linux&quot;, arch: &quot;x86_64&quot; });
 const tools = pkg(&quot;tools&quot;, {
   producer: provider(conda.environment({
     channels: [&quot;conda-forge&quot;],
@@ -115,20 +117,22 @@ grip apply personal
 <h2 id="hash-pinned-python-wheels">Hash-pinned Python wheels</h2>
 <p>A coherent <code>conda.environment</code> can also declare <code>wheels: [{ name, version, url, sha256 }]</code> alongside its Conda packages. Use canonical lowercase wheel names, exact versions, explicit HTTPS wheel URLs without credentials/query strings/fragments, and independently approved SHA-256 values. The selected Python runtime and wheel dependencies must already belong to the declared environment; this is not an implicit PyPI solve. Imported Pixi locks can select supported hash-pinned wheel records too.</p>
 <p>The core validates metadata, RECORD ownership, dependencies, Python requirements and platform tags. Its pinned helper uses the maintained UV wheel installer offline; original wheel bytes are retained for reconstruction at the actual recipient prefix. Conda/wheel ownership collisions reject rather than overwrite. Binary manylinux wheels require an explicit compatible glibc baseline, checked again on the receiving host.</p>
-<p>Native environments must own their non-system runtime libraries. For example, the portable Python/Tk fixture declares <code>packages: { python: "3.12.*", "xorg-libx11": "*" }</code> rather than borrowing an undeclared host X11 library. Gripsack reports an incomplete runtime closure instead of silently searching ambient library paths.</p>
-<p>Source distributions, editable packages, executable startup files (<code>.pth</code>, <code>sitecustomize</code>, <code>usercustomize</code>) and arbitrary wheel <code>.data/scripts</code> are unsupported. Standard metadata-declared console entrypoints are supported. Missing dependencies are not resolved during installation, and package installation scripts are not executed. See <a href="../docs/sharing.html#conda-and-wheel-reconstruction">native sharing</a> for the offline transfer boundary and the <a href="https://github.com/gripsack-dev/gripsack/blob/8940e70513ee29f7e74dea1c61e477a158c3f496/typescript/README.md">exact SDK reference</a> for authoring details.</p>
+<p>Native environments own their runtime libraries, with one exception conda-forge itself makes: its platform libraries (the CDT set: X11 client libraries such as <code>libX11.so.6</code>, OpenGL/EGL and ALSA) come from the host. conda-forge's Python pulls in Tk, which links <code>libX11</code> this way. <code>grip build</code> and <code>grip apply</code> note which host platform libraries a prefix uses. Declare <code>strict: true</code> in <code>conda.environment</code> to refuse such a prefix; then add the library to the closure, for example <code>"xorg-libx11": "*"</code>. Anything else missing from the closure is reported instead of being searched for in ambient library paths.</p>
+<p>Source distributions, editable packages, executable startup files (<code>.pth</code>, <code>sitecustomize</code>, <code>usercustomize</code>) and arbitrary wheel <code>.data/scripts</code> are unsupported. Standard metadata-declared console entrypoints are supported. Missing dependencies are not resolved during installation, and package installation scripts are not executed. See <a href="../docs/sharing.html#conda-and-wheel-reconstruction">native sharing</a> for the offline transfer boundary and the <a href="https://github.com/gripsack-dev/gripsack/blob/e1a452239550ef504fc8ee1866bcaa64cdc4ac79/typescript/README.md">exact SDK reference</a> for authoring details.</p>
 <h2 id="solve-baselines">Solve baselines</h2>
 <p><code>systemRequirements</code> fixes the libc and kernel baseline the solve assumes. Without one, <code>grip update</code> measures the host it runs on. The recorded baseline is checked again on every host that runs the result, together with CPU and runtime requirements. A baseline is not a guarantee that every selected archive runs on every distribution.</p>
-<p>Keep required libraries in the complete closure. For example, a pyright environment can need an explicit <code>xorg-libx11</code> dependency. A successful version command alone does not prove editor, language-server or graphical behavior. Exercise the actual consumer on the host where you deploy it.</p>
+<p>Keep required libraries in the complete closure. A successful version command alone does not prove editor, language-server or graphical behavior. Exercise the actual consumer on the host where you deploy it.</p>
 <p>Unsupported Conda lifecycle scripts and payload policies fail before publication; importing a lock does not bypass those checks.</p>
 <h2 id="import-a-pixi-lock-explicitly">Import a Pixi lock explicitly</h2>
 <p>Use <code>pixi.fromLock</code> when another workflow owns the solve. Capture both the existing manifest and its lock as named inputs, then select the lock's environment. This complete declaration expects a <code>default</code> environment exporting ripgrep in those files:</p>
+<!-- example: examples/workspaces/08-pixi-import/gripsack.ts -->
+
 <pre><code class="language-typescript">import {
   defineWorkspace, environment, inputFile, pixi, pkg, provider,
   targetPlatform, workspace,
 } from &quot;@gripsack/core&quot;;
 
-const target = targetPlatform({ os: &quot;linux&quot;, arch: &quot;x86_64&quot;, abi: &quot;gnu&quot; });
+const target = targetPlatform({ os: &quot;linux&quot;, arch: &quot;x86_64&quot; });
 const inputs = [
   inputFile(&quot;pixi-manifest&quot;, &quot;pixi.toml&quot;),
   inputFile(&quot;pixi-lock&quot;, &quot;pixi.lock&quot;),
@@ -162,7 +166,7 @@ export default defineWorkspace(() =&gt; workspace({ inputs, outputs: [tools, sea
   <a href="https://github.com/gripsack-dev">gripsack-dev</a>
   <a href="https://github.com/gripsack-dev/gripsack">source</a>
   <a href="../index.html">home</a>
-  <span class="fversion">v0.53.0</span>
+  <span class="fversion">v0.54.0</span>
 </footer>
 </main>
 </div>

@@ -75,13 +75,15 @@
 <h1 id="packages">Packages</h1>
 <p>A package names a producer, a target platform and the commands or artifacts consumers can use. It does not install into a global prefix. Environments, profiles, tasks and images select the same package declarations.</p>
 <h2 id="a-release-archive">A release archive</h2>
-<p>This workspace exposes ripgrep from its upstream Linux musl archive:</p>
+<p>This workspace exposes ripgrep from its upstream static Linux archive:</p>
+<!-- example: examples/workspaces/06-release-archive/gripsack.ts -->
+
 <pre><code class="language-typescript">import {
   defineWorkspace, environment, githubRelease, pkg, provider,
   targetPlatform, workspace,
 } from &quot;@gripsack/core&quot;;
 
-const target = targetPlatform({ os: &quot;linux&quot;, arch: &quot;x86_64&quot;, abi: &quot;musl&quot; });
+const target = targetPlatform({ os: &quot;linux&quot;, arch: &quot;x86_64&quot; });
 const ripgrep = pkg(&quot;ripgrep&quot;, {
   producer: provider(githubRelease({
     repo: &quot;BurntSushi/ripgrep&quot;,
@@ -101,6 +103,7 @@ grip build ripgrep
 grip run --env search -- rg --version
 </code></pre>
 <p><code>grip update</code> resolves the release and records the archive hash in <code>gripsack.lock</code>; review that diff and approve the source when prompted. To pin a particular release, set <code>githubRelease.version</code> to its exact tag.</p>
+<p>The target names only the OS and architecture. Gripsack reads the ABI from each executable: a static binary like this one runs on any Linux x86_64 host, and a dynamically linked one must name the host's platform loader. An <code>abi</code> you do declare is checked against the executable, not against the host.</p>
 <h2 id="roots-and-layouts">Roots and layouts</h2>
 <p><code>archiveRoot: { kind: "single_directory" }</code> selects exactly one real top-level payload directory. Multiple roots, root-level metadata siblings and symlink roots are refused. Commands and <code>artifactFile</code>/<code>artifactTree</code> selectors are literal paths relative to that selected root: version placeholders belong in source asset patterns, not selectors.</p>
 <p>Choose the layout that matches the producer:</p>
@@ -110,7 +113,7 @@ grip run --env search -- rg --version
 <li><code>fixed_prefix</code> with an explicit <code>prefix</code> when the package requires that location; an environment selecting it must declare the matching prefix.</li>
 </ul>
 <h2 id="runtime-dependencies-are-part-of-the-package">Runtime dependencies are part of the package</h2>
-<p>Declare required package edges with <code>runtime: ["runtime-package"]</code>. A selected ABI identifies compatibility and loader behavior; it does not grant arbitrary host library access. Keep libraries and sibling resources in the retained closure when the tool needs them.</p>
+<p>Declare required package edges with <code>runtime: ["runtime-package"]</code>. The executable's ABI selects its loader; it does not grant arbitrary host library access. Keep libraries and sibling resources in the retained closure when the tool needs them.</p>
 <p>A Linux GNU package can explicitly opt into reviewed host libraries with <code>hostRuntime: { libraryDirectories: ["/opt/vendor/lib64"] }</code>. Those directories remain mutable trusted host inputs, not portable package content. See <a href="../docs/safety.html#host-libraries-and-launchers">runtime safety</a>.</p>
 <p>Some tools locate resources through their resolved executable pathname. A managed launcher does not promise the original <code>/proc/self/exe</code> pathname. For tools requiring a real sibling tree, use an explicit tracked-copy deployment and captured executable wrapper rather than assuming a launcher can repair the upstream layout. <a href="../docs/adopting.html#choose-file-ownership">File policies</a> explain the difference.</p>
 <h2 id="more-producers-and-consumers">More producers and consumers</h2>
@@ -119,7 +122,7 @@ grip run --env search -- rg --version
 <li><a href="../docs/fetchers.html">Sources, authentication and lock updates</a></li>
 <li><a href="../docs/environments.html#personal-launchers">Managed launchers</a></li>
 <li><a href="../docs/sharing.html">Native artifact sharing</a></li>
-<li><a href="https://github.com/gripsack-dev/gripsack/blob/8940e70513ee29f7e74dea1c61e477a158c3f496/typescript/README.md">SDK package contracts</a></li>
+<li><a href="https://github.com/gripsack-dev/gripsack/blob/e1a452239550ef504fc8ee1866bcaa64cdc4ac79/typescript/README.md">SDK package contracts</a></li>
 </ul>
 </article>
 <footer>
@@ -128,7 +131,7 @@ grip run --env search -- rg --version
   <a href="https://github.com/gripsack-dev">gripsack-dev</a>
   <a href="https://github.com/gripsack-dev/gripsack">source</a>
   <a href="../index.html">home</a>
-  <span class="fversion">v0.53.0</span>
+  <span class="fversion">v0.54.0</span>
 </footer>
 </main>
 </div>

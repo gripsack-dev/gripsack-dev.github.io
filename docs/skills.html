@@ -74,10 +74,10 @@
 <h1 id="agent-skills">Agent skills</h1>
 <p>Two skills in the source repository teach a coding agent (Claude Code, for example) how to operate gripsack well. They are guidance, not enforcement: the agent still has to review source, inspect plans and leave recovery data alone.</p>
 <h2 id="workspace-adoption">Workspace adoption</h2>
-<p>The <a href="https://github.com/gripsack-dev/gripsack/tree/8940e70513ee29f7e74dea1c61e477a158c3f496/skills/gripsack-adopt">gripsack-adopt skill</a> starts from the installed tools, configuration and ownership. Use it to choose package declarations, profiles, file policies, launchers and real consumer checks.</p>
-<p>The <a href="../docs/workspaces.html">workspace guide</a> and <a href="https://github.com/gripsack-dev/gripsack/blob/8940e70513ee29f7e74dea1c61e477a158c3f496/typescript/README.md">SDK reference</a> are the public API reference. An agent should not invent constructor names or assume a successful plan has deployed anything.</p>
+<p>The <a href="https://github.com/gripsack-dev/gripsack/tree/e1a452239550ef504fc8ee1866bcaa64cdc4ac79/skills/gripsack-adopt">gripsack-adopt skill</a> starts from the installed tools, configuration and ownership. Use it to choose package declarations, profiles, file policies, launchers and real consumer checks.</p>
+<p>The <a href="../docs/workspaces.html">workspace guide</a> and <a href="https://github.com/gripsack-dev/gripsack/blob/e1a452239550ef504fc8ee1866bcaa64cdc4ac79/typescript/README.md">SDK reference</a> are the public API reference. An agent should not invent constructor names or assume a successful plan has deployed anything.</p>
 <h2 id="debugging">Debugging</h2>
-<p>The <a href="https://github.com/gripsack-dev/gripsack/tree/8940e70513ee29f7e74dea1c61e477a158c3f496/skills/gripsack-debug">gripsack-debug skill</a> explains structured logs, span chains and diagnostic codes. Give the agent the failing command and exact run-log filename rather than only <code>latest</code>, which another invocation may replace.</p>
+<p>The <a href="https://github.com/gripsack-dev/gripsack/tree/e1a452239550ef504fc8ee1866bcaa64cdc4ac79/skills/gripsack-debug">gripsack-debug skill</a> explains structured logs, span chains and diagnostic codes. Give the agent the failing command and exact run-log filename rather than only <code>latest</code>, which another invocation may replace.</p>
 <p>Logs are for diagnosis, not something recovery reads. Keep journals, generation manifests and retained state intact while investigating. See <a href="../docs/runs.html">run logs</a> and <a href="../docs/safety.html">safety</a>.</p>
 <h2 id="use-with-your-agent">Use with your agent</h2>
 <p>Review the skill contents at the selected source revision, then copy the chosen skill directory into your harness's configured skill path. For Claude Code, for example, that can be <code>~/.claude/skills/</code>. Installing guidance does not install or upgrade <code>grip</code>.</p>
@@ -89,7 +89,7 @@
   <a href="https://github.com/gripsack-dev">gripsack-dev</a>
   <a href="https://github.com/gripsack-dev/gripsack">source</a>
   <a href="../index.html">home</a>
-  <span class="fversion">v0.53.0</span>
+  <span class="fversion">v0.54.0</span>
 </footer>
 </main>
 </div>

@@ -61,6 +61,7 @@
   </details>
   <span class="rail-head">on this page</span>
   <div class="rail-toc">
+    <a href="#0540-the-whole-apply-proved">0.54.0 — The whole apply, proved</a>
     <a href="#0530-proved-ownership-and-rollback">0.53.0 — Proved ownership and rollback</a>
     <a href="#0520-verified-foundation-phase-one">0.52.0 — Verified foundation, phase one</a>
     <a href="#0510-native-workspaces">0.51.0 — Native workspaces</a>
@@ -73,7 +74,17 @@
 <p class="doc-eyebrow">Gripsack / documentation</p>
 <article class="md">
 <h1 id="whats-new">What's new</h1>
-<p>User-visible changes per release. The <a href="https://github.com/gripsack-dev/gripsack/blob/8940e70513ee29f7e74dea1c61e477a158c3f496/CHANGELOG.md">full changelog</a> and <a href="https://github.com/gripsack-dev/gripsack/releases">release downloads</a> live with the source. This site documents core <strong>0.53.0</strong>.</p>
+<p>User-visible changes per release. The <a href="https://github.com/gripsack-dev/gripsack/blob/e1a452239550ef504fc8ee1866bcaa64cdc4ac79/CHANGELOG.md">full changelog</a> and <a href="https://github.com/gripsack-dev/gripsack/releases">release downloads</a> live with the source. This site documents core <strong>0.54.0</strong>.</p>
+<h2 id="0540-the-whole-apply-proved">0.54.0 — The whole apply, proved</h2>
+<ul>
+<li>Changing only the case of a file name on a case-insensitive filesystem (WSL's <code>/mnt/c</code>, macOS) no longer deletes the file during <code>apply</code> or <code>rollback</code>; two spellings that resolve to the same object are one destination.</li>
+<li>A post-activation hook no longer runs after its generation stopped being current.</li>
+<li><code>grip apply</code> streams progress as it works, and each check or hook prints one separated block with its output under a gutter and a pass/fail line; <code>--verbose</code> shows passing output in full. Piped and <code>NO_COLOR</code> output has no colour codes.</li>
+<li><code>apply</code> and <code>rollback</code> re-check each destination right before writing it, so a concurrent change stops the run instead of being overwritten.</li>
+<li>Release-archive targets no longer need <code>abi</code>: it is read from the executable. Conda environments use conda-forge's host platform libraries (X11, GL, ALSA) as conda-forge expects; <code>strict: true</code> refuses them.</li>
+<li>Every complete workspace in these docs is a tested example the release gate runs.</li>
+<li><code>grip apply</code>, managed blocks, garbage collection, the journal run, activation and <code>grip update</code>'s lock decision now run from <code>gripsack-kernel</code> and are proved in Lean: 579 theorems. See <a href="../docs/guarantees.html">how gripsack stays safe</a>.</li>
+</ul>
 <h2 id="0530-proved-ownership-and-rollback">0.53.0 — Proved ownership and rollback</h2>
 <ul>
 <li><code>rollback</code> restores exactly what the target generation recorded (bytes and mode, or link target), from bytes gripsack retained, or refuses before switching. It used to guess a missing mode, re-render old templates, skip a destination it could not restore and still switch, and write a shell profile into a pre-0.22 generation; all four are fixed.</li>
@@ -113,7 +124,7 @@
   <a href="https://github.com/gripsack-dev">gripsack-dev</a>
   <a href="https://github.com/gripsack-dev/gripsack">source</a>
   <a href="../index.html">home</a>
-  <span class="fversion">v0.53.0</span>
+  <span class="fversion">v0.54.0</span>
 </footer>
 </main>
 </div>

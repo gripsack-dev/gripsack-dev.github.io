@@ -80,6 +80,8 @@
 <p>Images must use immutable <code>name@sha256:DIGEST</code> references, not floating tags. The PostgreSQL 18 digest below was taken from the image's repository digest at writing time; check it against the registry before relying on it. Cold startup needs registry access and disk space.</p>
 <h2 id="postgresql-workspace">PostgreSQL workspace</h2>
 <p>Create <code>gripsack.ts</code>:</p>
+<!-- example: examples/workspaces/10-docker-service/gripsack.ts -->
+
 <pre><code class="language-typescript">import {
   defineWorkspace, exec, lit, service, task, workspace,
 } from &quot;@gripsack/core&quot;;
@@ -135,7 +137,7 @@ grip services status --json
   <a href="https://github.com/gripsack-dev">gripsack-dev</a>
   <a href="https://github.com/gripsack-dev/gripsack">source</a>
   <a href="../index.html">home</a>
-  <span class="fversion">v0.53.0</span>
+  <span class="fversion">v0.54.0</span>
 </footer>
 </main>
 </div>
