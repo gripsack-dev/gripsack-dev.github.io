@@ -2,6 +2,12 @@
 
 User-visible changes per release. The [full changelog](https://github.com/gripsack-dev/gripsack/blob/{release_source}/CHANGELOG.md) and [release downloads](https://github.com/gripsack-dev/gripsack/releases) live with the source. This site documents core **{core_version}**.
 
+## 0.55.0 — Locked-release payload paths
+
+- Package command values, `artifactFile` selectors and `artifactTree` include/exclude segment prefixes accept the same version and platform tokens as GitHub release assets.
+- Payload paths bind to the referenced package's resolved/locked source; lock-only updates can move commands and file/tree consumers without editing declarations. Raw tags are preserved, and `{version.bare}` strips exactly one leading lowercase `v`.
+- Plans show expanded paths before package or artifact realization without fetching payloads; JSON plans include `resolved_paths`. Missing required versions, unsupported tokens and unsafe expanded relative paths fail with declaration provenance.
+
 ## 0.54.0 — The whole apply, proved
 
 - Changing only the case of a file name on a case-insensitive filesystem (WSL's `/mnt/c`, macOS) no longer deletes the file during `apply` or `rollback`; two spellings that resolve to the same object are one destination.

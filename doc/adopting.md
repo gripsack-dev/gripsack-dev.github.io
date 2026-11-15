@@ -106,4 +106,19 @@ Rollback uses retained content without re-rendering today's source or rebuilding
 
 `artifactFile` and `artifactTree` select retained package content. Tree deployment still owns individual files, not the destination directory. Use tracked copies for consumers needing real filenames, extensions or sibling resources; per-file store symlinks do not promise those properties.
 
+In core 0.55.0 and later, `artifactFile` selectors and `artifactTree` include/exclude prefixes accept `{version}`, `{version.bare}`, `{os}`, `{arch}`, `{arch.go}`, `{arch.x64}`, `{target}` and `{system}`. They use the referenced package's resolved/locked source, with the same platform spellings as the release asset. `{version}` preserves the raw tag; `{version.bare}` strips exactly one leading lowercase `v`. With no source `version` pin, `grip update` can move these consumers to the newly locked release without editing your profile.
+
+For example, within a `file` declaration, select a version-bearing subtree with:
+
+```typescript
+source: artifactTree("tool", {
+  include: ["tool-{version.bare}/share"],
+  exclude: ["tool-{version.bare}/share/cache"],
+}),
+```
+
+These are **segment-prefix selectors, not globs**: an expanded `tool-1.2.3/share` selects that path and its descendants, not `tool-1.2.3/shared`. Include and exclude both expand before selection. Paths are relative to the package root, including any `archiveRoot` selection; do not repeat a wrapper already removed by `single_directory`.
+
+`grip plan` shows expanded paths even before package or artifact realization, without fetching payloads. A missing required source version or an unsafe expanded relative path fails with declaration provenance. No release-token expansion happens in destination paths, `repoFile`/`repoTree` selectors, command names, argv or scripts. See the [complete bare-binary package and file consumer](packages.md#locked-release-payload-paths).
+
 For command exports, prefer a profile's explicit `environment` and `launchers` declaration rather than maintaining shell wrappers. [Environments](environments.md#personal-launchers) covers PATH, the installed core location and same-UID operation. Attach named [checks](tasks.md#profile-file-checks) when a configuration should be validated before deployment.
