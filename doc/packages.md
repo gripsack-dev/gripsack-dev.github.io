@@ -39,9 +39,53 @@ grip run --env search -- rg --version
 
 The target names only the OS and architecture. Gripsack reads the ABI from each executable: a static binary like this one runs on any Linux x86_64 host, and a dynamically linked one must name the host's platform loader. An `abi` you do declare is checked against the executable, not against the host.
 
+## Locked-release payload paths
+
+Core 0.55.0 and later expand release tokens in package `commands` **values**, `artifactFile` selectors and `artifactTree` include/exclude prefixes. Command names stay stable. For example, this bare-binary release uses one reusable payload pattern for the asset, command and file consumer:
+
+<!-- example: examples/workspaces/17-release-paths/gripsack.ts -->
+```typescript
+import {
+  artifactFile, defineWorkspace, environment, file, githubRelease, identity,
+  pkg, profile, provider, targetPlatform, trackedCopyTo, workspace,
+} from "@gripsack/core";
+
+const target = targetPlatform({ os: "linux", arch: "x86_64" });
+const payload = "sops-{version}.{os}.{arch.go}";
+const sops = pkg("sops", {
+  producer: provider(githubRelease({
+    repo: "getsops/sops",
+    asset: payload,
+  })),
+  commands: { sops: payload },
+  target,
+  layout: { kind: "relocatable" },
+});
+const secrets = environment("secrets", { packages: ["sops"], target });
+const tools = profile("tools", {
+  files: [
+    file({
+      source: artifactFile("sops", payload),
+      content: identity(),
+      destination: trackedCopyTo("~/.local/bin/sops"),
+    }),
+  ],
+});
+
+export default defineWorkspace(() => workspace({ outputs: [sops, secrets, tools] }));
+```
+
+Run `grip update`, then use `grip run --env secrets -- sops --version` or review `grip plan tools` before `grip apply tools`. There is no source `version` pin: a later `grip update` can select a newer release, moving both the command payload and the file consumer without editing this declaration.
+
+`{version}` is the exact locked raw tag; `{version.bare}` strips exactly one leading lowercase `v`. For example, `v1.2.3` becomes `1.2.3`, `vv1.2.3` becomes `v1.2.3`, and `V1.2.3` stays unchanged. Platform tokens are `{os}`, `{arch}`, `{arch.go}`, `{arch.x64}`, `{target}` and `{system}`, with the same meanings as GitHub release asset patterns.
+
+Expansion binds to the referenced package's resolved/locked source, never the current upstream release, a guessed version or another package's lock. Platform tokens have the same Linux x86_64 asset spellings as the fetcher (`{target}` is `x86_64-unknown-linux-musl`, not a dynamic-loader assertion). Payload paths use the exact spelling produced by expansion; there is no asset-search fallback. `grip plan` shows the expanded paths even before package or artifact realization, without fetching payloads.
+
+A required version missing from that source, or an expansion producing an unsafe relative path, fails with provenance identifying the declaration. Tokens do not expand in command names, argv or scripts, destination paths, or `repoFile`/`repoTree` selectors.
+
 ## Roots and layouts
 
-`archiveRoot: { kind: "single_directory" }` selects exactly one real top-level payload directory. Multiple roots, root-level metadata siblings and symlink roots are refused. Commands and `artifactFile`/`artifactTree` selectors are literal paths relative to that selected root: version placeholders belong in source asset patterns, not selectors.
+`archiveRoot: { kind: "single_directory" }` selects exactly one real top-level payload directory. Multiple roots, root-level metadata siblings and symlink roots are refused. Commands and `artifactFile`/`artifactTree` selectors are relative to that selected root. This remains the simplest choice for a versioned wrapper directory: select the wrapper once and use paths such as `rg` within it. Use [locked-release payload tokens](#locked-release-payload-paths) when the payload filename or a selected subtree itself carries the version.
 
 Choose the layout that matches the producer:
 

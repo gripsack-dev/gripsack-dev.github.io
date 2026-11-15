@@ -32,9 +32,13 @@ A changed Pixi manifest or lock must be imported explicitly with `grip update`; 
 
 ## Asset selection
 
-GitHub asset patterns support explicit placeholders such as `{version}`, `{version.bare}`, `{system}`, `{target}`, `{arch}`, `{arch.go}`, `{arch.x64}` and `{os}`. `version.bare` removes one leading lowercase `v`; the lock keeps the actual tag. Direct archive URLs can use platform placeholders, not a version they have not resolved.
+GitHub asset patterns support `{version}`, `{version.bare}`, `{os}`, `{arch}`, `{arch.go}`, `{arch.x64}`, `{target}` and `{system}`. `{version}` preserves the exact resolved raw tag. `{version.bare}` removes exactly one leading lowercase `v`, not an uppercase `V` or additional leading `v`s; the lock keeps the actual tag. Direct archive URLs can use platform placeholders, not a version they have not resolved.
 
-Package command and artifact selectors are literal. For a single versioned archive directory, declare `archiveRoot: { kind: "single_directory" }` and use root-relative selectors instead of repeating that version. See [package roots](packages.md#roots-and-layouts).
+Since core 0.55.0, package command **values**, `artifactFile` selectors and `artifactTree` include/exclude segment prefixes support those same tokens. They bind to that package's resolved/locked source, with the asset resolver's platform spellings, not a sibling's pin or a fresh upstream lookup. Omit `githubRelease.version` when you want `grip update` to advance the release: a lock-only update then advances the command and file/tree consumers without source edits. Payload selection uses the exact expanded spelling, with no asset-search fallback.
+
+Planning shows expanded paths before package or artifact realization without fetching payloads. A required version missing from the referenced source or an unsafe expanded relative path fails with declaration provenance. Command names, argv, scripts, destinations and `repoFile`/`repoTree` selectors do not expand these tokens.
+
+For a single versioned archive wrapper directory, `archiveRoot: { kind: "single_directory" }` remains available; selectors are relative to the selected root. See [package roots](packages.md#roots-and-layouts) and the [bare-binary example](packages.md#locked-release-payload-paths).
 
 ## Authentication
 
