@@ -164,7 +164,7 @@
 <p><strong>Activation.</strong> Hooks run in ledger order, and each hook re-checks that its generation is still current right before it starts, so a hook never runs for a generation you have already switched away from. Generation numbers are allocated above the durable high-water mark, and a generation is published once.</p>
 <p><strong>Updates.</strong> <code>grip update</code> writes a lock only when every selected package was checked, none failed and something changed; each package is counted exactly once.</p>
 <p><strong>Rollback.</strong> Every write a rollback makes installs exactly the identity the target generation recorded, from retained bytes only, never inside a published generation, and only over absence or gripsack's own write. A destination counts as restored only when the landed object is that identity. The switch happens only after every destination is settled, with a fresh transaction identifier, and a destination that cannot be restored aborts the rollback before the switch.</p>
-<p>These are kernel theorems from <a href="https://github.com/gripsack-dev/gripsack/blob/e1a452239550ef504fc8ee1866bcaa64cdc4ac79/plan/0056-verified-foundation.md">plan 0056</a>. The proof sources are in <a href="https://github.com/gripsack-dev/gripsack/tree/e1a452239550ef504fc8ee1866bcaa64cdc4ac79/proofs"><code>proofs/</code></a> and the kernel in <a href="https://github.com/gripsack-dev/gripsack/tree/e1a452239550ef504fc8ee1866bcaa64cdc4ac79/crates/gripsack-kernel"><code>crates/gripsack-kernel</code></a>.</p>
+<p>These are kernel theorems from <a href="https://github.com/gripsack-dev/gripsack/blob/9171566023ad1dc9a5ad3cd5279def3cb27e365c/plan/0056-verified-foundation.md">plan 0056</a>. The proof sources are in <a href="https://github.com/gripsack-dev/gripsack/tree/9171566023ad1dc9a5ad3cd5279def3cb27e365c/proofs"><code>proofs/</code></a> and the kernel in <a href="https://github.com/gripsack-dev/gripsack/tree/9171566023ad1dc9a5ad3cd5279def3cb27e365c/crates/gripsack-kernel"><code>crates/gripsack-kernel</code></a>.</p>
 <h2 id="what-is-tested-but-not-yet-proved">What is tested but not yet proved</h2>
 <p>Everything else on the <a href="../docs/safety.html">safety page</a> is enforced by code and checked by tests, fault injection and a TLA+ model, not by a proof:</p>
 <ul>
@@ -203,7 +203,7 @@
   <a href="https://github.com/gripsack-dev">gripsack-dev</a>
   <a href="https://github.com/gripsack-dev/gripsack">source</a>
   <a href="../index.html">home</a>
-  <span class="fversion">v0.54.0</span>
+  <span class="fversion">v0.55.0</span>
 </footer>
 </main>
 </div>

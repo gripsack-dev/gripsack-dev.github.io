@@ -61,6 +61,7 @@
   </details>
   <span class="rail-head">on this page</span>
   <div class="rail-toc">
+    <a href="#0550-locked-release-payload-paths">0.55.0 — Locked-release payload paths</a>
     <a href="#0540-the-whole-apply-proved">0.54.0 — The whole apply, proved</a>
     <a href="#0530-proved-ownership-and-rollback">0.53.0 — Proved ownership and rollback</a>
     <a href="#0520-verified-foundation-phase-one">0.52.0 — Verified foundation, phase one</a>
@@ -74,7 +75,13 @@
 <p class="doc-eyebrow">Gripsack / documentation</p>
 <article class="md">
 <h1 id="whats-new">What's new</h1>
-<p>User-visible changes per release. The <a href="https://github.com/gripsack-dev/gripsack/blob/e1a452239550ef504fc8ee1866bcaa64cdc4ac79/CHANGELOG.md">full changelog</a> and <a href="https://github.com/gripsack-dev/gripsack/releases">release downloads</a> live with the source. This site documents core <strong>0.54.0</strong>.</p>
+<p>User-visible changes per release. The <a href="https://github.com/gripsack-dev/gripsack/blob/9171566023ad1dc9a5ad3cd5279def3cb27e365c/CHANGELOG.md">full changelog</a> and <a href="https://github.com/gripsack-dev/gripsack/releases">release downloads</a> live with the source. This site documents core <strong>0.55.0</strong>.</p>
+<h2 id="0550-locked-release-payload-paths">0.55.0 — Locked-release payload paths</h2>
+<ul>
+<li>Package command values, <code>artifactFile</code> selectors and <code>artifactTree</code> include/exclude segment prefixes accept the same version and platform tokens as GitHub release assets.</li>
+<li>Payload paths bind to the referenced package's resolved/locked source; lock-only updates can move commands and file/tree consumers without editing declarations. Raw tags are preserved, and <code>{version.bare}</code> strips exactly one leading lowercase <code>v</code>.</li>
+<li>Plans show expanded paths before package or artifact realization without fetching payloads; JSON plans include <code>resolved_paths</code>. Missing required versions, unsupported tokens and unsafe expanded relative paths fail with declaration provenance.</li>
+</ul>
 <h2 id="0540-the-whole-apply-proved">0.54.0 — The whole apply, proved</h2>
 <ul>
 <li>Changing only the case of a file name on a case-insensitive filesystem (WSL's <code>/mnt/c</code>, macOS) no longer deletes the file during <code>apply</code> or <code>rollback</code>; two spellings that resolve to the same object are one destination.</li>
@@ -124,7 +131,7 @@
   <a href="https://github.com/gripsack-dev">gripsack-dev</a>
   <a href="https://github.com/gripsack-dev/gripsack">source</a>
   <a href="../index.html">home</a>
-  <span class="fversion">v0.54.0</span>
+  <span class="fversion">v0.55.0</span>
 </footer>
 </main>
 </div>

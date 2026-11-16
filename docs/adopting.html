@@ -166,6 +166,15 @@ grip rollback
 <p>Rollback uses retained content without re-rendering today's source or rebuilding packages. Keep predecessor generations until the real application works with the deployed files. See <a href="../docs/safety.html">safety and recovery</a> for the full ownership and drift rules, with a diagram.</p>
 <h2 id="package-artifacts-and-launchers">Package artifacts and launchers</h2>
 <p><code>artifactFile</code> and <code>artifactTree</code> select retained package content. Tree deployment still owns individual files, not the destination directory. Use tracked copies for consumers needing real filenames, extensions or sibling resources; per-file store symlinks do not promise those properties.</p>
+<p>In core 0.55.0 and later, <code>artifactFile</code> selectors and <code>artifactTree</code> include/exclude prefixes accept <code>{version}</code>, <code>{version.bare}</code>, <code>{os}</code>, <code>{arch}</code>, <code>{arch.go}</code>, <code>{arch.x64}</code>, <code>{target}</code> and <code>{system}</code>. They use the referenced package's resolved/locked source, with the same platform spellings as the release asset. <code>{version}</code> preserves the raw tag; <code>{version.bare}</code> strips exactly one leading lowercase <code>v</code>. With no source <code>version</code> pin, <code>grip update</code> can move these consumers to the newly locked release without editing your profile.</p>
+<p>For example, within a <code>file</code> declaration, select a version-bearing subtree with:</p>
+<pre><code class="language-typescript">source: artifactTree(&quot;tool&quot;, {
+  include: [&quot;tool-{version.bare}/share&quot;],
+  exclude: [&quot;tool-{version.bare}/share/cache&quot;],
+}),
+</code></pre>
+<p>These are <strong>segment-prefix selectors, not globs</strong>: an expanded <code>tool-1.2.3/share</code> selects that path and its descendants, not <code>tool-1.2.3/shared</code>. Include and exclude both expand before selection. Paths are relative to the package root, including any <code>archiveRoot</code> selection; do not repeat a wrapper already removed by <code>single_directory</code>.</p>
+<p><code>grip plan</code> shows expanded paths even before package or artifact realization, without fetching payloads. A missing required source version or an unsafe expanded relative path fails with declaration provenance. No release-token expansion happens in destination paths, <code>repoFile</code>/<code>repoTree</code> selectors, command names, argv or scripts. See the <a href="../docs/packages.html#locked-release-payload-paths">complete bare-binary package and file consumer</a>.</p>
 <p>For command exports, prefer a profile's explicit <code>environment</code> and <code>launchers</code> declaration rather than maintaining shell wrappers. <a href="../docs/environments.html#personal-launchers">Environments</a> covers PATH, the installed core location and same-UID operation. Attach named <a href="../docs/tasks.html#profile-file-checks">checks</a> when a configuration should be validated before deployment.</p>
 </article>
 <footer>
@@ -174,7 +183,7 @@ grip rollback
   <a href="https://github.com/gripsack-dev">gripsack-dev</a>
   <a href="https://github.com/gripsack-dev/gripsack">source</a>
   <a href="../index.html">home</a>
-  <span class="fversion">v0.54.0</span>
+  <span class="fversion">v0.55.0</span>
 </footer>
 </main>
 </div>

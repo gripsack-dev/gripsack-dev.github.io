@@ -62,6 +62,7 @@
   <span class="rail-head">on this page</span>
   <div class="rail-toc">
     <a href="#a-release-archive">A release archive</a>
+    <a href="#locked-release-payload-paths">Locked-release payload paths</a>
     <a href="#roots-and-layouts">Roots and layouts</a>
     <a href="#runtime-dependencies-are-part-of-the-package">Runtime dependencies are part of the package</a>
     <a href="#more-producers-and-consumers">More producers and consumers</a>
@@ -104,8 +105,45 @@ grip run --env search -- rg --version
 </code></pre>
 <p><code>grip update</code> resolves the release and records the archive hash in <code>gripsack.lock</code>; review that diff and approve the source when prompted. To pin a particular release, set <code>githubRelease.version</code> to its exact tag.</p>
 <p>The target names only the OS and architecture. Gripsack reads the ABI from each executable: a static binary like this one runs on any Linux x86_64 host, and a dynamically linked one must name the host's platform loader. An <code>abi</code> you do declare is checked against the executable, not against the host.</p>
+<h2 id="locked-release-payload-paths">Locked-release payload paths</h2>
+<p>Core 0.55.0 and later expand release tokens in package <code>commands</code> <strong>values</strong>, <code>artifactFile</code> selectors and <code>artifactTree</code> include/exclude prefixes. Command names stay stable. For example, this bare-binary release uses one reusable payload pattern for the asset, command and file consumer:</p>
+<!-- example: examples/workspaces/17-release-paths/gripsack.ts -->
+
+<pre><code class="language-typescript">import {
+  artifactFile, defineWorkspace, environment, file, githubRelease, identity,
+  pkg, profile, provider, targetPlatform, trackedCopyTo, workspace,
+} from &quot;@gripsack/core&quot;;
+
+const target = targetPlatform({ os: &quot;linux&quot;, arch: &quot;x86_64&quot; });
+const payload = &quot;sops-{version}.{os}.{arch.go}&quot;;
+const sops = pkg(&quot;sops&quot;, {
+  producer: provider(githubRelease({
+    repo: &quot;getsops/sops&quot;,
+    asset: payload,
+  })),
+  commands: { sops: payload },
+  target,
+  layout: { kind: &quot;relocatable&quot; },
+});
+const secrets = environment(&quot;secrets&quot;, { packages: [&quot;sops&quot;], target });
+const tools = profile(&quot;tools&quot;, {
+  files: [
+    file({
+      source: artifactFile(&quot;sops&quot;, payload),
+      content: identity(),
+      destination: trackedCopyTo(&quot;~/.local/bin/sops&quot;),
+    }),
+  ],
+});
+
+export default defineWorkspace(() =&gt; workspace({ outputs: [sops, secrets, tools] }));
+</code></pre>
+<p>Run <code>grip update</code>, then use <code>grip run --env secrets -- sops --version</code> or review <code>grip plan tools</code> before <code>grip apply tools</code>. There is no source <code>version</code> pin: a later <code>grip update</code> can select a newer release, moving both the command payload and the file consumer without editing this declaration.</p>
+<p><code>{version}</code> is the exact locked raw tag; <code>{version.bare}</code> strips exactly one leading lowercase <code>v</code>. For example, <code>v1.2.3</code> becomes <code>1.2.3</code>, <code>vv1.2.3</code> becomes <code>v1.2.3</code>, and <code>V1.2.3</code> stays unchanged. Platform tokens are <code>{os}</code>, <code>{arch}</code>, <code>{arch.go}</code>, <code>{arch.x64}</code>, <code>{target}</code> and <code>{system}</code>, with the same meanings as GitHub release asset patterns.</p>
+<p>Expansion binds to the referenced package's resolved/locked source, never the current upstream release, a guessed version or another package's lock. Platform tokens have the same Linux x86_64 asset spellings as the fetcher (<code>{target}</code> is <code>x86_64-unknown-linux-musl</code>, not a dynamic-loader assertion). Payload paths use the exact spelling produced by expansion; there is no asset-search fallback. <code>grip plan</code> shows the expanded paths even before package or artifact realization, without fetching payloads.</p>
+<p>A required version missing from that source, or an expansion producing an unsafe relative path, fails with provenance identifying the declaration. Tokens do not expand in command names, argv or scripts, destination paths, or <code>repoFile</code>/<code>repoTree</code> selectors.</p>
 <h2 id="roots-and-layouts">Roots and layouts</h2>
-<p><code>archiveRoot: { kind: "single_directory" }</code> selects exactly one real top-level payload directory. Multiple roots, root-level metadata siblings and symlink roots are refused. Commands and <code>artifactFile</code>/<code>artifactTree</code> selectors are literal paths relative to that selected root: version placeholders belong in source asset patterns, not selectors.</p>
+<p><code>archiveRoot: { kind: "single_directory" }</code> selects exactly one real top-level payload directory. Multiple roots, root-level metadata siblings and symlink roots are refused. Commands and <code>artifactFile</code>/<code>artifactTree</code> selectors are relative to that selected root. This remains the simplest choice for a versioned wrapper directory: select the wrapper once and use paths such as <code>rg</code> within it. Use <a href="#locked-release-payload-paths">locked-release payload tokens</a> when the payload filename or a selected subtree itself carries the version.</p>
 <p>Choose the layout that matches the producer:</p>
 <ul>
 <li><code>relocatable</code> for an archive or build result that can run from its retained package root.</li>
@@ -122,7 +160,7 @@ grip run --env search -- rg --version
 <li><a href="../docs/fetchers.html">Sources, authentication and lock updates</a></li>
 <li><a href="../docs/environments.html#personal-launchers">Managed launchers</a></li>
 <li><a href="../docs/sharing.html">Native artifact sharing</a></li>
-<li><a href="https://github.com/gripsack-dev/gripsack/blob/e1a452239550ef504fc8ee1866bcaa64cdc4ac79/typescript/README.md">SDK package contracts</a></li>
+<li><a href="https://github.com/gripsack-dev/gripsack/blob/9171566023ad1dc9a5ad3cd5279def3cb27e365c/typescript/README.md">SDK package contracts</a></li>
 </ul>
 </article>
 <footer>
@@ -131,7 +169,7 @@ grip run --env search -- rg --version
   <a href="https://github.com/gripsack-dev">gripsack-dev</a>
   <a href="https://github.com/gripsack-dev/gripsack">source</a>
   <a href="../index.html">home</a>
-  <span class="fversion">v0.54.0</span>
+  <span class="fversion">v0.55.0</span>
 </footer>
 </main>
 </div>

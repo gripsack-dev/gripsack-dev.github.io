@@ -127,8 +127,10 @@ grip update
 <p><code>grip update</code> resolves and verifies sources, records complete platform-keyed pins and captures frontend/import identities. It does not run activation hooks or deploy destinations. Review the lock diff and renew exact source/policy approval when required before the next frozen consumer.</p>
 <p>A changed Pixi manifest or lock must be imported explicitly with <code>grip update</code>; that operation does not re-solve or rewrite the external lock. Use your Pixi workflow first when you intend to change packages.</p>
 <h2 id="asset-selection">Asset selection</h2>
-<p>GitHub asset patterns support explicit placeholders such as <code>{version}</code>, <code>{version.bare}</code>, <code>{system}</code>, <code>{target}</code>, <code>{arch}</code>, <code>{arch.go}</code>, <code>{arch.x64}</code> and <code>{os}</code>. <code>version.bare</code> removes one leading lowercase <code>v</code>; the lock keeps the actual tag. Direct archive URLs can use platform placeholders, not a version they have not resolved.</p>
-<p>Package command and artifact selectors are literal. For a single versioned archive directory, declare <code>archiveRoot: { kind: "single_directory" }</code> and use root-relative selectors instead of repeating that version. See <a href="../docs/packages.html#roots-and-layouts">package roots</a>.</p>
+<p>GitHub asset patterns support <code>{version}</code>, <code>{version.bare}</code>, <code>{os}</code>, <code>{arch}</code>, <code>{arch.go}</code>, <code>{arch.x64}</code>, <code>{target}</code> and <code>{system}</code>. <code>{version}</code> preserves the exact resolved raw tag. <code>{version.bare}</code> removes exactly one leading lowercase <code>v</code>, not an uppercase <code>V</code> or additional leading <code>v</code>s; the lock keeps the actual tag. Direct archive URLs can use platform placeholders, not a version they have not resolved.</p>
+<p>Since core 0.55.0, package command <strong>values</strong>, <code>artifactFile</code> selectors and <code>artifactTree</code> include/exclude segment prefixes support those same tokens. They bind to that package's resolved/locked source, with the asset resolver's platform spellings, not a sibling's pin or a fresh upstream lookup. Omit <code>githubRelease.version</code> when you want <code>grip update</code> to advance the release: a lock-only update then advances the command and file/tree consumers without source edits. Payload selection uses the exact expanded spelling, with no asset-search fallback.</p>
+<p>Planning shows expanded paths before package or artifact realization without fetching payloads. A required version missing from the referenced source or an unsafe expanded relative path fails with declaration provenance. Command names, argv, scripts, destinations and <code>repoFile</code>/<code>repoTree</code> selectors do not expand these tokens.</p>
+<p>For a single versioned archive wrapper directory, <code>archiveRoot: { kind: "single_directory" }</code> remains available; selectors are relative to the selected root. See <a href="../docs/packages.html#roots-and-layouts">package roots</a> and the <a href="../docs/packages.html#locked-release-payload-paths">bare-binary example</a>.</p>
 <h2 id="authentication">Authentication</h2>
 <p>Credentials are explicitly host-bound. <code>GITHUB_TOKEN</code> takes precedence over <code>GH_TOKEN</code> and goes only to github.com/api.github.com. Enterprise credentials use <code>GITHUB_ENTERPRISE_TOKEN</code>, then <code>GH_ENTERPRISE_TOKEN</code>, with <code>GH_HOST</code> or <code>GITHUB_HOST</code> naming the intended enterprise host.</p>
 <p>A source's <code>base_url</code> selects a destination; it is not a token grant. Cross-host and HTTPS-to-HTTP redirects do not forward authorization. Supply secrets through the trusted calling environment, not captured TypeScript; non-interactive SSH may not load your shell profile. Gripsack does not read gh's credential store or source profiles to compensate.</p>
@@ -143,7 +145,7 @@ grip update
   <a href="https://github.com/gripsack-dev">gripsack-dev</a>
   <a href="https://github.com/gripsack-dev/gripsack">source</a>
   <a href="../index.html">home</a>
-  <span class="fversion">v0.54.0</span>
+  <span class="fversion">v0.55.0</span>
 </footer>
 </main>
 </div>
