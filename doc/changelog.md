@@ -2,11 +2,21 @@
 
 User-visible changes per release. The [full changelog](https://github.com/gripsack-dev/gripsack/blob/{release_source}/CHANGELOG.md) and [release downloads](https://github.com/gripsack-dev/gripsack/releases) live with the source. This site documents core **{core_version}**.
 
+## 0.56.0 — Typed artifact selectors and live task output
+
+- Typed `artifact(output, selector)` references now expand locked version and platform tokens in exec arguments, command env/cwd and environment env, consistently across tasks, checks, hooks and scheduled commands. Package-subject `sourcePath` selectors use the subject's locked version.
+- Every reference uses its own package's frozen source, with exact raw-tag or one-lowercase-`v` bare spelling. Literal arguments, environment values, working-directory paths and scripts remain literal.
+- Plans include these selectors in text and JSON `resolved_paths`, without fetching or promising existence. Missing versions, unknown tokens and unsafe expanded paths fail with declaration provenance; canonical containment applies to cwd too.
+- Retained hooks, launchers and portable bindings keep concrete selectors, and historical literal portable selectors are not reinterpreted. Attached file checks still allow only `sourcePath(".")`.
+- Task runs label dependency steps and postcondition checks as they start and finish, and flush stdout chunks immediately, including partial lines. Stdout remains unchanged for pipelines; progress uses stderr. Child stderr remains bounded per-process capture, with separation before status lines.
+- Apply's live progress and separate check/hook blocks were already present in 0.54; verification output is captured per check/hook, not buffered across the whole apply.
+
 ## 0.55.0 — Locked-release payload paths
 
 - Package command values, `artifactFile` selectors and `artifactTree` include/exclude segment prefixes accept the same version and platform tokens as GitHub release assets.
 - Payload paths bind to the referenced package's resolved/locked source; lock-only updates can move commands and file/tree consumers without editing declarations. Raw tags are preserved, and `{version.bare}` strips exactly one leading lowercase `v`.
 - Plans show expanded paths before package or artifact realization without fetching payloads; JSON plans include `resolved_paths`. Missing required versions, unsupported tokens and unsafe expanded relative paths fail with declaration provenance.
+- Command/environment `artifact` selectors and package-check `sourcePath` selectors did not expand in this release; that gap is addressed in 0.56.0.
 
 ## 0.54.0 — The whole apply, proved
 

@@ -81,7 +81,13 @@ Run `grip update`, then use `grip run --env secrets -- sops --version` or review
 
 Expansion binds to the referenced package's resolved/locked source, never the current upstream release, a guessed version or another package's lock. Platform tokens have the same Linux x86_64 asset spellings as the fetcher (`{target}` is `x86_64-unknown-linux-musl`, not a dynamic-loader assertion). Payload paths use the exact spelling produced by expansion; there is no asset-search fallback. `grip plan` shows the expanded paths even before package or artifact realization, without fetching payloads.
 
-A required version missing from that source, or an expansion producing an unsafe relative path, fails with provenance identifying the declaration. Tokens do not expand in command names, argv or scripts, destination paths, or `repoFile`/`repoTree` selectors.
+Core 0.56.0 extends this policy to typed `artifact(output, selector)` references in exec arguments, command environment values, command working directories and environment-level values. A package-subject check's `sourcePath(selector)` uses that subject package's lock. In 0.55, those command/environment selectors were joined literally; only the package exports and profile artifact origins described above expanded.
+
+A required version missing from the referenced source, an unknown token or an unsafe expanded relative path fails with declaration provenance. Expansion happens before filesystem selection; canonical containment is checked even for working directories. `artifact("tool", ".")` still selects the whole artifact. Attached file checks allow only `sourcePath(".")`, not child paths.
+
+Literal argv/env/cwd values and script bodies remain literal: this does **not** mean typed artifact references inside argv stay literal. Command names, destination paths, host/repository paths, input names and writable staging selectors do not acquire release-token expansion. See [typed command selectors](tasks.md#typed-artifact-selectors).
+
+Text plans and JSON `resolved_paths` include typed selectors resolved from admitted lock evidence, without fetching or claiming that a selected path exists. Artifact rows have `kind: "artifact"`, the owning `consumer`, referenced package `output`, concrete payload-relative `selector` and declaration `span`. Retained hooks, launchers and portable environment bindings keep concrete selectors; replay does not reinterpret them against today's lock. Historical literal portable selectors retain their original meaning.
 
 ## Roots and layouts
 
