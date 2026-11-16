@@ -98,6 +98,14 @@ export default defineWorkspace(() => workspace({ inputs, outputs: [tools, search
 
 `grip update` imports the selected lock; it does **not** run Pixi, upgrade packages or rewrite `pixi.lock`. To change the solve, update the manifest/lock with your Pixi workflow first, review them, run `grip update`, then review and approve the resulting captured state. Frozen consumers refuse changed imported inputs until that explicit update. Gripsack's import and materialization do not require a `pixi` executable on `PATH`.
 
+## Typed artifact environment values
+
+Since core 0.56.0, `artifact(output, selector)` in an environment's `env` values expands version and platform tokens against the **referenced package's** locked source. For example, `artifact("tool", "tool-{version.bare}/lib")` selects that package's concrete library directory, not a directory derived from another package's version. The same rule applies in command env and cwd, as well as exec arguments; see [typed command selectors](tasks.md#typed-artifact-selectors). In 0.55, command and environment artifact selectors were literal.
+
+Use `lit(...)` for literal environment text; it does not interpolate release tokens. Missing required versions, unknown tokens and unsafe expanded paths fail with declaration provenance. Filesystem selection checks canonical containment, including working directories; `"."` remains the whole-artifact selector.
+
+Plans expose concrete selectors from the lock without fetching or checking their existence. Retained launchers and portable environment bindings keep concrete values rather than re-expanding against a newer workspace. Import preserves the meaning of historical literal selectors too.
+
 ## Personal launchers
 
 A profile's `launchers.directory` and `launchers.commands` are explicit. Only uniquely resolved exports from its selected environment become launchers; missing or ambiguous commands fail before mutation. Add the chosen directory to your shell, editor or SSH session's `PATH` yourself. Gripsack does not modify those programs' environments implicitly.
