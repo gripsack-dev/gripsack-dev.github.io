@@ -141,7 +141,10 @@ export default defineWorkspace(() =&gt; workspace({ outputs: [sops, secrets, too
 <p>Run <code>grip update</code>, then use <code>grip run --env secrets -- sops --version</code> or review <code>grip plan tools</code> before <code>grip apply tools</code>. There is no source <code>version</code> pin: a later <code>grip update</code> can select a newer release, moving both the command payload and the file consumer without editing this declaration.</p>
 <p><code>{version}</code> is the exact locked raw tag; <code>{version.bare}</code> strips exactly one leading lowercase <code>v</code>. For example, <code>v1.2.3</code> becomes <code>1.2.3</code>, <code>vv1.2.3</code> becomes <code>v1.2.3</code>, and <code>V1.2.3</code> stays unchanged. Platform tokens are <code>{os}</code>, <code>{arch}</code>, <code>{arch.go}</code>, <code>{arch.x64}</code>, <code>{target}</code> and <code>{system}</code>, with the same meanings as GitHub release asset patterns.</p>
 <p>Expansion binds to the referenced package's resolved/locked source, never the current upstream release, a guessed version or another package's lock. Platform tokens have the same Linux x86_64 asset spellings as the fetcher (<code>{target}</code> is <code>x86_64-unknown-linux-musl</code>, not a dynamic-loader assertion). Payload paths use the exact spelling produced by expansion; there is no asset-search fallback. <code>grip plan</code> shows the expanded paths even before package or artifact realization, without fetching payloads.</p>
-<p>A required version missing from that source, or an expansion producing an unsafe relative path, fails with provenance identifying the declaration. Tokens do not expand in command names, argv or scripts, destination paths, or <code>repoFile</code>/<code>repoTree</code> selectors.</p>
+<p>Core 0.56.0 extends this policy to typed <code>artifact(output, selector)</code> references in exec arguments, command environment values, command working directories and environment-level values. A package-subject check's <code>sourcePath(selector)</code> uses that subject package's lock. In 0.55, those command/environment selectors were joined literally; only the package exports and profile artifact origins described above expanded.</p>
+<p>A required version missing from the referenced source, an unknown token or an unsafe expanded relative path fails with declaration provenance. Expansion happens before filesystem selection; canonical containment is checked even for working directories. <code>artifact("tool", ".")</code> still selects the whole artifact. Attached file checks allow only <code>sourcePath(".")</code>, not child paths.</p>
+<p>Literal argv/env/cwd values and script bodies remain literal: this does <strong>not</strong> mean typed artifact references inside argv stay literal. Command names, destination paths, host/repository paths, input names and writable staging selectors do not acquire release-token expansion. See <a href="../docs/tasks.html#typed-artifact-selectors">typed command selectors</a>.</p>
+<p>Text plans and JSON <code>resolved_paths</code> include typed selectors resolved from admitted lock evidence, without fetching or claiming that a selected path exists. Artifact rows have <code>kind: "artifact"</code>, the owning <code>consumer</code>, referenced package <code>output</code>, concrete payload-relative <code>selector</code> and declaration <code>span</code>. Retained hooks, launchers and portable environment bindings keep concrete selectors; replay does not reinterpret them against today's lock. Historical literal portable selectors retain their original meaning.</p>
 <h2 id="roots-and-layouts">Roots and layouts</h2>
 <p><code>archiveRoot: { kind: "single_directory" }</code> selects exactly one real top-level payload directory. Multiple roots, root-level metadata siblings and symlink roots are refused. Commands and <code>artifactFile</code>/<code>artifactTree</code> selectors are relative to that selected root. This remains the simplest choice for a versioned wrapper directory: select the wrapper once and use paths such as <code>rg</code> within it. Use <a href="#locked-release-payload-paths">locked-release payload tokens</a> when the payload filename or a selected subtree itself carries the version.</p>
 <p>Choose the layout that matches the producer:</p>
@@ -160,7 +163,7 @@ export default defineWorkspace(() =&gt; workspace({ outputs: [sops, secrets, too
 <li><a href="../docs/fetchers.html">Sources, authentication and lock updates</a></li>
 <li><a href="../docs/environments.html#personal-launchers">Managed launchers</a></li>
 <li><a href="../docs/sharing.html">Native artifact sharing</a></li>
-<li><a href="https://github.com/gripsack-dev/gripsack/blob/9171566023ad1dc9a5ad3cd5279def3cb27e365c/typescript/README.md">SDK package contracts</a></li>
+<li><a href="https://github.com/gripsack-dev/gripsack/blob/b7f81d0b9bafa65aa6717b68b3b717e6a3bd7911/typescript/README.md">SDK package contracts</a></li>
 </ul>
 </article>
 <footer>
@@ -169,7 +172,7 @@ export default defineWorkspace(() =&gt; workspace({ outputs: [sops, secrets, too
   <a href="https://github.com/gripsack-dev">gripsack-dev</a>
   <a href="https://github.com/gripsack-dev/gripsack">source</a>
   <a href="../index.html">home</a>
-  <span class="fversion">v0.55.0</span>
+  <span class="fversion">v0.56.0</span>
 </footer>
 </main>
 </div>

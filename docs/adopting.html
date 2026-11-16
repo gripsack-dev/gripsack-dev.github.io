@@ -174,7 +174,7 @@ grip rollback
 }),
 </code></pre>
 <p>These are <strong>segment-prefix selectors, not globs</strong>: an expanded <code>tool-1.2.3/share</code> selects that path and its descendants, not <code>tool-1.2.3/shared</code>. Include and exclude both expand before selection. Paths are relative to the package root, including any <code>archiveRoot</code> selection; do not repeat a wrapper already removed by <code>single_directory</code>.</p>
-<p><code>grip plan</code> shows expanded paths even before package or artifact realization, without fetching payloads. A missing required source version or an unsafe expanded relative path fails with declaration provenance. No release-token expansion happens in destination paths, <code>repoFile</code>/<code>repoTree</code> selectors, command names, argv or scripts. See the <a href="../docs/packages.html#locked-release-payload-paths">complete bare-binary package and file consumer</a>.</p>
+<p><code>grip plan</code> shows expanded paths even before package or artifact realization, without fetching payloads or claiming path existence. Missing required source versions, unknown tokens and unsafe expanded relative paths fail with declaration provenance. No release-token expansion happens in destination paths, <code>repoFile</code>/<code>repoTree</code> selectors, command names, literal argv/env/cwd values or script bodies. Since 0.56, typed <code>artifact</code> references in hook and check commands <strong>do</strong> expand, including arguments, environment values and working directories; package-subject <code>sourcePath</code> references use the subject's locked source. Attached file checks still accept only <code>sourcePath(".")</code>. See <a href="../docs/tasks.html#typed-artifact-selectors">typed command selectors</a> and the <a href="../docs/packages.html#locked-release-payload-paths">complete bare-binary package and file consumer</a>.</p>
 <p>For command exports, prefer a profile's explicit <code>environment</code> and <code>launchers</code> declaration rather than maintaining shell wrappers. <a href="../docs/environments.html#personal-launchers">Environments</a> covers PATH, the installed core location and same-UID operation. Attach named <a href="../docs/tasks.html#profile-file-checks">checks</a> when a configuration should be validated before deployment.</p>
 </article>
 <footer>
@@ -183,7 +183,7 @@ grip rollback
   <a href="https://github.com/gripsack-dev">gripsack-dev</a>
   <a href="https://github.com/gripsack-dev/gripsack">source</a>
   <a href="../index.html">home</a>
-  <span class="fversion">v0.55.0</span>
+  <span class="fversion">v0.56.0</span>
 </footer>
 </main>
 </div>

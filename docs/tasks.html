@@ -67,6 +67,7 @@
     <a href="#profile-file-checks">Profile file checks</a>
     <a href="#lifecycle-boundaries">Lifecycle boundaries</a>
     <a href="#scheduling-boundary">Scheduling boundary</a>
+    <a href="#typed-artifact-selectors">Typed artifact selectors</a>
   </div>
 
   <label class="palette-picker" hidden><span>Palette</span><select data-palette-select aria-label="Site palette"><option value="paper">Paper</option><option value="paper-dark">Paper Dark</option><option value="catppuccin-mocha">Catppuccin Mocha</option><option value="tokyo-night">Tokyo Night</option><option value="gruvbox-dark">Gruvbox Dark</option><option value="nord">Nord</option><option value="dracula">Dracula</option><option value="one-dark">One Dark</option><option value="solarized-dark">Solarized Dark</option><option value="catppuccin-latte">Catppuccin Latte</option><option value="github-light">Github Light</option><option value="one-light">One Light</option><option value="solarized-light">Solarized Light</option></select></label>
@@ -95,10 +96,21 @@ grip task status &quot;$invocation&quot;
 grip task log &quot;$invocation&quot;
 </code></pre>
 <p>Status reads the durable receipt; log reads bounded private stdout/stderr output. Review logs for private information before sharing them.</p>
+<p>Since core 0.56, ordinary <code>grip task run</code> labels each dependency's steps and
+postcondition checks on stderr as they start and finish. Child stdout streams
+immediately, including partial lines, and remains unchanged for pipelines.
+Stderr from each child is still bounded capture, printed when that process
+finishes; it is not a live stderr stream. Unterminated output is separated from
+status lines. <code>--json</code> keeps its structured stdout and bounded log behavior.</p>
+<p><code>grip apply</code> already reports live progress and separate check/hook blocks
+(since 0.54). Passing verification output is collapsed by default; <code>--verbose</code>
+shows the full captured block, and failures show their captured output. Capture
+is per verification, not across the entire apply. Piped/<code>NO_COLOR</code> metadata is
+plain; a tool's own raw task stdout may still contain its own formatting.</p>
 <h2 id="dependencies-and-mutation">Dependencies and mutation</h2>
 <p><code>deps</code> names unordered prerequisite tasks that must succeed in the same invocation. A task's <code>steps</code> are ordered locally; <code>checks</code> are its invocation postconditions. Declare live mutation paths with <code>context: { kind: "host", mutable_paths: [...] }</code> and shared mutation keys with <code>locks: [lock("user", "editor-config")]</code> or store-scoped locks.</p>
 <p>Locks coordinate declared effects; they do not grant execution authority or infer dependencies from shell text. <code>--skip-busy</code> can skip an active conflict, not bypass an unknown interrupted owner. <code>--timeout-seconds</code> bounds realization, prerequisites and verification together. Interrupted or indeterminate outcomes are not recorded as success.</p>
-<p>Use typed <code>packageCommand</code>, <code>lit</code> and explicit <code>env</code>/<code>argv</code> values for commands. A <code>runBash</code> body requires a declared package-command interpreter; it does not discover ambient Bash. Host executable commands are explicit trusted host execution, not sealed package-closure proof. Consult the <a href="https://github.com/gripsack-dev/gripsack/blob/9171566023ad1dc9a5ad3cd5279def3cb27e365c/typescript/README.md">SDK command reference</a> for shell bodies and task postconditions.</p>
+<p>Use typed <code>packageCommand</code>, <code>lit</code> and explicit <code>env</code>/<code>argv</code> values for commands. A <code>runBash</code> body requires a declared package-command interpreter; it does not discover ambient Bash. Host executable commands are explicit trusted host execution, not sealed package-closure proof. Consult the <a href="https://github.com/gripsack-dev/gripsack/blob/b7f81d0b9bafa65aa6717b68b3b717e6a3bd7911/typescript/README.md">SDK command reference</a> for shell bodies and task postconditions.</p>
 <h2 id="literal-bash-bodies">Literal Bash bodies</h2>
 <p>Create this complete <code>gripsack.ts</code> in a separate example directory:</p>
 <!-- example: examples/workspaces/11-bash-task/gripsack.ts -->
@@ -172,6 +184,32 @@ export default defineWorkspace(() =&gt; workspace({ outputs: [syntax, dotfiles] 
 <p>Profile hooks are explicit lifecycle actions. They can have external effects, and an ambiguous interrupted delivery can run again with the same identity: write idempotent hooks and retain recovery data. See <a href="../docs/safety.html">safety</a>.</p>
 <h2 id="scheduling-boundary">Scheduling boundary</h2>
 <p><a href="../docs/schedules.html">Scheduled tasks</a> register only through explicit profile application with a supported user service manager. <code>grip check</code> never activates a timer. Tasks with <code>services: ["postgres"]</code> require an already-healthy <a href="../docs/services.html">service</a>; task invocation does not implicitly run <code>grip up</code>.</p>
+<h2 id="typed-artifact-selectors">Typed artifact selectors</h2>
+<p>In core 0.55, package command exports and profile artifact origins expanded release tokens, but <code>artifact(output, selector)</code> in command arguments, env or cwd joined the selector literally. Core 0.56 makes these typed references consistent: each selector expands using the referenced package's frozen source version and the release asset platform spellings. This applies in task steps, check runs, hook runs, attached file-check commands and scheduled task commands, as well as environment-level <code>env</code>.</p>
+<p>For a package releasing a shared library named <code>libflyline.so.&lt;version&gt;</code>, this focused check declaration tests the concrete filename. It is a fragment, not a complete workspace: import <code>artifact</code>, <code>check</code>, <code>exec</code> and <code>lit</code>, declare a release-backed package named <code>flyline</code> with <code>commands: {}</code> whose selected payload root contains that library, and register the check alongside it in <code>workspace.outputs</code>. A paired profile file consumer can use <code>artifactFile("flyline", "libflyline.so.{version.bare}")</code> with the same selector. <code>/usr/bin/test</code> is an explicit trusted host executable prerequisite.</p>
+<pre><code class="language-typescript">const flylineSoPresent = check(&quot;flylineSoPresent&quot;, {
+  subject: &quot;flyline&quot;,
+  run: exec({
+    argv: [
+      lit(&quot;/usr/bin/test&quot;),
+      lit(&quot;-f&quot;),
+      artifact(&quot;flyline&quot;, &quot;libflyline.so.{version.bare}&quot;),
+    ],
+  }),
+});
+</code></pre>
+<p>Use this package-subject check as a task postcondition with
+<code>checks: ["flylineSoPresent"]</code>, then run that task. Registering a check in
+<code>workspace.outputs</code> alone does not execute it; <code>grip check</code> validates declarations
+rather than running check commands.</p>
+<p>For a locked tag <code>v1.2.3</code>, the selector is exactly <code>libflyline.so.1.2.3</code>. <code>{version}</code> would retain <code>v1.2.3</code>; <code>{version.bare}</code> removes exactly one lowercase <code>v</code>, not an uppercase <code>V</code> or every leading <code>v</code>. There is no alternate raw/bare filename search. A later lock-only update moves this selector with <code>flyline</code>, not with the check's environment or another package. This checks file existence, not whether a dynamic loader can load the library.</p>
+<p>Because this check's subject is the package <code>flyline</code>, <code>sourcePath("libflyline.so.{version.bare}")</code> is an alternative to the explicit <code>artifact</code> reference (import <code>sourcePath</code> to use it). Package-subject <code>sourcePath</code> selectors in argv, env and cwd bind to the subject's own lock. An attached <strong>file</strong> check still allows only <code>sourcePath(".")</code>; a file has no child namespace.</p>
+<p>The same typed <code>artifact</code> value can be used in <code>exec</code>'s <code>env: { LIBRARY: artifact("flyline", "libflyline.so.{version.bare}") }</code>. A <code>cwd: artifact("tool", "tool-{version.bare}")</code> selects a directory from <code>tool</code> using <strong>tool's</strong> locked version. Environment-level <code>env</code> uses this same binding policy. <code>artifact("flyline", ".")</code> selects the whole artifact; selectors are relative to the selected payload root, after any <code>archiveRoot</code> selection.</p>
+<p>Literal argv/env/cwd values and Bash bodies remain literal. For example, <code>lit("libflyline.so.{version.bare}")</code> stays that exact string; it is not equivalent to a typed <code>artifact</code> reference inside argv. Shell bodies gain no JavaScript or release-token interpolation. Host/repository paths, input names and writable staging selectors remain literal too.</p>
+<p>Missing required versions, unknown tokens and unsafe expanded relative paths fail with declaration provenance. Expansion precedes filesystem selection, which checks canonical containment even for cwd. Text plans and JSON <code>resolved_paths</code> show concrete typed selectors from admitted lock evidence without fetching payloads or asserting existence. Retained hooks, launchers and portable bindings use concrete selectors; historical portable literal selectors are not reinterpreted against a future lock.</p>
+<p>Scheduled jobs resolve these selectors before capturing the task. Replay uses
+the recorded concrete paths without consulting today's lock. Older snapshots
+keep their literal selector meaning, including filenames containing braces.</p>
 </article>
 <footer>
   <span>© 2026 <a href="https://github.com/tknawara">Tarek Nawara</a></span>
@@ -179,7 +217,7 @@ export default defineWorkspace(() =&gt; workspace({ outputs: [syntax, dotfiles] 
   <a href="https://github.com/gripsack-dev">gripsack-dev</a>
   <a href="https://github.com/gripsack-dev/gripsack">source</a>
   <a href="../index.html">home</a>
-  <span class="fversion">v0.55.0</span>
+  <span class="fversion">v0.56.0</span>
 </footer>
 </main>
 </div>

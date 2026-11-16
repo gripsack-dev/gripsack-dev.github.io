@@ -61,6 +61,7 @@
   </details>
   <span class="rail-head">on this page</span>
   <div class="rail-toc">
+    <a href="#0560-typed-artifact-selectors-and-live-task-output">0.56.0 — Typed artifact selectors and live task output</a>
     <a href="#0550-locked-release-payload-paths">0.55.0 — Locked-release payload paths</a>
     <a href="#0540-the-whole-apply-proved">0.54.0 — The whole apply, proved</a>
     <a href="#0530-proved-ownership-and-rollback">0.53.0 — Proved ownership and rollback</a>
@@ -75,12 +76,22 @@
 <p class="doc-eyebrow">Gripsack / documentation</p>
 <article class="md">
 <h1 id="whats-new">What's new</h1>
-<p>User-visible changes per release. The <a href="https://github.com/gripsack-dev/gripsack/blob/9171566023ad1dc9a5ad3cd5279def3cb27e365c/CHANGELOG.md">full changelog</a> and <a href="https://github.com/gripsack-dev/gripsack/releases">release downloads</a> live with the source. This site documents core <strong>0.55.0</strong>.</p>
+<p>User-visible changes per release. The <a href="https://github.com/gripsack-dev/gripsack/blob/b7f81d0b9bafa65aa6717b68b3b717e6a3bd7911/CHANGELOG.md">full changelog</a> and <a href="https://github.com/gripsack-dev/gripsack/releases">release downloads</a> live with the source. This site documents core <strong>0.56.0</strong>.</p>
+<h2 id="0560-typed-artifact-selectors-and-live-task-output">0.56.0 — Typed artifact selectors and live task output</h2>
+<ul>
+<li>Typed <code>artifact(output, selector)</code> references now expand locked version and platform tokens in exec arguments, command env/cwd and environment env, consistently across tasks, checks, hooks and scheduled commands. Package-subject <code>sourcePath</code> selectors use the subject's locked version.</li>
+<li>Every reference uses its own package's frozen source, with exact raw-tag or one-lowercase-<code>v</code> bare spelling. Literal arguments, environment values, working-directory paths and scripts remain literal.</li>
+<li>Plans include these selectors in text and JSON <code>resolved_paths</code>, without fetching or promising existence. Missing versions, unknown tokens and unsafe expanded paths fail with declaration provenance; canonical containment applies to cwd too.</li>
+<li>Retained hooks, launchers and portable bindings keep concrete selectors, and historical literal portable selectors are not reinterpreted. Attached file checks still allow only <code>sourcePath(".")</code>.</li>
+<li>Task runs label dependency steps and postcondition checks as they start and finish, and flush stdout chunks immediately, including partial lines. Stdout remains unchanged for pipelines; progress uses stderr. Child stderr remains bounded per-process capture, with separation before status lines.</li>
+<li>Apply's live progress and separate check/hook blocks were already present in 0.54; verification output is captured per check/hook, not buffered across the whole apply.</li>
+</ul>
 <h2 id="0550-locked-release-payload-paths">0.55.0 — Locked-release payload paths</h2>
 <ul>
 <li>Package command values, <code>artifactFile</code> selectors and <code>artifactTree</code> include/exclude segment prefixes accept the same version and platform tokens as GitHub release assets.</li>
 <li>Payload paths bind to the referenced package's resolved/locked source; lock-only updates can move commands and file/tree consumers without editing declarations. Raw tags are preserved, and <code>{version.bare}</code> strips exactly one leading lowercase <code>v</code>.</li>
 <li>Plans show expanded paths before package or artifact realization without fetching payloads; JSON plans include <code>resolved_paths</code>. Missing required versions, unsupported tokens and unsafe expanded relative paths fail with declaration provenance.</li>
+<li>Command/environment <code>artifact</code> selectors and package-check <code>sourcePath</code> selectors did not expand in this release; that gap is addressed in 0.56.0.</li>
 </ul>
 <h2 id="0540-the-whole-apply-proved">0.54.0 — The whole apply, proved</h2>
 <ul>
@@ -131,7 +142,7 @@
   <a href="https://github.com/gripsack-dev">gripsack-dev</a>
   <a href="https://github.com/gripsack-dev/gripsack">source</a>
   <a href="../index.html">home</a>
-  <span class="fversion">v0.55.0</span>
+  <span class="fversion">v0.56.0</span>
 </footer>
 </main>
 </div>
