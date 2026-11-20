@@ -2,6 +2,10 @@
 
 User-visible changes per release. The [full changelog](https://github.com/gripsack-dev/gripsack/blob/{release_source}/CHANGELOG.md) and [release downloads](https://github.com/gripsack-dev/gripsack/releases) live with the source. This site documents core **{core_version}**.
 
+## 0.56.1 — Safer adoption cleanup
+
+`grip adopt` distinguishes the files it created from the existing workspace it edited. After an interrupted copy, the cleanup list includes any partially written payload file, not files it never reached. See [guided adoption](adopting.md#guided-adoption) for how to abandon before applying.
+
 ## 0.56.0 — Typed artifact selectors and live task output
 
 - Typed `artifact(output, selector)` references now expand locked version and platform tokens in exec arguments, command env/cwd and environment env, consistently across tasks, checks, hooks and scheduled commands. Package-subject `sourcePath` selectors use the subject's locked version.
