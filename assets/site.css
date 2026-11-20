@@ -322,12 +322,12 @@ figure.anim { margin: 28px 0; padding: 14px 12px 8px; border: 1px solid var(--bo
 figure.anim svg { display: block; width: 100%; height: auto; min-width: 600px; font-family: var(--mono); }
 figure.anim figcaption { font-size: 13px; color: var(--dim); margin: 10px 4px 0; }
 .home figure.anim { margin: 8px 0 0; }
-.a-rail, .a-path { stroke: var(--border-strong); stroke-width: 2; stroke-dasharray: 4 5; fill: none; }
+.a-rail { stroke: var(--border-strong); stroke-width: 2; stroke-dasharray: 4 5; fill: none; }
 .a-link, .a-arrow { stroke: var(--border-strong); stroke-width: 1.5; }
 .a-box { fill: var(--deep); stroke: var(--border-strong); stroke-width: 1.5; }
 .a-box.a-key, .a-box.a-proved { stroke: var(--ink-mauve); stroke-width: 2; }
 .a-text { fill: var(--text); font-size: 12.5px; }
-.a-dim, .a-station .a-dim, .a-world .a-dim, .a-window .a-dim, .a-out .a-dim { fill: var(--dim); font-size: 10.5px; font-weight: 400; }
+.a-dim, .a-out .a-dim { fill: var(--dim); font-size: 10.5px; font-weight: 400; }
 .a-head { fill: var(--dim); font-size: 11px; text-transform: uppercase; letter-spacing: .06em; }
 .a-num { fill: var(--ink-blue); font-size: 11px; font-weight: 600; }
 .a-bar line { stroke: var(--ink-peach); stroke-width: 3; stroke-linecap: round; }
@@ -345,30 +345,34 @@ figure.anim figcaption { font-size: 13px; color: var(--dim); margin: 10px 4px 0;
 .a-ok, .a-done text { fill: var(--text); font-size: 13px; font-weight: 600; }
 .a-done text { font-size: 12px; }
 .a-band { fill: var(--deep); stroke: var(--border); stroke-dasharray: 4 4; }
-.a-ring { stroke-width: 1.5; }
-.a-ring.r4 { fill: color-mix(in srgb, var(--blue) 8%, var(--card)); stroke: var(--ink-blue); }
-.a-ring.r3 { fill: color-mix(in srgb, var(--green) 10%, var(--card)); stroke: var(--ink-green); }
-.a-ring.r2 { fill: color-mix(in srgb, var(--peach) 12%, var(--card)); stroke: var(--ink-peach); }
-.a-ring.r1 { fill: color-mix(in srgb, var(--red) 12%, var(--card)); stroke: var(--red); }
-.a-ring.r0 { fill: color-mix(in srgb, var(--mauve) 18%, var(--card)); stroke: var(--ink-mauve); stroke-width: 2; }
-.a-ring-label { fill: var(--text); font-size: 12px; font-weight: 600; }
-.a-tag { font-size: 10.5px; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; }
-.a-tag.proved { fill: var(--ink-mauve); }
-.a-tag.next { fill: var(--red); }
-.a-world path { fill: var(--deep); stroke: var(--border-strong); }
-.a-world text { fill: var(--text); font-size: 10.5px; font-weight: 600; }
-.a-station text { fill: var(--text); font-size: 11.5px; font-weight: 600; }
-.a-window path { fill: none; stroke: var(--red); stroke-width: 1.5; }
-.a-window text { fill: var(--red); font-size: 10.5px; font-weight: 600; }
+/* Nest the labels with their rings so text can wrap without scaling down. */
+.a-rings .rg-key, .a-rings .rg-heading { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 12px; }
+.a-rings .rg-key { justify-content: space-between; align-items: center; margin: 0 4px 10px; }
+.a-rings .rg-key strong { font-size: 16px; }
+.a-rings .rg-motion { display: none; gap: 6px; align-items: center; color: var(--dim); font-size: 13px; cursor: pointer; }
+.a-rings .rg-motion input { margin: 0; accent-color: var(--accent); }
+.a-rings .rg-layer { padding: 9px clamp(6px, 1.4vw, 16px); border: 1px solid color-mix(in srgb, var(--rg-tone) 65%, var(--border)); border-radius: 10px; background: color-mix(in srgb, var(--rg-tone) 6%, var(--card)); }
+.a-rings .rg-layer > .rg-layer { margin-top: 8px; }
+.a-rings .rg-product { --rg-tone: var(--ink-blue); }
+.a-rings .rg-edge { --rg-tone: var(--ink-green); }
+.a-rings .rg-host { --rg-tone: var(--ink-peach); --rg-delay: 3.4s; }
+.a-rings .rg-protocol { --rg-tone: var(--ink-mauve); --rg-delay: 1.7s; }
+.a-rings .rg-kernel { --rg-tone: var(--ink-mauve); --rg-delay: 0s; background: color-mix(in srgb, var(--mauve) 16%, var(--card)); }
+.a-rings .rg-heading strong { font: 650 15px/1.5 var(--mono); color: var(--rg-tone); }
+.a-rings .rg-heading span, .a-rings .rg-detail { font-size: 14px; line-height: 1.45; }
+.a-rings .rg-detail { margin-top: 4px; }
+.a-rings .rg-effect { display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 9px; font: 600 12px/1.5 var(--mono); color: var(--ink-peach); }
+figure.a-rings .rg-effect svg { width: 72px; min-width: 20px; height: 16px; }
+.a-rings .rg-effect path { fill: none; stroke: currentColor; stroke-width: 1.5; }
+.a-rings .rg-effect circle { fill: currentColor; opacity: 0; }
 @media (prefers-reduced-motion: no-preference) {
   .a-apply .a-step, .a-apply .a-bar, .a-crash .a-step, .a-crash .a-chip, .a-crash .a-out, .a-crash .a-done,
-  .a-own .a-row, .a-rings .a-station, .a-rings .a-window, .a-rings .a-world.fs { opacity: .3; animation-timing-function: linear; animation-iteration-count: infinite; }
+  .a-own .a-row { opacity: .3; animation-timing-function: linear; animation-iteration-count: infinite; }
   .a-crash .a-crash { opacity: 0; animation-timing-function: linear; animation-iteration-count: infinite; }
-  .a-apply .a-step, .a-apply .a-bar, .a-apply .a-token, .a-rings .a-station, .a-rings .a-window, .a-rings .a-world.fs, .a-rings .a-token, .a-rings .r0 { animation-duration: 12s; }
+  .a-apply .a-step, .a-apply .a-bar, .a-apply .a-token { animation-duration: 12s; }
   .a-crash .a-step, .a-crash .a-chip, .a-crash .a-out, .a-crash .a-done, .a-crash .a-crash, .a-crash .a-token { animation-duration: 20s; }
   .a-own .a-row, .a-own .a-token { animation-duration: 16s; }
   .a-token { opacity: 1; animation-timing-function: linear; animation-iteration-count: infinite; }
-  .a-rings .r0 { animation-iteration-count: infinite; animation-timing-function: ease-in-out; }
   .a-apply .st1 { animation-name: ap-s1; }
   @keyframes ap-s1 { 0%, 4% { opacity: .3 } 5%, 89% { opacity: 1 } 93%, 100% { opacity: .3 } }
   .a-apply .st2 { animation-name: ap-s2; }
@@ -439,26 +443,19 @@ figure.anim figcaption { font-size: 13px; color: var(--dim); margin: 10px 4px 0;
   @keyframes ow-r4 { 0%, 74% { opacity: .3 } 75%, 97% { opacity: 1 } 100% { opacity: .3 } }
   .a-own .r4 .o-token { animation-name: ow-t4; }
   @keyframes ow-t4 { 0%, 74% { transform: translateX(0); opacity: 0 } 75% { transform: translateX(0); opacity: 1 } 93% { transform: translateX(200px); opacity: 1 } 96%, 100% { transform: translateX(200px); opacity: 0 } }
-  .a-rings .in-token { animation-name: rg-in; }
-  @keyframes rg-in { 0%, 2% { transform: translateX(0); opacity: 1 } 12%, 16% { transform: translateX(77px); opacity: 1 } 30% { transform: translateX(320px); opacity: 1 } 33%, 100% { transform: translateX(320px); opacity: 0 } }
-  .a-rings .out-token { animation-name: rg-out; }
-  @keyframes rg-out { 0%, 37% { transform: translateX(0); opacity: 0 } 38% { transform: translateX(0); opacity: 1 } 46% { transform: translateX(195px) } 52%, 62% { transform: translateX(242px); opacity: 1 } 68% { transform: translateX(300px); opacity: 1 } 70% { transform: translateX(320px); opacity: 1 } 73%, 100% { transform: translateX(320px); opacity: 0 } }
-  .a-rings .s-edge { animation-name: rg-s-edge; }
-  @keyframes rg-s-edge { 0%, 11% { opacity: .3 } 12%, 34% { opacity: 1 } 38%, 100% { opacity: .3 } }
-  .a-rings .s-kernel { animation-name: rg-s-kernel; }
-  @keyframes rg-s-kernel { 0%, 29% { opacity: .3 } 30%, 40% { opacity: 1 } 44%, 100% { opacity: .3 } }
-  .a-rings .s-cmd { animation-name: rg-s-cmd; }
-  @keyframes rg-s-cmd { 0%, 41% { opacity: .3 } 42%, 58% { opacity: 1 } 62%, 100% { opacity: .3 } }
-  .a-rings .s-check { animation-name: rg-s-check; }
-  @keyframes rg-s-check { 0%, 51% { opacity: .3 } 52%, 64% { opacity: 1 } 68%, 100% { opacity: .3 } }
-  .a-rings .a-window { animation-name: rg-a-window; }
-  @keyframes rg-a-window { 0%, 57% { opacity: .3 } 58%, 68% { opacity: 1 } 72%, 100% { opacity: .3 } }
-  .a-rings .s-act { animation-name: rg-s-act; }
-  @keyframes rg-s-act { 0%, 63% { opacity: .3 } 64%, 72% { opacity: 1 } 76%, 100% { opacity: .3 } }
-  .a-rings .a-world.fs { animation-name: rg-a-world-fs; }
-  @keyframes rg-a-world-fs { 0%, 67% { opacity: .3 } 68%, 84% { opacity: 1 } 88%, 100% { opacity: .3 } }
-  .a-rings .r0 { animation-name: rg-kernel; }
-  @keyframes rg-kernel { 0%, 29% { stroke-width: 2 } 31%, 37% { stroke-width: 5 } 41%, 100% { stroke-width: 2 } }
+  .a-rings .rg-motion { display: inline-flex; }
+  .a-rings:has(.rg-motion input:checked) :is(.rg-kernel, .rg-protocol, .rg-host) { animation: rg-command 8s ease-in-out var(--rg-delay) infinite; }
+  @keyframes rg-command {
+    0%, 26%, 100% { box-shadow: inset 0 0 0 0 var(--rg-tone); }
+    7%, 19% { box-shadow: inset 0 0 0 3px var(--rg-tone); }
+  }
+  .a-rings:has(.rg-motion input:checked) .rg-effect circle { animation: rg-write 8s linear infinite; }
+  @keyframes rg-write {
+    0%, 57% { transform: translateX(0); opacity: 0; }
+    60%, 66% { transform: translateX(0); opacity: 1; }
+    83%, 87% { transform: translateX(86px); opacity: 1; }
+    90%, 100% { transform: translateX(86px); opacity: 0; }
+  }
 }
 /* Landing: example tabs (radio-driven, keyboard operable, no autoplay). */
 .examples { position: relative; }

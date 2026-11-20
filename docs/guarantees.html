@@ -15,9 +15,9 @@
 <meta property="og:image:alt" content="gripsack — a traveler's satchel holding a config file and a terminal chip, beside the tagline 'Your environment, in one workspace.'">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
-<link rel="stylesheet" href="../assets/site.css?v=36390b66">
-<script src="../assets/syntax.js?v=36390b66" data-manual defer></script>
-<script src="../assets/site.js?v=36390b66" defer></script>
+<link rel="stylesheet" href="../assets/site.css?v=90643a3e">
+<script src="../assets/syntax.js?v=90643a3e" data-manual defer></script>
+<script src="../assets/site.js?v=90643a3e" defer></script>
 </head>
 <body class="docs">
 <a class="skip-link" href="#main">Skip to content</a>
@@ -62,8 +62,8 @@
   <span class="rail-head">on this page</span>
   <div class="rail-toc">
     <a href="#the-idea-rings">The idea: rings</a>
-    <a href="#what-is-proved-today-054">What is proved today (0.54)</a>
-    <a href="#what-is-tested-but-not-yet-proved">What is tested but not yet proved</a>
+    <a href="#what-is-proved-in-core-0561">What is proved in core 0.56.1</a>
+    <a href="#what-is-tested-not-proved">What is tested, not proved</a>
     <a href="#what-is-assumed">What is assumed</a>
     <a href="#what-is-not-claimed">What is not claimed</a>
     <a href="#why-proofs-instead-of-more-tests">Why proofs instead of more tests</a>
@@ -77,38 +77,38 @@
 <h1 id="how-gripsack-stays-safe">How gripsack stays safe</h1>
 <p>Gripsack changes files you care about. This page says exactly what protects them: what is proved, what is tested, what is assumed and what is not claimed. If a sentence here is not true of the released code, it is a bug.</p>
 <h2 id="the-idea-rings">The idea: rings</h2>
-<p>The code is arranged in rings. The center holds pure decisions over typed data with no IO at all. Each ring outward holds less trusted code and is checked in a cheaper way, and it trusts only the rings inside it. Code moves <em>inward</em> to gain a guarantee; nothing is modelled on the outside.</p>
-<figure class="anim a-rings" role="img" aria-label="Five nested rings: Product, Edge, Host, Protocol and Kernel. Untrusted input such as an archive, a gripsack.ts or a lockfile enters the Edge ring, where it is hash-checked and turned into typed values; those flow inward to the Kernel, whose pure decisions about commit, garbage collection and journal publication are proved in Lean since 0.52. The decision leaves as a command that carries what the kernel expects to find; the Protocol ring (proofs next) orders it, the Host ring re-checks that the live file still matches the expectation and only then acts on the filesystem. The small window between that re-check and the act is where another process could still write; gripsack detects such writes but cannot exclude them.">
-<svg viewBox="0 0 780 440" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-  <rect class="a-ring r4" x="80" y="60" width="620" height="360" rx="22"/>
-  <text class="a-ring-label" x="390" y="80" text-anchor="middle">Product — CLI · review · adopt · doctor</text>
-  <rect class="a-ring r3" x="125" y="95" width="530" height="290" rx="20"/>
-  <text class="a-ring-label" x="390" y="115" text-anchor="middle">Edge — evaluation · downloads · archives · Docker · systemd</text>
-  <rect class="a-ring r2" x="170" y="130" width="440" height="220" rx="18"/>
-  <text class="a-ring-label" x="390" y="150" text-anchor="middle">Host — driver · filesystem · locks · assumptions listed</text>
-  <rect class="a-ring r1" x="215" y="165" width="350" height="150" rx="16"/>
-  <text class="a-ring-label" x="390" y="185" text-anchor="middle">Protocol — apply · rollback · recover · gc <tspan class="a-tag next">· proofs next</tspan></text>
-  <rect class="a-ring r0" x="260" y="200" width="260" height="80" rx="14"/>
-  <text class="a-ring-label" x="390" y="220" text-anchor="middle">Kernel — pure decisions</text>
-  <text class="a-tag proved" x="390" y="238" text-anchor="middle">proved in Lean · 0.52</text>
-  <text class="a-dim" x="390" y="254" text-anchor="middle">commit · GC · journal publication</text>
-  <g class="a-station s-kernel"><text x="390" y="272" text-anchor="middle">decide</text></g>
-
-  <g class="a-world"><path d="M2 228 h70 v24 h-70 z"/><text x="37" y="243" text-anchor="middle">untrusted</text><text class="a-dim" x="37" y="268" text-anchor="middle">input</text></g>
-  <g class="a-world fs"><path d="M706 228 h70 v24 h-70 z"/><text x="741" y="243" text-anchor="middle">filesystem</text><text class="a-dim" x="741" y="268" text-anchor="middle">S1–S7 assumed</text></g>
-
-  <line class="a-path" x1="70" y1="240" x2="260" y2="240"/>
-  <line class="a-path" x1="520" y1="240" x2="710" y2="240"/>
-  <circle class="a-token in-token" cx="70" cy="240" r="6"/>
-  <circle class="a-token out-token" cx="390" cy="240" r="6"/>
-
-  <g class="a-station s-cmd"><text x="390" y="303" text-anchor="middle">command + expect · what must still be live</text></g>
-  <g class="a-station s-check"><text x="310" y="338" text-anchor="middle">re-check: live = expect?</text></g>
-  <g class="a-station s-act"><text x="452" y="338" text-anchor="middle">→ act</text></g>
-  <g class="a-window"><path d="M404 327 v-6 h22 v6"/><text x="490" y="338" text-anchor="start">← S5 window</text><text class="a-dim" x="390" y="406" text-anchor="middle">S5: between re-check and act, another process's write is only detected, never excluded</text></g>
-  <g class="a-station s-edge"><text x="390" y="373" text-anchor="middle">hash ✓ · typed values admitted · everything else refused</text></g>
-</svg>
-<figcaption>Untrusted bytes are admitted at the edge, the kernel decides, and the decision travels back out as a command that says what it expects to find. Purple is proved; red is next.</figcaption>
+<p>The rings separate decisions from effects. The kernel sees typed observations, not files: it can decide whether the observed object may be replaced. It cannot establish that the host read the right object, that a sync reached disk, or that another process stayed out of the way.</p>
+<figure class="anim a-rings">
+  <div class="rg-key">
+    <strong>Five trust rings</strong>
+    <label class="rg-motion"><input type="checkbox" checked> Animate a destination write</label>
+  </div>
+  <div class="rg-layer rg-product" role="img" aria-label="Five nested trust rings, outside to inside. Ring 4 is the user-facing CLI, tested end to end. Ring 3 admits typed values and verified bytes from untrusted inputs. Ring 2 is the fault-tested host: it performs real I/O under registered assumptions S1–S7. Inside it, ring 1 has Lean-proved state transitions for apply, rollback, recovery, garbage collection, journal ordering, activation and lock publication. Ring 0 has Lean-proved pure decisions about ownership, drift, commit classification and managed-block edits. For a destination write, the decision flows out through a protocol command to the host, which compares the live file before mutating it.">
+    <div class="rg-heading"><strong>4 · Product</strong><span>CLI, review and doctor · end-to-end tested</span></div>
+    <div class="rg-layer rg-edge">
+      <div class="rg-heading"><strong>3 · Edge</strong><span>Checks untrusted config, archives and lockfiles</span></div>
+      <div class="rg-layer rg-host">
+        <div class="rg-heading"><strong>2 · Host</strong><span>Fault-tested I/O · registered assumptions S1–S7</span></div>
+        <div class="rg-layer rg-protocol">
+          <div class="rg-heading"><strong>1 · Protocol</strong><span>Lean-proved machine steps</span></div>
+          <div class="rg-detail">Apply, rollback, recovery, garbage collection, journal ordering, activation and lock publication: each machine takes observations and issues commands without doing I/O.</div>
+          <div class="rg-layer rg-kernel">
+            <div class="rg-heading"><strong>0 · Kernel</strong><span>Lean-proved pure decisions</span></div>
+            <div class="rg-detail">Who owns these bytes? Did the commit land? Which bytes may a managed-block edit change?</div>
+          </div>
+        </div>
+        <div class="rg-effect">
+          <span>Last compare</span>
+          <svg viewBox="0 0 96 16" aria-hidden="true">
+            <path d="M4 8H91m-6-5 6 5-6 5"/>
+            <circle cx="4" cy="8" r="4"/>
+          </svg>
+          <span>Mutation</span>
+        </div>
+      </div>
+    </div>
+  </div>
+  <figcaption>The proofs cover decisions and machine steps, not every possible crash and recovery. For a destination write, the host checks that the live file matches what the command expects. A mismatch stops the write. Another writer’s edit between the last comparison and the mutation can still be overwritten (S5).</figcaption>
 </figure>
 
 <table>
@@ -122,18 +122,18 @@
 <tbody>
 <tr>
 <td><strong>Kernel</strong></td>
-<td>Pure decisions: which generation is committed, what may be written or deleted, in what order a journal record becomes durable, when a lock may be published</td>
-<td><strong>Proved in Lean 4</strong> over a translation of the shipped Rust</td>
+<td>Decide which generation committed, what may be written or deleted, and whether an update may publish a lock</td>
+<td>Lean 4 proofs over a translation of the shipped Rust</td>
 </tr>
 <tr>
 <td><strong>Protocol</strong></td>
-<td>Apply, rollback, recover and GC as state machines that observe, decide and issue one command at a time</td>
-<td>Apply, rollback, recover, GC, the journal run and activation: each decision proved in Lean; crash safety end to end crash-injection tested over an in-memory filesystem</td>
+<td>Kernel machines issue commands for apply, rollback, recovery, GC, journaling and activation</td>
+<td>Machine decisions and ordering are proved; composition with storage is crash-injection tested, not proved</td>
 </tr>
 <tr>
 <td><strong>Host</strong></td>
-<td>The driver loop, filesystem access, store layout, locks</td>
-<td>Small enough to read; every assumption listed; fault injection and crash tests</td>
+<td>Drivers observe destinations, issue filesystem calls, supervise processes and read store records</td>
+<td>Persistence and fault-injection tests under explicit filesystem assumptions</td>
 </tr>
 <tr>
 <td><strong>Edge</strong></td>
@@ -147,48 +147,48 @@
 </tr>
 </tbody>
 </table>
-<h2 id="what-is-proved-today-054">What is proved today (0.54)</h2>
-<p>The kernel is a dependency-free Rust crate, <code>gripsack-kernel</code>. The <code>proofs</code> release gate translates it to Lean 4 with <a href="https://github.com/AeneasVerif/aeneas">Charon and Aeneas</a> and proves 579 theorems over that translation. There is no hand-written Lean copy of the Rust: the proofs are about the bytes that ship. The gate also checks that every theorem uses only Lean's three standard axioms (<code>propext</code>, <code>Classical.choice</code>, <code>Quot.sound</code>) and that each of 113 deliberately broken variants of the Rust fails exactly the theorem that should catch it.</p>
-<p><strong>Commit classification.</strong> After an interruption, the next command looks at three generation identities: <code>current</code>, the recorded <code>previous</code> and the recorded <code>target</code> of the interrupted transaction.</p>
+<h2 id="what-is-proved-in-core-0561">What is proved in core 0.56.1</h2>
+<p>The <code>proofs</code> release gate uses <a href="https://github.com/AeneasVerif/aeneas">Charon and Aeneas</a> to translate the dependency-free Rust crate <code>gripsack-kernel</code> to Lean 4. It rejects drift from the checked-in translation, builds the proofs, and <a href="https://github.com/gripsack-dev/gripsack/blob/1980d2c94877c841eac07a888517cba24057dbd8/proofs/Audit.lean">audits the kernel theorems</a> for axioms beyond <code>propext</code>, <code>Classical.choice</code> and <code>Quot.sound</code>. Deliberately broken variants of the Rust must fail their designated proofs. The gate covers the kernel's decisions, not the compiled binary or its host drivers.</p>
+<p><strong>Commit classification.</strong> After an interruption, recovery compares three selection identities: <code>current</code>, the recorded <code>previous</code> and the recorded <code>target</code> of the interrupted transaction.</p>
 <ul>
 <li><em>Committed</em> if and only if <code>current</code> equals <code>target</code>.</li>
 <li><em>Uncommitted</em> if and only if the run was fresh with no <code>current</code>, or <code>current</code> equals <code>previous</code> and not <code>target</code>.</li>
 <li><em>Ambiguous</em> otherwise, which stops every further mutation until you look.</li>
 </ul>
 <p>A higher generation number never grants commit authority; only identity does. Each transaction carries a 32-byte identifier compared byte for byte.</p>
-<p><strong>Garbage collection.</strong> <code>grip gc</code> may proceed only when no recovery is pending and <code>current</code> names a generation in the inventory. Pruning selects exactly the oldest generations beyond your <code>keep_generations</code>, in order, never the current one and never anything newer than the cut. Every deletion GC makes is decided by the kernel: a store path is removed only if no retained generation references it, the retained set is closed under references, and the current generation is never retired.</p>
-<p><strong>Journal publication.</strong> A journal record becomes durable through exactly one order: stage, sync the file, publish the name, sync the directory. Every destination write in a run happens only after its intent is durable, a write is accepted only when what landed is what was intended, and the run marker is removed only after the record barrier.</p>
+<p><strong>Garbage collection.</strong> GC refuses if recovery or activation is pending, or if <code>current</code> names a generation absent from the inventory. Pruning considers the oldest generations beyond <code>keep_generations</code>, never the current one. The kernel keeps predecessors required by retained manifests and authorizes deleting a store object only if no retained manifest or external root in the host's inventory names it.</p>
+<p><strong>Journal publication.</strong> The machine orders the publication of a record: stage, sync the file, publish the name, sync the directory. It commands a destination write only after the host acknowledges durable intent, accepts the write only if the host observes the intended object, and removes the run marker only after the record barrier.</p>
 <p><strong>Crash recovery.</strong> Recovery is a machine in the kernel that observes one destination at a time and issues one command at a time. It mutates only after the interrupted transaction is classified, never restores a destination it cannot restore exactly (it refuses by name instead), and removes the journal's run marker only after the record barrier.</p>
-<p><strong>Apply, ownership and drift.</strong> <code>grip apply</code> is a machine in the kernel. Over every run, a write lands only on absence, on exactly what gripsack last wrote there, or on an object you explicitly consented to take over with <code>--take-over</code>, and it installs exactly what the unit declares. A file you changed is never written; a file gripsack never recorded is refused. A destination is released only when no unit of the run still claims it, so changing only the case of a name on a case-insensitive filesystem no longer deletes the file. The switch to the new generation comes only after every unit and every directory step is settled, and a refusal stops the run before it.</p>
-<p><strong>Managed blocks.</strong> A managed block changes only the bytes between its markers: everything outside is preserved exactly, applying the same block twice changes nothing, and removing a block you did not edit restores the file as it was.</p>
-<p><strong>Activation.</strong> Hooks run in ledger order, and each hook re-checks that its generation is still current right before it starts, so a hook never runs for a generation you have already switched away from. Generation numbers are allocated above the durable high-water mark, and a generation is published once.</p>
+<p><strong>Apply, ownership and drift.</strong> The apply machine authorizes a whole-file write only over absence, what gripsack last wrote there, or an object you explicitly consented to take over. A destination is released only when no unit of the run still claims it. This matters on case-insensitive filesystems: a change in spelling alone must not delete the object under its new name. The machine authorizes the switch only after every unit supplied by the host and every directory step has settled; a refused step stops the run before the switch.</p>
+<p><strong>Managed blocks.</strong> Replacing a block preserves the bytes outside its markers. Inserting a new block preserves the existing text and adds a separating newline if needed. Applying the same block twice changes nothing; removal requires the block to be intact and keeps the surrounding bytes.</p>
+<p><strong>Activation.</strong> Before each hook, the machine requires a durable start record and an observation that its generation is still current. If a hook switches generations, the next hook in the superseded batch is not launched. This governs dispatch, not what a hook does. The kernel allocates generation numbers above the durable high-water mark and does not authorize publishing the same generation twice.</p>
 <p><strong>Updates.</strong> <code>grip update</code> writes a lock only when every selected package was checked, none failed and something changed; each package is counted exactly once.</p>
-<p><strong>Rollback.</strong> Every write a rollback makes installs exactly the identity the target generation recorded, from retained bytes only, never inside a published generation, and only over absence or gripsack's own write. A destination counts as restored only when the landed object is that identity. The switch happens only after every destination is settled, with a fresh transaction identifier, and a destination that cannot be restored aborts the rollback before the switch.</p>
-<p>These are kernel theorems from <a href="https://github.com/gripsack-dev/gripsack/blob/b7f81d0b9bafa65aa6717b68b3b717e6a3bd7911/plan/0056-verified-foundation.md">plan 0056</a>. The proof sources are in <a href="https://github.com/gripsack-dev/gripsack/tree/b7f81d0b9bafa65aa6717b68b3b717e6a3bd7911/proofs"><code>proofs/</code></a> and the kernel in <a href="https://github.com/gripsack-dev/gripsack/tree/b7f81d0b9bafa65aa6717b68b3b717e6a3bd7911/crates/gripsack-kernel"><code>crates/gripsack-kernel</code></a>.</p>
-<h2 id="what-is-tested-but-not-yet-proved">What is tested but not yet proved</h2>
-<p>Everything else on the <a href="../docs/safety.html">safety page</a> is enforced by code and checked by tests, fault injection and a TLA+ model, not by a proof:</p>
+<p><strong>Rollback.</strong> A whole-file restore must install the target generation's recorded identity (bytes and mode, or link target), from retained content, only over absence or gripsack's own write. The machine never commands a restore inside a published generation. It counts the unit as restored only when the host observes that identity, and switches under a fresh transaction only after every supplied unit is settled. If the host cannot reproduce the target identity for a required write, rollback refuses before the switch.</p>
+<p>The <a href="https://github.com/gripsack-dev/gripsack/blob/1980d2c94877c841eac07a888517cba24057dbd8/docs/rfcs/2026-11-08-verified-foundation.md">verified-foundation RFC</a> includes both implementation records and future goals. For what shipped, see the <a href="https://github.com/gripsack-dev/gripsack/tree/1980d2c94877c841eac07a888517cba24057dbd8/proofs">proof sources</a> and <a href="https://github.com/gripsack-dev/gripsack/tree/1980d2c94877c841eac07a888517cba24057dbd8/crates/gripsack-kernel">kernel</a>. The <a href="../docs/changelog.html">0.56 releases</a> changed typed path resolution, task output and adoption advice, not kernel transitions or proof premises.</p>
+<h2 id="what-is-tested-not-proved">What is tested, not proved</h2>
+<p>These guarantees depend on more than a decision over typed inputs:</p>
 <ul>
-<li><strong>Crash safety end to end.</strong> Every decision in apply, rollback and recovery is proved; that a crash at any point followed by recovery leaves every destination at its prior or intended identity is crash-injection tested at every step of a run over an in-memory filesystem, and is the next proof, under the storage model below.</li>
-<li><strong>Directory changes.</strong> When a directory changes shape, the kernel decides when each step runs and that nothing else writes inside it; the steps themselves are host code checked by a TLA+ model and end-to-end tests.</li>
+<li><strong>Crash safety end to end.</strong> Tests run kernel machines with a crash-injecting in-memory filesystem. For example, they interrupt a rollback, interrupt recovery again, then check that each destination has its prior or target identity after recovery. This tests the composition for the exercised runs; it is not a theorem about all crash histories or the real filesystem.</li>
+<li><strong>Directory changes.</strong> Apply and rollback keep whole-file writes out of destinations held by the directory protocol and reject steps out of order. The directory implementation itself is host code: TLA+ models and end-to-end tests check its contract (premise D below).</li>
 <li><strong>Source approval.</strong> Approval binds the exact captured source bundle and policy; evaluation runs in a Deno sandbox with no environment, network or subprocess access.</li>
 <li><strong>Content integrity.</strong> Downloads are hashed and verified before extraction; the store is sealed read-only and published by rename.</li>
 </ul>
-<p>Moving these inward is the roadmap: the crash-safety proofs over the storage model next, then the directory steps themselves.</p>
 <h2 id="what-is-assumed">What is assumed</h2>
-<p>The protocol proofs, when they land, rest on a written storage model. These assumptions are stated, fault-tested on an in-memory filesystem that injects crashes, and never proved:</p>
+<p>The pure machines act on the observations and acknowledgments they receive. Interpreting those as facts about a Linux machine relies on the following storage assumptions (S1–S7 in the design record):</p>
 <ul>
 <li><strong>S1</strong> <code>rename</code> within a directory is atomic and replaces the target; <code>RENAME_NOREPLACE</code> and exclusive <code>mkdir</code> fail if the name exists; <code>remove_dir_all</code> is a sequence of unlinks, not atomic.</li>
 <li><strong>S2</strong> File data is durable after <code>fsync(file)</code>; a name is durable after <code>fsync(parent)</code>.</li>
 <li><strong>S3</strong> Two crash kinds: a <em>kill</em> loses nothing already in the page cache, a <em>power loss</em> may lose any subset of non-durable operations consistent with completed barriers.</li>
 <li><strong>S4</strong> One lifecycle writer at a time, held by an advisory lock released when the holder dies.</li>
 <li><strong>S5</strong> External writers exist and are only <em>detected</em>, see below.</li>
-<li><strong>S6</strong> Two names are the same destination when the filesystem resolves them to the same object. Gripsack detects case-only aliases (as on WSL's <code>/mnt/c</code>); names a filesystem treats as equal only after Unicode normalization are not detected.</li>
+<li><strong>S6</strong> The host must identify equivalent destination names consistently. It detects case-only aliases that resolve to one object (as on WSL's <code>/mnt/c</code>); names a filesystem equates only after Unicode normalization are not detected.</li>
 <li><strong>S7</strong> Equal SHA-256 digests mean equal bytes.</li>
 </ul>
-<p>Also trusted, as every verified program trusts them: the Rust compiler, the Charon/Aeneas translation, Lean 4 and its kernel, and the Linux kernel.</p>
+<p><strong>Directory premise D.</strong> A directory step changes only the namespace named by its receipt and journals before its first change. A “settled” result means the recorded shape is in place; an interrupted or refused change must be recoverable through its journal. The <a href="https://github.com/gripsack-dev/gripsack/blob/1980d2c94877c841eac07a888517cba24057dbd8/crates/gripsack-kernel/src/directory.rs">directory fence</a> relies on this host contract; the Lean proof does not establish it.</p>
+<p>The proof chain also trusts the Charon/Aeneas translation and Lean's kernel. Running the resulting program adds the Rust compiler, the Linux kernel and the host hardware to that trust boundary.</p>
 <h2 id="what-is-not-claimed">What is not claimed</h2>
 <ul>
-<li><strong>The external-writer window.</strong> Between the moment gripsack re-checks a destination and the moment it acts, another process can change it. Every external write gripsack <em>sees</em> is preserved; a write inside that window is not. This is a named residual risk, not a solved problem.</li>
+<li><strong>The external-writer window.</strong> Without explicit take-over, the ownership check protects a changed object it observes. Another process can still change that object between the driver's final re-check and its rename or unlink. That edit can be lost.</li>
 <li><strong>Effects outside managed files.</strong> Hooks, tasks, services and anything a package's own program does are not transactions. Rollback restores files and launchers; it does not undo a database migration or a command you scheduled.</li>
 <li><strong>Liveness.</strong> The proofs say what a recovery <em>may</em> leave behind, not that it always completes.</li>
 <li><strong>The world.</strong> Docker Engine, systemd, Deno, Conda channels, registries, the OS and the hardware are outside every proof.</li>
@@ -203,7 +203,7 @@
   <a href="https://github.com/gripsack-dev">gripsack-dev</a>
   <a href="https://github.com/gripsack-dev/gripsack">source</a>
   <a href="../index.html">home</a>
-  <span class="fversion">v0.56.0</span>
+  <span class="fversion">v0.56.1</span>
 </footer>
 </main>
 </div>

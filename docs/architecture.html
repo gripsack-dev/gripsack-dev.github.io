@@ -15,9 +15,9 @@
 <meta property="og:image:alt" content="gripsack — a traveler's satchel holding a config file and a terminal chip, beside the tagline 'Your environment, in one workspace.'">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
-<link rel="stylesheet" href="../assets/site.css?v=36390b66">
-<script src="../assets/syntax.js?v=36390b66" data-manual defer></script>
-<script src="../assets/site.js?v=36390b66" defer></script>
+<link rel="stylesheet" href="../assets/site.css?v=90643a3e">
+<script src="../assets/syntax.js?v=90643a3e" data-manual defer></script>
+<script src="../assets/site.js?v=90643a3e" defer></script>
 </head>
 <body class="docs">
 <a class="skip-link" href="#main">Skip to content</a>
@@ -82,7 +82,7 @@
 <li><strong>Approve.</strong> You review and approve the exact bundle and policy digests (<a href="../docs/safety.html#source-approval">source approval</a>).</li>
 <li><strong>Evaluate.</strong> A pinned, checksum-verified Deno runs the embedded frontend over the captured source with no environment, network or subprocess access. Host facts arrive as inputs; anything that needs to look at the machine is an explicit probe.</li>
 <li><strong>Admit.</strong> The Rust core validates the resulting IR: references, dependency graph, command contracts, provenance for every declaration.</li>
-<li><strong>Plan.</strong> The core compares the desired state with what is live and prints exactly what would change.</li>
+<li><strong>Plan.</strong> The core compares the desired state with what is live. For a <a href="../docs/tasks.html#typed-artifact-selectors">typed artifact selector</a>, it shows the concrete path from the referenced package's lock in text and JSON (<code>resolved_paths</code>). Planning doesn't fetch the payload or claim that the path exists inside it.</li>
 </ol>
 <p>The public authoring surface is <code>gripsack.ts</code> and <code>@gripsack/core</code>. The IR is an internal contract; you never write it by hand.</p>
 <h2 id="sources-packages-and-the-store">Sources, packages and the store</h2>
@@ -95,79 +95,79 @@
 <h2 id="services-tasks-and-schedules">Services, tasks and schedules</h2>
 <p><a href="../docs/services.html">Services</a> are digest-pinned containers driven through the Docker Engine API; gripsack owns only the containers and volumes it created and never runs a daemon. <a href="../docs/tasks.html">Tasks</a> are command graphs with prerequisites, locks and postconditions; <a href="../docs/schedules.html">schedules</a> register those tasks with the systemd user manager during profile application. <a href="../docs/sharing.html">Sharing</a> moves signed, passive package bundles between machines or through an OCI registry without evaluating anything on the receiving side.</p>
 <h2 id="the-rings">The rings</h2>
-<p>The code is arranged so that the decisions that matter most are smallest and best checked:</p>
-<figure class="anim a-rings" role="img" aria-label="Five nested rings: Product, Edge, Host, Protocol and Kernel. Untrusted input such as an archive, a gripsack.ts or a lockfile enters the Edge ring, where it is hash-checked and turned into typed values; those flow inward to the Kernel, whose pure decisions about commit, garbage collection and journal publication are proved in Lean since 0.52. The decision leaves as a command that carries what the kernel expects to find; the Protocol ring (proofs next) orders it, the Host ring re-checks that the live file still matches the expectation and only then acts on the filesystem. The small window between that re-check and the act is where another process could still write; gripsack detects such writes but cannot exclude them.">
-<svg viewBox="0 0 780 440" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-  <rect class="a-ring r4" x="80" y="60" width="620" height="360" rx="22"/>
-  <text class="a-ring-label" x="390" y="80" text-anchor="middle">Product — CLI · review · adopt · doctor</text>
-  <rect class="a-ring r3" x="125" y="95" width="530" height="290" rx="20"/>
-  <text class="a-ring-label" x="390" y="115" text-anchor="middle">Edge — evaluation · downloads · archives · Docker · systemd</text>
-  <rect class="a-ring r2" x="170" y="130" width="440" height="220" rx="18"/>
-  <text class="a-ring-label" x="390" y="150" text-anchor="middle">Host — driver · filesystem · locks · assumptions listed</text>
-  <rect class="a-ring r1" x="215" y="165" width="350" height="150" rx="16"/>
-  <text class="a-ring-label" x="390" y="185" text-anchor="middle">Protocol — apply · rollback · recover · gc <tspan class="a-tag next">· proofs next</tspan></text>
-  <rect class="a-ring r0" x="260" y="200" width="260" height="80" rx="14"/>
-  <text class="a-ring-label" x="390" y="220" text-anchor="middle">Kernel — pure decisions</text>
-  <text class="a-tag proved" x="390" y="238" text-anchor="middle">proved in Lean · 0.52</text>
-  <text class="a-dim" x="390" y="254" text-anchor="middle">commit · GC · journal publication</text>
-  <g class="a-station s-kernel"><text x="390" y="272" text-anchor="middle">decide</text></g>
-
-  <g class="a-world"><path d="M2 228 h70 v24 h-70 z"/><text x="37" y="243" text-anchor="middle">untrusted</text><text class="a-dim" x="37" y="268" text-anchor="middle">input</text></g>
-  <g class="a-world fs"><path d="M706 228 h70 v24 h-70 z"/><text x="741" y="243" text-anchor="middle">filesystem</text><text class="a-dim" x="741" y="268" text-anchor="middle">S1–S7 assumed</text></g>
-
-  <line class="a-path" x1="70" y1="240" x2="260" y2="240"/>
-  <line class="a-path" x1="520" y1="240" x2="710" y2="240"/>
-  <circle class="a-token in-token" cx="70" cy="240" r="6"/>
-  <circle class="a-token out-token" cx="390" cy="240" r="6"/>
-
-  <g class="a-station s-cmd"><text x="390" y="303" text-anchor="middle">command + expect · what must still be live</text></g>
-  <g class="a-station s-check"><text x="310" y="338" text-anchor="middle">re-check: live = expect?</text></g>
-  <g class="a-station s-act"><text x="452" y="338" text-anchor="middle">→ act</text></g>
-  <g class="a-window"><path d="M404 327 v-6 h22 v6"/><text x="490" y="338" text-anchor="start">← S5 window</text><text class="a-dim" x="390" y="406" text-anchor="middle">S5: between re-check and act, another process's write is only detected, never excluded</text></g>
-  <g class="a-station s-edge"><text x="390" y="373" text-anchor="middle">hash ✓ · typed values admitted · everything else refused</text></g>
-</svg>
-<figcaption>Untrusted bytes are admitted at the edge, the kernel decides, and the decision travels back out as a command that says what it expects to find. Purple is proved; red is next.</figcaption>
+<p>Follow a single write through the rings. The kernel compares what the last generation recorded with what the host observed and decides whether to allow the replacement. The journal machine orders the intent before the write. The host must actually sync the journal, re-check the destination and perform the rename.</p>
+<figure class="anim a-rings">
+  <div class="rg-key">
+    <strong>Five trust rings</strong>
+    <label class="rg-motion"><input type="checkbox" checked> Animate a destination write</label>
+  </div>
+  <div class="rg-layer rg-product" role="img" aria-label="Five nested trust rings, outside to inside. Ring 4 is the user-facing CLI, tested end to end. Ring 3 admits typed values and verified bytes from untrusted inputs. Ring 2 is the fault-tested host: it performs real I/O under registered assumptions S1–S7. Inside it, ring 1 has Lean-proved state transitions for apply, rollback, recovery, garbage collection, journal ordering, activation and lock publication. Ring 0 has Lean-proved pure decisions about ownership, drift, commit classification and managed-block edits. For a destination write, the decision flows out through a protocol command to the host, which compares the live file before mutating it.">
+    <div class="rg-heading"><strong>4 · Product</strong><span>CLI, review and doctor · end-to-end tested</span></div>
+    <div class="rg-layer rg-edge">
+      <div class="rg-heading"><strong>3 · Edge</strong><span>Checks untrusted config, archives and lockfiles</span></div>
+      <div class="rg-layer rg-host">
+        <div class="rg-heading"><strong>2 · Host</strong><span>Fault-tested I/O · registered assumptions S1–S7</span></div>
+        <div class="rg-layer rg-protocol">
+          <div class="rg-heading"><strong>1 · Protocol</strong><span>Lean-proved machine steps</span></div>
+          <div class="rg-detail">Apply, rollback, recovery, garbage collection, journal ordering, activation and lock publication: each machine takes observations and issues commands without doing I/O.</div>
+          <div class="rg-layer rg-kernel">
+            <div class="rg-heading"><strong>0 · Kernel</strong><span>Lean-proved pure decisions</span></div>
+            <div class="rg-detail">Who owns these bytes? Did the commit land? Which bytes may a managed-block edit change?</div>
+          </div>
+        </div>
+        <div class="rg-effect">
+          <span>Last compare</span>
+          <svg viewBox="0 0 96 16" aria-hidden="true">
+            <path d="M4 8H91m-6-5 6 5-6 5"/>
+            <circle cx="4" cy="8" r="4"/>
+          </svg>
+          <span>Mutation</span>
+        </div>
+      </div>
+    </div>
+  </div>
+  <figcaption>The proofs cover decisions and machine steps, not every possible crash and recovery. For a destination write, the host checks that the live file matches what the command expects. A mismatch stops the write. Another writer’s edit between the last comparison and the mutation can still be overwritten (S5).</figcaption>
 </figure>
 
 <table>
 <thead>
 <tr>
 <th>Ring</th>
-<th>Crates</th>
-<th>Checked by</th>
+<th>Responsibility in the release</th>
+<th>Evidence</th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td>Kernel</td>
-<td><code>gripsack-kernel</code></td>
-<td>Lean 4 proofs over the shipped Rust</td>
+<td><code>gripsack-kernel</code>: pure decisions about identity, ownership, retention and lock publication</td>
+<td>Lean 4 theorems over a translation of the Rust</td>
 </tr>
 <tr>
 <td>Protocol</td>
-<td>transaction machines in <code>gripsack-store</code>, <code>gripsack-exec</code></td>
-<td>crash-injection tests, TLA+ model; Lean proofs next</td>
+<td>Apply, rollback, recovery, GC, journal and activation machines also live in the kernel; drivers supply observations and execute commands</td>
+<td>Lean theorems about machine decisions and ordering; crash-injection tests of machines running together</td>
 </tr>
 <tr>
 <td>Host</td>
-<td><code>gripsack-fs</code>, <code>gripsack-process</code>, store layout</td>
-<td>small, every assumption listed, fault injection</td>
+<td><code>gripsack-host</code>: filesystem and process operations, locks, store formats, journal and recovery drivers; <code>gripsack-exec</code> wires operations into the product</td>
+<td>Fault injection, persistence tests and integration tests; filesystem behavior is assumed, not proved</td>
 </tr>
 <tr>
 <td>Edge</td>
-<td><code>gripsack-ir</code>, <code>gripsack-fetch</code>, <code>gripsack-conda</code>, services, schedules</td>
-<td>sandbox, typed admission, hash-verified bytes, fuzzing</td>
+<td>Workspace evaluation and IR admission, fetchers, Conda, Docker and systemd</td>
+<td>Sandboxing, typed validation, digest checks and tests of the adapters</td>
 </tr>
 <tr>
 <td>Product</td>
-<td><code>gripsack</code> (the CLI)</td>
-<td>end-to-end flows</td>
+<td><code>grip</code>: plan, apply, review and the other commands you run</td>
+<td>End-to-end CLI flows and release-checked example workspaces</td>
 </tr>
 </tbody>
 </table>
 <p><a href="../docs/guarantees.html">How gripsack stays safe</a> spells out what each ring guarantees and what it does not.</p>
 <h2 id="where-the-implementation-lives">Where the implementation lives</h2>
-<p>The <a href="https://github.com/gripsack-dev/gripsack/tree/b7f81d0b9bafa65aa6717b68b3b717e6a3bd7911/crates">core crates</a>, the <a href="https://github.com/gripsack-dev/gripsack/tree/b7f81d0b9bafa65aa6717b68b3b717e6a3bd7911/typescript">TypeScript SDK</a>, the <a href="https://github.com/gripsack-dev/gripsack/tree/b7f81d0b9bafa65aa6717b68b3b717e6a3bd7911/proofs">proofs</a> and the <a href="https://github.com/gripsack-dev/gripsack/tree/b7f81d0b9bafa65aa6717b68b3b717e6a3bd7911/plan">design records</a> are all in one repository.</p>
+<p>The <a href="https://github.com/gripsack-dev/gripsack/tree/1980d2c94877c841eac07a888517cba24057dbd8/crates">core crates</a>, the <a href="https://github.com/gripsack-dev/gripsack/tree/1980d2c94877c841eac07a888517cba24057dbd8/typescript">TypeScript SDK</a>, the <a href="https://github.com/gripsack-dev/gripsack/tree/1980d2c94877c841eac07a888517cba24057dbd8/proofs">proofs</a> and the <a href="https://github.com/gripsack-dev/gripsack/tree/1980d2c94877c841eac07a888517cba24057dbd8/plan">design records</a> are all in one repository.</p>
 </article>
 <footer>
   <span>© 2026 <a href="https://github.com/tknawara">Tarek Nawara</a></span>
@@ -175,7 +175,7 @@
   <a href="https://github.com/gripsack-dev">gripsack-dev</a>
   <a href="https://github.com/gripsack-dev/gripsack">source</a>
   <a href="../index.html">home</a>
-  <span class="fversion">v0.56.0</span>
+  <span class="fversion">v0.56.1</span>
 </footer>
 </main>
 </div>

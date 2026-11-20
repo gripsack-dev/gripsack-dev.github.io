@@ -15,9 +15,9 @@
 <meta property="og:image:alt" content="gripsack — a traveler's satchel holding a config file and a terminal chip, beside the tagline 'Your environment, in one workspace.'">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
-<link rel="stylesheet" href="../assets/site.css?v=36390b66">
-<script src="../assets/syntax.js?v=36390b66" data-manual defer></script>
-<script src="../assets/site.js?v=36390b66" defer></script>
+<link rel="stylesheet" href="../assets/site.css?v=90643a3e">
+<script src="../assets/syntax.js?v=90643a3e" data-manual defer></script>
+<script src="../assets/site.js?v=90643a3e" defer></script>
 </head>
 <body class="docs">
 <a class="skip-link" href="#main">Skip to content</a>
@@ -157,6 +157,7 @@ grip apply dotfiles --take-over
 <pre><code class="language-sh">grip trust add .
 grip adopt ~/.config/editor --name editor --resume
 </code></pre>
+<p>To abandon before resuming, remove only the generated paths listed by the attempt. Keep <code>gripsack.ts</code>. Since 0.56.1, if adoption edited the workspace, it names the import and the entry in <code>outputs</code> to remove. If it prints a manual-integration snippet instead, it did not edit the workspace.</p>
 <p>Resume uses the approved profile; do not pass <code>--mode</code> again. <code>--yes</code> skips apply confirmation, not source approval. The interview modes are <code>tracked_copy</code> for mutable real files, <code>owned</code> for store-owned links, and <code>merge</code> for managed text blocks. Keep backups and inspect the plan regardless of which route you choose.</p>
 <h2 id="drift-and-retained-generations">Drift and retained generations</h2>
 <p>A tracked copy is user-owned mutable content. If the application changes it, ordinary apply and rollback preserve the drift rather than silently overwrite it. To make that change your new desired state, deliberately copy it back into the repository, review and approve the new captured source, then apply again. <code>grip update</code> refreshes external source pins; it does not capture live destination content.</p>
@@ -183,7 +184,7 @@ grip rollback
   <a href="https://github.com/gripsack-dev">gripsack-dev</a>
   <a href="https://github.com/gripsack-dev/gripsack">source</a>
   <a href="../index.html">home</a>
-  <span class="fversion">v0.56.0</span>
+  <span class="fversion">v0.56.1</span>
 </footer>
 </main>
 </div>

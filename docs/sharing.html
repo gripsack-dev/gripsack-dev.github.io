@@ -15,9 +15,9 @@
 <meta property="og:image:alt" content="gripsack — a traveler's satchel holding a config file and a terminal chip, beside the tagline 'Your environment, in one workspace.'">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
-<link rel="stylesheet" href="../assets/site.css?v=36390b66">
-<script src="../assets/syntax.js?v=36390b66" data-manual defer></script>
-<script src="../assets/site.js?v=36390b66" defer></script>
+<link rel="stylesheet" href="../assets/site.css?v=90643a3e">
+<script src="../assets/syntax.js?v=90643a3e" data-manual defer></script>
+<script src="../assets/site.js?v=90643a3e" defer></script>
 </head>
 <body class="docs">
 <a class="skip-link" href="#main">Skip to content</a>
@@ -163,7 +163,7 @@ grip package pull --digest &quot;$transport_digest&quot; \
 <p>Binary prefix replacement is limited by the placeholders in the original Conda archives. An excessively long final store prefix is rejected, not truncated or silently redirected. Use a shorter <code>GRIPSACK_HOME</code> when necessary; arbitrary prefix lengths are not a relocation guarantee.</p>
 <p>Supported explicitly hash-pinned wheels can accompany the Conda environment, including supported wheel records selected from an imported Pixi lock. The maintained UV installer runs offline inside the core-pinned helper; core validation binds installed bytes, generated console entrypoints and receipts to original wheels and the final prefix. This does not run pip, resolve missing Python dependencies, compile bytecode or execute package-provided installers. See <a href="../docs/environments.html#hash-pinned-python-wheels">wheel authoring and limits</a>.</p>
 <p>Unsupported Pixi build or resolution policies and unsupported wheel records are errors naming the record, never silently omitted packages. Run the real tool on the receiving host before relying on a reconstructed environment.</p>
-<p>The <a href="https://github.com/gripsack-dev/gripsack/blob/b7f81d0b9bafa65aa6717b68b3b717e6a3bd7911/docs/sharing-reference.md">sharing reference</a> in the source repository has the complete format contract: bounds, precedence rules, relocation limits and the end-to-end fixtures that exercise them.</p>
+<p>The <a href="https://github.com/gripsack-dev/gripsack/blob/1980d2c94877c841eac07a888517cba24057dbd8/docs/sharing-reference.md">sharing reference</a> in the source repository has the complete format contract: bounds, precedence rules, relocation limits and the end-to-end fixtures that exercise them.</p>
 </article>
 <footer>
   <span>© 2026 <a href="https://github.com/tknawara">Tarek Nawara</a></span>
@@ -171,7 +171,7 @@ grip package pull --digest &quot;$transport_digest&quot; \
   <a href="https://github.com/gripsack-dev">gripsack-dev</a>
   <a href="https://github.com/gripsack-dev/gripsack">source</a>
   <a href="../index.html">home</a>
-  <span class="fversion">v0.56.0</span>
+  <span class="fversion">v0.56.1</span>
 </footer>
 </main>
 </div>

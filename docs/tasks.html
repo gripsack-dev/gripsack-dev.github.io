@@ -15,9 +15,9 @@
 <meta property="og:image:alt" content="gripsack — a traveler's satchel holding a config file and a terminal chip, beside the tagline 'Your environment, in one workspace.'">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
-<link rel="stylesheet" href="../assets/site.css?v=36390b66">
-<script src="../assets/syntax.js?v=36390b66" data-manual defer></script>
-<script src="../assets/site.js?v=36390b66" defer></script>
+<link rel="stylesheet" href="../assets/site.css?v=90643a3e">
+<script src="../assets/syntax.js?v=90643a3e" data-manual defer></script>
+<script src="../assets/site.js?v=90643a3e" defer></script>
 </head>
 <body class="docs">
 <a class="skip-link" href="#main">Skip to content</a>
@@ -110,7 +110,7 @@ plain; a tool's own raw task stdout may still contain its own formatting.</p>
 <h2 id="dependencies-and-mutation">Dependencies and mutation</h2>
 <p><code>deps</code> names unordered prerequisite tasks that must succeed in the same invocation. A task's <code>steps</code> are ordered locally; <code>checks</code> are its invocation postconditions. Declare live mutation paths with <code>context: { kind: "host", mutable_paths: [...] }</code> and shared mutation keys with <code>locks: [lock("user", "editor-config")]</code> or store-scoped locks.</p>
 <p>Locks coordinate declared effects; they do not grant execution authority or infer dependencies from shell text. <code>--skip-busy</code> can skip an active conflict, not bypass an unknown interrupted owner. <code>--timeout-seconds</code> bounds realization, prerequisites and verification together. Interrupted or indeterminate outcomes are not recorded as success.</p>
-<p>Use typed <code>packageCommand</code>, <code>lit</code> and explicit <code>env</code>/<code>argv</code> values for commands. A <code>runBash</code> body requires a declared package-command interpreter; it does not discover ambient Bash. Host executable commands are explicit trusted host execution, not sealed package-closure proof. Consult the <a href="https://github.com/gripsack-dev/gripsack/blob/b7f81d0b9bafa65aa6717b68b3b717e6a3bd7911/typescript/README.md">SDK command reference</a> for shell bodies and task postconditions.</p>
+<p>Use typed <code>packageCommand</code>, <code>lit</code> and explicit <code>env</code>/<code>argv</code> values for commands. A <code>runBash</code> body requires a declared package-command interpreter; it does not discover ambient Bash. Host executable commands are explicit trusted host execution, not sealed package-closure proof. Consult the <a href="https://github.com/gripsack-dev/gripsack/blob/1980d2c94877c841eac07a888517cba24057dbd8/typescript/README.md">SDK command reference</a> for shell bodies and task postconditions.</p>
 <h2 id="literal-bash-bodies">Literal Bash bodies</h2>
 <p>Create this complete <code>gripsack.ts</code> in a separate example directory:</p>
 <!-- example: examples/workspaces/11-bash-task/gripsack.ts -->
@@ -217,7 +217,7 @@ keep their literal selector meaning, including filenames containing braces.</p>
   <a href="https://github.com/gripsack-dev">gripsack-dev</a>
   <a href="https://github.com/gripsack-dev/gripsack">source</a>
   <a href="../index.html">home</a>
-  <span class="fversion">v0.56.0</span>
+  <span class="fversion">v0.56.1</span>
 </footer>
 </main>
 </div>

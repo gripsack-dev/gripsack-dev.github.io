@@ -15,9 +15,9 @@
 <meta property="og:image:alt" content="gripsack — a traveler's satchel holding a config file and a terminal chip, beside the tagline 'Your environment, in one workspace.'">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
-<link rel="stylesheet" href="../assets/site.css?v=36390b66">
-<script src="../assets/syntax.js?v=36390b66" data-manual defer></script>
-<script src="../assets/site.js?v=36390b66" defer></script>
+<link rel="stylesheet" href="../assets/site.css?v=90643a3e">
+<script src="../assets/syntax.js?v=90643a3e" data-manual defer></script>
+<script src="../assets/site.js?v=90643a3e" defer></script>
 </head>
 <body class="docs">
 <a class="skip-link" href="#main">Skip to content</a>
@@ -61,6 +61,7 @@
   </details>
   <span class="rail-head">on this page</span>
   <div class="rail-toc">
+    <a href="#0561-safer-adoption-cleanup">0.56.1 — Safer adoption cleanup</a>
     <a href="#0560-typed-artifact-selectors-and-live-task-output">0.56.0 — Typed artifact selectors and live task output</a>
     <a href="#0550-locked-release-payload-paths">0.55.0 — Locked-release payload paths</a>
     <a href="#0540-the-whole-apply-proved">0.54.0 — The whole apply, proved</a>
@@ -76,14 +77,16 @@
 <p class="doc-eyebrow">Gripsack / documentation</p>
 <article class="md">
 <h1 id="whats-new">What's new</h1>
-<p>User-visible changes per release. The <a href="https://github.com/gripsack-dev/gripsack/blob/b7f81d0b9bafa65aa6717b68b3b717e6a3bd7911/CHANGELOG.md">full changelog</a> and <a href="https://github.com/gripsack-dev/gripsack/releases">release downloads</a> live with the source. This site documents core <strong>0.56.0</strong>.</p>
+<p>User-visible changes per release. The <a href="https://github.com/gripsack-dev/gripsack/blob/1980d2c94877c841eac07a888517cba24057dbd8/CHANGELOG.md">full changelog</a> and <a href="https://github.com/gripsack-dev/gripsack/releases">release downloads</a> live with the source. This site documents core <strong>0.56.1</strong>.</p>
+<h2 id="0561-safer-adoption-cleanup">0.56.1 — Safer adoption cleanup</h2>
+<p><code>grip adopt</code> distinguishes the files it created from the existing workspace it edited. After an interrupted copy, the cleanup list includes any partially written payload file, not files it never reached. See <a href="../docs/adopting.html#guided-adoption">guided adoption</a> for how to abandon before applying.</p>
 <h2 id="0560-typed-artifact-selectors-and-live-task-output">0.56.0 — Typed artifact selectors and live task output</h2>
 <ul>
 <li>Typed <code>artifact(output, selector)</code> references now expand locked version and platform tokens in exec arguments, command env/cwd and environment env, consistently across tasks, checks, hooks and scheduled commands. Package-subject <code>sourcePath</code> selectors use the subject's locked version.</li>
 <li>Every reference uses its own package's frozen source, with exact raw-tag or one-lowercase-<code>v</code> bare spelling. Literal arguments, environment values, working-directory paths and scripts remain literal.</li>
 <li>Plans include these selectors in text and JSON <code>resolved_paths</code>, without fetching or promising existence. Missing versions, unknown tokens and unsafe expanded paths fail with declaration provenance; canonical containment applies to cwd too.</li>
 <li>Retained hooks, launchers and portable bindings keep concrete selectors, and historical literal portable selectors are not reinterpreted. Attached file checks still allow only <code>sourcePath(".")</code>.</li>
-<li>Task runs label dependency steps and postcondition checks as they start and finish, and flush stdout chunks immediately, including partial lines. Stdout remains unchanged for pipelines; progress uses stderr. Child stderr remains bounded per-process capture, with separation before status lines.</li>
+<li>Ordinary <code>grip task run</code> labels dependency steps and postcondition checks as they start and finish, and flushes stdout chunks immediately, including partial lines. Stdout remains unchanged for pipelines; progress uses stderr. Child stderr is captured per process and printed on completion; <code>--json</code> stays capture-only.</li>
 <li>Apply's live progress and separate check/hook blocks were already present in 0.54; verification output is captured per check/hook, not buffered across the whole apply.</li>
 </ul>
 <h2 id="0550-locked-release-payload-paths">0.55.0 — Locked-release payload paths</h2>
@@ -96,11 +99,11 @@
 <h2 id="0540-the-whole-apply-proved">0.54.0 — The whole apply, proved</h2>
 <ul>
 <li>Changing only the case of a file name on a case-insensitive filesystem (WSL's <code>/mnt/c</code>, macOS) no longer deletes the file during <code>apply</code> or <code>rollback</code>; two spellings that resolve to the same object are one destination.</li>
-<li>A post-activation hook no longer runs after its generation stopped being current.</li>
+<li>Each post-activation hook now re-checks the selected generation before launch; if an earlier hook switched generations, the remaining hooks in the batch do not run.</li>
 <li><code>grip apply</code> streams progress as it works, and each check or hook prints one separated block with its output under a gutter and a pass/fail line; <code>--verbose</code> shows passing output in full. Piped and <code>NO_COLOR</code> output has no colour codes.</li>
-<li><code>apply</code> and <code>rollback</code> re-check each destination right before writing it, so a concurrent change stops the run instead of being overwritten.</li>
+<li><code>apply</code> and <code>rollback</code> re-check each destination just before writing it and refuse a change they detect. An outside write can still race the operation after that re-check.</li>
 <li>Release-archive targets no longer need <code>abi</code>: it is read from the executable. Conda environments use conda-forge's host platform libraries (X11, GL, ALSA) as conda-forge expects; <code>strict: true</code> refuses them.</li>
-<li>Every complete workspace in these docs is a tested example the release gate runs.</li>
+<li>The release gate exercises the complete workspace examples in these docs. Conda, Pixi and Docker examples are evaluated, checked and planned, not applied by that gate.</li>
 <li><code>grip apply</code>, managed blocks, garbage collection, the journal run, activation and <code>grip update</code>'s lock decision now run from <code>gripsack-kernel</code> and are proved in Lean: 579 theorems. See <a href="../docs/guarantees.html">how gripsack stays safe</a>.</li>
 </ul>
 <h2 id="0530-proved-ownership-and-rollback">0.53.0 — Proved ownership and rollback</h2>
@@ -142,7 +145,7 @@
   <a href="https://github.com/gripsack-dev">gripsack-dev</a>
   <a href="https://github.com/gripsack-dev/gripsack">source</a>
   <a href="../index.html">home</a>
-  <span class="fversion">v0.56.0</span>
+  <span class="fversion">v0.56.1</span>
 </footer>
 </main>
 </div>

@@ -4,21 +4,21 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>gripsack — your environment, in one workspace</title>
-<meta name="description" content="Declare your tools, dotfiles, environments and services in one typed TypeScript file. Review the plan, apply it as a transaction, keep every generation, roll back in one command. Linux and WSL2.">
+<meta name="description" content="Declare your tools, dotfiles, environments and services in one typed TypeScript file. Review the plan, apply it as a transaction and roll back to a retained generation. Linux and WSL2.">
 <meta property="og:title" content="gripsack — your environment, in one workspace">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://gripsack.dev/">
 <meta property="og:site_name" content="gripsack">
-<meta property="og:description" content="Declare your tools, dotfiles, environments and services in one typed TypeScript file. Review the plan, apply it as a transaction, keep every generation, roll back in one command. Linux and WSL2.">
+<meta property="og:description" content="Declare your tools, dotfiles, environments and services in one typed TypeScript file. Review the plan, apply it as a transaction and roll back to a retained generation. Linux and WSL2.">
 <meta property="og:image" content="https://gripsack.dev/assets/og.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="627">
 <meta property="og:image:alt" content="gripsack — a traveler's satchel holding a config file and a terminal chip, beside the tagline 'Your environment, in one workspace.'">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="./assets/favicon.svg" type="image/svg+xml">
-<link rel="stylesheet" href="./assets/site.css?v=36390b66">
-<script src="./assets/syntax.js?v=36390b66" data-manual defer></script>
-<script src="./assets/site.js?v=36390b66" defer></script>
+<link rel="stylesheet" href="./assets/site.css?v=90643a3e">
+<script src="./assets/syntax.js?v=90643a3e" data-manual defer></script>
+<script src="./assets/site.js?v=90643a3e" defer></script>
 </head>
 <body class="home">
 <a class="skip-link" href="#main">Skip to content</a>
@@ -32,9 +32,9 @@
   <div class="hero-copy">
   <p class="kicker">Packages · dotfiles · environments · services · tasks</p>
   <h1 class="tagline">Your environment,<br>in <span class="accent">one workspace.</span></h1>
-  <p class="sub">Describe the tools and configuration you rely on in one typed TypeScript file. <code>grip</code> shows you the exact changes, applies them as a transaction, keeps every state it ever applied, and rolls back in one command. The decisions that make that safe are being proved, not just tested.</p>
+  <p class="sub">Describe your tools and configuration in one typed TypeScript file. Review what <code>grip</code> plans to change, apply it as a transaction, and roll back to a retained generation without rebuilding your packages.</p>
   <div class="cta"><a class="primary" href="./docs/install.html">Install grip <span aria-hidden="true">→</span></a><a href="#how">See how it works ↓</a></div>
-  <p class="alt">Linux x86_64 &amp; WSL2 <span aria-hidden="true">/</span> Alpha <span aria-hidden="true">/</span> MIT <span aria-hidden="true">/</span> v0.56.0</p>
+  <p class="alt">Linux x86_64 &amp; WSL2 <span aria-hidden="true">/</span> Alpha <span aria-hidden="true">/</span> MIT <span aria-hidden="true">/</span> <a href="./docs/changelog.html">What's new in v0.56.1</a></p>
   </div>
   <aside class="workspace-card" aria-label="What a workspace holds">
     <div class="workspace-label"><span>gripsack.ts</span><span>one file</span></div>
@@ -69,7 +69,7 @@
 </svg></div>
     <p class="workspace-title">Everything you set up by hand,<br>written down once.</p>
     <ul class="workspace-inventory"><li><span>Tools</span><span>packages · environments</span></li><li><span>Your setup</span><span>dotfiles · launchers</span></li><li><span>Project plumbing</span><span>services · tasks · schedules</span></li></ul>
-    <p class="workspace-foot">Reviewed before applying. Every generation kept.</p>
+    <p class="workspace-foot">Review before applying. Roll back from retained bytes.</p>
   </aside>
 </section>
 
@@ -77,9 +77,9 @@
   <div class="section-heading"><p class="eyebrow">01 / How it works</p><h2 class="section">Declare. Plan.<br>Apply. Keep a way back.</h2><p>Setting up a machine is usually a pile of commands nobody can replay. Gripsack turns it into a file you can read, review and roll back.</p></div>
   <div class="story">
     <div><h3>Declare</h3><p>Write <code>gripsack.ts</code>: packages from release archives or Conda, dotfiles with explicit ownership, environments, Docker services, tasks.</p><span class="cmd">gripsack.ts</span></div>
-    <div><h3>Plan</h3><p>Evaluation runs in a sandbox with no network and no environment. You see every file that would change and every source you are about to trust.</p><span class="cmd">grip plan</span></div>
-    <div><h3>Apply</h3><p>One transaction: prior state is journaled before any write, each destination is re-checked for your own edits, then one atomic rename makes the new generation current.</p><span class="cmd">grip apply</span></div>
-    <div><h3>Keep a way back</h3><p>Every applied state is a retained generation. Rollback reselects one: retained bytes, nothing rebuilt, your local edits preserved.</p><span class="cmd">grip rollback</span></div>
+    <div><h3>Plan</h3><p>Evaluation runs in a sandbox. Review destination changes and the exact paths selected inside locked packages, without downloading those packages to inspect them.</p><span class="cmd">grip plan</span></div>
+    <div><h3>Apply</h3><p>Before changing a file, grip journals its prior state and re-checks the destination for edits. One atomic rename makes the new generation current.</p><span class="cmd">grip apply</span></div>
+    <div><h3>Keep a way back</h3><p>Each apply records a generation. Rollback uses its retained files and launchers without rebuilding packages; garbage collection lets you retire older generations.</p><span class="cmd">grip rollback</span></div>
   </div>
   <div class="gens" role="img" aria-label="Three generations side by side. 'grip apply' moves the current pointer from generation 2 to a new generation 3; 'grip rollback' moves it back to generation 2. Both generations stay on disk.">
     <div class="gen-cursor" aria-hidden="true"><span>current</span></div>
@@ -97,60 +97,57 @@
   <div class="grid">
     <article class="card"><h3><a href="./docs/packages.html">Packages</a></h3><p>Pin a release archive, solve a coherent Conda environment or import a Pixi lock. Nothing installs into a global prefix; the lockfile is the only source of versions.</p></article>
     <article class="card"><h3><a href="./docs/environments.html">Environments</a></h3><p><code>grip run</code> and <code>grip shell</code> put selected packages on your path for one command or one shell, without touching your dotfiles.</p></article>
-    <article class="card"><h3><a href="./docs/adopting.html">Profiles &amp; dotfiles</a></h3><p>Symlink, tracked copy or one managed block in a shared file: you choose how much of each file gripsack owns. Your edits are never silently overwritten.</p></article>
+    <article class="card"><h3><a href="./docs/adopting.html">Profiles &amp; dotfiles</a></h3><p>Keep a file as a symlink, deploy a tracked copy that detects local edits, or own just one marked block inside a shared file.</p></article>
     <article class="card"><h3><a href="./docs/services.html">Docker services</a></h3><p>Digest-pinned PostgreSQL, Redis or any image, on loopback ports with explicit health checks. <code>grip down</code> keeps the volumes.</p></article>
-    <article class="card"><h3><a href="./docs/tasks.html">Tasks &amp; checks</a></h3><p>Named commands with prerequisites, locks and postconditions. Validate a config file before it is ever written to its destination.</p></article>
+    <article class="card"><h3><a href="./docs/tasks.html">Tasks &amp; checks</a></h3><p>Run named commands with prerequisites, locks and postconditions. Watch task stdout as it arrives; step and check progress goes to stderr, not into your pipeline.</p></article>
     <article class="card"><h3><a href="./docs/schedules.html">Schedules &amp; sharing</a></h3><p>systemd user timers that run the same tasks on a calendar, and <a href="./docs/sharing.html">signed package bundles</a> you can hand to another machine or registry.</p></article>
   </div>
 </section>
 
 <section id="safe">
-  <div class="section-heading"><p class="eyebrow">03 / Safety</p><h2 class="section">Proved where it matters.<br>Honest everywhere else.</h2><p>Gripsack is built in rings. The pure decisions at the center are plain Rust, translated to Lean 4 and proved there; each ring outward is checked in a cheaper way and trusts only the rings inside it.</p></div>
+  <div class="section-heading"><p class="eyebrow">03 / Safety</p><h2 class="section">What is proved?<br>What is tested?</h2><p>Before replacing a file, gripsack has two jobs: decide whether it may write, then carry out that decision on your filesystem. The rings show where the proof of the first ends and testing of the second begins.</p></div>
   <div class="trust">
     <ul>
-      <li class="proved"><strong>Commit classification</strong>After a crash, the next run decides Committed, Uncommitted or Ambiguous from the current, previous and target generation, and never guesses. Proved in Lean since 0.52.</li>
-      <li class="proved"><strong>Garbage collection</strong>GC refuses while recovery is pending, prunes only the oldest generations beyond your retention and never deletes the current one or anything a retained generation references. Proved.</li>
-      <li class="proved"><strong>Journal publication</strong>A record becomes durable only in the order stage → sync file → publish name → sync directory; a mutation needs a durable run marker and a durable entry. Proved.</li>
-      <li class="proved"><strong>Your edits are yours</strong>Gripsack writes a file only over absence, over exactly what it last wrote, or over something you hand it with <code>--take-over</code>. Proved since 0.53.</li>
-      <li class="proved"><strong>Exact rollback</strong>Rollback installs exactly what the target generation recorded, from retained bytes, or refuses before switching. Proved since 0.53.</li>
-      <li class="proved"><strong>Apply as a machine</strong>Every write, release and switch in <code>grip apply</code> is decided by the proved kernel; managed blocks touch only the bytes between their markers; a hook never runs after its generation stopped being current. Proved since 0.54.</li>
-      <li class="next"><strong>Crash anywhere, then recover</strong>Apply, rollback, recovery and GC are proved decision by decision and crash-tested at every step; next is a proof that any crash followed by recovery leaves every destination at its prior bytes, its intended bytes, or something you wrote yourself.</li>
-      <li class="assume"><strong>The filesystem and the world</strong>Atomic rename, fsync durability, SHA-256 identity and a single lifecycle writer are stated assumptions, fault-tested rather than proved. Docker, systemd, Deno and your own hooks are outside every proof.</li>
+      <li class="proved"><strong>Apply and rollback</strong>The kernel authorizes a whole-file write only over absence, its own observed last write, or (on apply) an object you explicitly take over. Rollback requests the identity recorded by the target generation, not a rebuild.</li>
+      <li class="proved"><strong>Commit and recovery</strong>Recovery compares the current, previous and target generations by identity. If the result is ambiguous, the machine refuses to guess. A destination mutation needs a durable journal entry first.</li>
+      <li class="proved"><strong>Retention</strong>GC may not retire the current generation or delete store content a retained generation still references.</li>
+      <li><strong>Tested: interruption and recovery</strong>Crash-injection tests interrupt runs and recovery on an in-memory filesystem. This exercises the machines together; it is not a proof about every crash on a real disk.</li>
+      <li class="assume"><strong>The host keeps its contract</strong>The driver relies on atomic rename, file and directory sync, and one lifecycle writer. It can detect an outside edit at the final re-check, not one that races the write afterward.</li>
     </ul>
     <div>
-<figure class="anim a-rings" role="img" aria-label="Five nested rings: Product, Edge, Host, Protocol and Kernel. Untrusted input such as an archive, a gripsack.ts or a lockfile enters the Edge ring, where it is hash-checked and turned into typed values; those flow inward to the Kernel, whose pure decisions about commit, garbage collection and journal publication are proved in Lean since 0.52. The decision leaves as a command that carries what the kernel expects to find; the Protocol ring (proofs next) orders it, the Host ring re-checks that the live file still matches the expectation and only then acts on the filesystem. The small window between that re-check and the act is where another process could still write; gripsack detects such writes but cannot exclude them.">
-<svg viewBox="0 0 780 440" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-  <rect class="a-ring r4" x="80" y="60" width="620" height="360" rx="22"/>
-  <text class="a-ring-label" x="390" y="80" text-anchor="middle">Product — CLI · review · adopt · doctor</text>
-  <rect class="a-ring r3" x="125" y="95" width="530" height="290" rx="20"/>
-  <text class="a-ring-label" x="390" y="115" text-anchor="middle">Edge — evaluation · downloads · archives · Docker · systemd</text>
-  <rect class="a-ring r2" x="170" y="130" width="440" height="220" rx="18"/>
-  <text class="a-ring-label" x="390" y="150" text-anchor="middle">Host — driver · filesystem · locks · assumptions listed</text>
-  <rect class="a-ring r1" x="215" y="165" width="350" height="150" rx="16"/>
-  <text class="a-ring-label" x="390" y="185" text-anchor="middle">Protocol — apply · rollback · recover · gc <tspan class="a-tag next">· proofs next</tspan></text>
-  <rect class="a-ring r0" x="260" y="200" width="260" height="80" rx="14"/>
-  <text class="a-ring-label" x="390" y="220" text-anchor="middle">Kernel — pure decisions</text>
-  <text class="a-tag proved" x="390" y="238" text-anchor="middle">proved in Lean · 0.52</text>
-  <text class="a-dim" x="390" y="254" text-anchor="middle">commit · GC · journal publication</text>
-  <g class="a-station s-kernel"><text x="390" y="272" text-anchor="middle">decide</text></g>
-
-  <g class="a-world"><path d="M2 228 h70 v24 h-70 z"/><text x="37" y="243" text-anchor="middle">untrusted</text><text class="a-dim" x="37" y="268" text-anchor="middle">input</text></g>
-  <g class="a-world fs"><path d="M706 228 h70 v24 h-70 z"/><text x="741" y="243" text-anchor="middle">filesystem</text><text class="a-dim" x="741" y="268" text-anchor="middle">S1–S7 assumed</text></g>
-
-  <line class="a-path" x1="70" y1="240" x2="260" y2="240"/>
-  <line class="a-path" x1="520" y1="240" x2="710" y2="240"/>
-  <circle class="a-token in-token" cx="70" cy="240" r="6"/>
-  <circle class="a-token out-token" cx="390" cy="240" r="6"/>
-
-  <g class="a-station s-cmd"><text x="390" y="303" text-anchor="middle">command + expect · what must still be live</text></g>
-  <g class="a-station s-check"><text x="310" y="338" text-anchor="middle">re-check: live = expect?</text></g>
-  <g class="a-station s-act"><text x="452" y="338" text-anchor="middle">→ act</text></g>
-  <g class="a-window"><path d="M404 327 v-6 h22 v6"/><text x="490" y="338" text-anchor="start">← S5 window</text><text class="a-dim" x="390" y="406" text-anchor="middle">S5: between re-check and act, another process's write is only detected, never excluded</text></g>
-  <g class="a-station s-edge"><text x="390" y="373" text-anchor="middle">hash ✓ · typed values admitted · everything else refused</text></g>
-</svg>
-<figcaption>Untrusted bytes are admitted at the edge, the kernel decides, and the decision travels back out as a command that says what it expects to find. Purple is proved; red is next.</figcaption>
+<figure class="anim a-rings">
+  <div class="rg-key">
+    <strong>Five trust rings</strong>
+    <label class="rg-motion"><input type="checkbox" checked> Animate a destination write</label>
+  </div>
+  <div class="rg-layer rg-product" role="img" aria-label="Five nested trust rings, outside to inside. Ring 4 is the user-facing CLI, tested end to end. Ring 3 admits typed values and verified bytes from untrusted inputs. Ring 2 is the fault-tested host: it performs real I/O under registered assumptions S1–S7. Inside it, ring 1 has Lean-proved state transitions for apply, rollback, recovery, garbage collection, journal ordering, activation and lock publication. Ring 0 has Lean-proved pure decisions about ownership, drift, commit classification and managed-block edits. For a destination write, the decision flows out through a protocol command to the host, which compares the live file before mutating it.">
+    <div class="rg-heading"><strong>4 · Product</strong><span>CLI, review and doctor · end-to-end tested</span></div>
+    <div class="rg-layer rg-edge">
+      <div class="rg-heading"><strong>3 · Edge</strong><span>Checks untrusted config, archives and lockfiles</span></div>
+      <div class="rg-layer rg-host">
+        <div class="rg-heading"><strong>2 · Host</strong><span>Fault-tested I/O · registered assumptions S1–S7</span></div>
+        <div class="rg-layer rg-protocol">
+          <div class="rg-heading"><strong>1 · Protocol</strong><span>Lean-proved machine steps</span></div>
+          <div class="rg-detail">Apply, rollback, recovery, garbage collection, journal ordering, activation and lock publication: each machine takes observations and issues commands without doing I/O.</div>
+          <div class="rg-layer rg-kernel">
+            <div class="rg-heading"><strong>0 · Kernel</strong><span>Lean-proved pure decisions</span></div>
+            <div class="rg-detail">Who owns these bytes? Did the commit land? Which bytes may a managed-block edit change?</div>
+          </div>
+        </div>
+        <div class="rg-effect">
+          <span>Last compare</span>
+          <svg viewBox="0 0 96 16" aria-hidden="true">
+            <path d="M4 8H91m-6-5 6 5-6 5"/>
+            <circle cx="4" cy="8" r="4"/>
+          </svg>
+          <span>Mutation</span>
+        </div>
+      </div>
+    </div>
+  </div>
+  <figcaption>The proofs cover decisions and machine steps, not every possible crash and recovery. For a destination write, the host checks that the live file matches what the command expects. A mismatch stops the write. Another writer’s edit between the last comparison and the mutation can still be overwritten (S5).</figcaption>
 </figure>
-      <p class="note" style="margin-top:0"><strong>What is and is not claimed.</strong> The proofs are over the exact Rust that ships, use only Lean's standard axioms and run as a release gate next to the test suites. They cover decisions, not the operating system, and not the effects of your own hooks, tasks or containers. <a href="./docs/guarantees.html">Read the full guarantee list →</a></p>
+      <p class="note" style="margin-top:0">The release gate translates the shipped Rust kernel to Lean 4 and checks the proofs. It does not prove the CLI, Linux or the effects of your hooks and containers. <a href="./docs/guarantees.html">Read the guarantees and their assumptions →</a></p>
     </div>
   </div>
 </section>
@@ -190,7 +187,7 @@ export default defineWorkspace(() =&gt; workspace({ outputs: [dotfiles] }));</co
 </section>
 
 <section id="examples">
-  <div class="section-heading"><p class="eyebrow">05 / Three more shapes</p><h2 class="section">Same file.<br>Different workspaces.</h2><p>Each tab is the complete <code>gripsack.ts</code> from its guide, run as part of the release checks. Pick one.</p></div>
+  <div class="section-heading"><p class="eyebrow">05 / Three more shapes</p><h2 class="section">Same file.<br>Different workspaces.</h2><p>Each tab is a complete workspace from the guides. The release checks evaluate, check and plan the Conda and Docker examples without starting their services or running their tasks.</p></div>
   <div class="examples">
     <input type="radio" name="example" id="ex-packages" checked>
     <input type="radio" name="example" id="ex-service">
@@ -296,18 +293,19 @@ grip task run greet --closed-stdin</code></pre></div>
 <section id="install">
   <div class="install-copy"><p class="eyebrow">06 / Install</p><h2 class="section">One static binary.<br>No daemon.</h2>
   <p class="lede">A musl-linked <code>grip</code> with its TypeScript frontend embedded. Docker Engine is needed only for container services; systemd only for schedules. Nothing runs in the background.</p></div>
-  <div class="install-actions"><p class="eyebrow">Linux x86_64 / WSL2 · Alpha</p><a class="primary" href="./docs/install.html">Install v0.56.0 <span aria-hidden="true">→</span></a><a href="https://github.com/gripsack-dev/gripsack/releases/tag/core-v0.56.0">Release notes and checksums ↗</a><p>Keep your OS package manager.<br>Declare the user-space pieces you choose.</p></div>
+  <div class="install-actions"><p class="eyebrow">Linux x86_64 / WSL2 · Alpha</p><a class="primary" href="./docs/install.html">Install v0.56.1 <span aria-hidden="true">→</span></a><a href="https://github.com/gripsack-dev/gripsack/releases/tag/core-v0.56.1">Release notes and checksums ↗</a><p>Keep your OS package manager.<br>Declare the user-space pieces you choose.</p></div>
 </section>
 
 <section id="docs">
-  <div class="section-heading"><p class="eyebrow">07 / Documentation</p><h2 class="section">Read in order,<br>or jump in.</h2><p>The guides are short and each one is a complete, runnable workspace.</p></div>
+  <div class="section-heading"><p class="eyebrow">07 / Documentation</p><h2 class="section">Read in order,<br>or jump in.</h2><p>Start with a file-only workspace, or go straight to the kind of declaration you need.</p></div>
   <ul class="guide-links">
     <li><a href="./docs/workspaces.html">Your first workspace</a> — scaffold, plan, apply, roll back.</li>
     <li><a href="./docs/packages.html">Packages</a> · <a href="./docs/environments.html">Environments</a> — tools from archives and Conda, on your path without a global install.</li>
+    <li><a href="./docs/tasks.html#typed-artifact-selectors">Use a locked package path</a> — reference a versioned library in a command, environment or check, and inspect the concrete selector in <code>grip plan</code>.</li>
     <li><a href="./docs/adopting.html">Profiles &amp; dotfiles</a> — ownership modes, drift, adopting files you already have.</li>
     <li><a href="./docs/services.html">Docker services</a> · <a href="./docs/tasks.html">Tasks</a> · <a href="./docs/schedules.html">Schedules</a> — project plumbing without a daemon.</li>
     <li><a href="./docs/guarantees.html">How it stays safe</a> · <a href="./docs/safety.html">Safety &amp; recovery</a> — what is proved, assumed and not claimed.</li>
-    <li><a href="https://github.com/gripsack-dev/gripsack/blob/b7f81d0b9bafa65aa6717b68b3b717e6a3bd7911/typescript/README.md">SDK reference</a> · <a href="https://github.com/gripsack-dev/gripsack/tree/b7f81d0b9bafa65aa6717b68b3b717e6a3bd7911/examples/workspaces">Example workspaces</a> · <a href="./docs/changelog.html">What's new</a>.</li>
+    <li><a href="https://github.com/gripsack-dev/gripsack/blob/1980d2c94877c841eac07a888517cba24057dbd8/typescript/README.md">SDK reference</a> · <a href="https://github.com/gripsack-dev/gripsack/tree/1980d2c94877c841eac07a888517cba24057dbd8/examples/workspaces">Example workspaces</a> · <a href="./docs/changelog.html">What's new</a>.</li>
   </ul>
 </section>
 
