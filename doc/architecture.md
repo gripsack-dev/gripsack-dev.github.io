@@ -8,7 +8,7 @@ One binary, `grip`, with the TypeScript frontend embedded. It evaluates your wor
 2. **Approve.** You review and approve the exact bundle and policy digests ([source approval](safety.md#source-approval)).
 3. **Evaluate.** A pinned, checksum-verified Deno runs the embedded frontend over the captured source with no environment, network or subprocess access. Host facts arrive as inputs; anything that needs to look at the machine is an explicit probe.
 4. **Admit.** The Rust core validates the resulting IR: references, dependency graph, command contracts, provenance for every declaration.
-5. **Plan.** The core compares the desired state with what is live and prints exactly what would change.
+5. **Plan.** The core compares the desired state with what is live. For a [typed artifact selector](tasks.md#typed-artifact-selectors), it shows the concrete path from the referenced package's lock in text and JSON (`resolved_paths`). Planning doesn't fetch the payload or claim that the path exists inside it.
 
 The public authoring surface is `gripsack.ts` and `@gripsack/core`. The IR is an internal contract; you never write it by hand.
 
@@ -30,17 +30,17 @@ A **profile** combines files, retained package artifacts and launchers for one e
 
 ## The rings
 
-The code is arranged so that the decisions that matter most are smallest and best checked:
+Follow a single write through the rings. The kernel compares what the last generation recorded with what the host observed and decides whether to allow the replacement. The journal machine orders the intent before the write. The host must actually sync the journal, re-check the destination and perform the rename.
 
 {anim:rings}
 
-| Ring | Crates | Checked by |
+| Ring | Responsibility in the release | Evidence |
 |---|---|---|
-| Kernel | `gripsack-kernel` | Lean 4 proofs over the shipped Rust |
-| Protocol | transaction machines in `gripsack-store`, `gripsack-exec` | crash-injection tests, TLA+ model; Lean proofs next |
-| Host | `gripsack-fs`, `gripsack-process`, store layout | small, every assumption listed, fault injection |
-| Edge | `gripsack-ir`, `gripsack-fetch`, `gripsack-conda`, services, schedules | sandbox, typed admission, hash-verified bytes, fuzzing |
-| Product | `gripsack` (the CLI) | end-to-end flows |
+| Kernel | `gripsack-kernel`: pure decisions about identity, ownership, retention and lock publication | Lean 4 theorems over a translation of the Rust |
+| Protocol | Apply, rollback, recovery, GC, journal and activation machines also live in the kernel; drivers supply observations and execute commands | Lean theorems about machine decisions and ordering; crash-injection tests of machines running together |
+| Host | `gripsack-host`: filesystem and process operations, locks, store formats, journal and recovery drivers; `gripsack-exec` wires operations into the product | Fault injection, persistence tests and integration tests; filesystem behavior is assumed, not proved |
+| Edge | Workspace evaluation and IR admission, fetchers, Conda, Docker and systemd | Sandboxing, typed validation, digest checks and tests of the adapters |
+| Product | `grip`: plan, apply, review and the other commands you run | End-to-end CLI flows and release-checked example workspaces |
 
 [How gripsack stays safe](guarantees.md) spells out what each ring guarantees and what it does not.
 

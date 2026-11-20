@@ -8,7 +8,7 @@ User-visible changes per release. The [full changelog](https://github.com/gripsa
 - Every reference uses its own package's frozen source, with exact raw-tag or one-lowercase-`v` bare spelling. Literal arguments, environment values, working-directory paths and scripts remain literal.
 - Plans include these selectors in text and JSON `resolved_paths`, without fetching or promising existence. Missing versions, unknown tokens and unsafe expanded paths fail with declaration provenance; canonical containment applies to cwd too.
 - Retained hooks, launchers and portable bindings keep concrete selectors, and historical literal portable selectors are not reinterpreted. Attached file checks still allow only `sourcePath(".")`.
-- Task runs label dependency steps and postcondition checks as they start and finish, and flush stdout chunks immediately, including partial lines. Stdout remains unchanged for pipelines; progress uses stderr. Child stderr remains bounded per-process capture, with separation before status lines.
+- Ordinary `grip task run` labels dependency steps and postcondition checks as they start and finish, and flushes stdout chunks immediately, including partial lines. Stdout remains unchanged for pipelines; progress uses stderr. Child stderr is captured per process and printed on completion; `--json` stays capture-only.
 - Apply's live progress and separate check/hook blocks were already present in 0.54; verification output is captured per check/hook, not buffered across the whole apply.
 
 ## 0.55.0 — Locked-release payload paths
@@ -21,11 +21,11 @@ User-visible changes per release. The [full changelog](https://github.com/gripsa
 ## 0.54.0 — The whole apply, proved
 
 - Changing only the case of a file name on a case-insensitive filesystem (WSL's `/mnt/c`, macOS) no longer deletes the file during `apply` or `rollback`; two spellings that resolve to the same object are one destination.
-- A post-activation hook no longer runs after its generation stopped being current.
+- Each post-activation hook now re-checks the selected generation before launch; if an earlier hook switched generations, the remaining hooks in the batch do not run.
 - `grip apply` streams progress as it works, and each check or hook prints one separated block with its output under a gutter and a pass/fail line; `--verbose` shows passing output in full. Piped and `NO_COLOR` output has no colour codes.
-- `apply` and `rollback` re-check each destination right before writing it, so a concurrent change stops the run instead of being overwritten.
+- `apply` and `rollback` re-check each destination just before writing it and refuse a change they detect. An outside write can still race the operation after that re-check.
 - Release-archive targets no longer need `abi`: it is read from the executable. Conda environments use conda-forge's host platform libraries (X11, GL, ALSA) as conda-forge expects; `strict: true` refuses them.
-- Every complete workspace in these docs is a tested example the release gate runs.
+- The release gate exercises the complete workspace examples in these docs. Conda, Pixi and Docker examples are evaluated, checked and planned, not applied by that gate.
 - `grip apply`, managed blocks, garbage collection, the journal run, activation and `grip update`'s lock decision now run from `gripsack-kernel` and are proved in Lean: 579 theorems. See [how gripsack stays safe](guarantees.md).
 
 ## 0.53.0 — Proved ownership and rollback
