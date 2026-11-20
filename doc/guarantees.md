@@ -44,7 +44,7 @@ A higher generation number never grants commit authority; only identity does. Ea
 
 **Rollback.** Every write a rollback makes installs exactly the identity the target generation recorded, from retained bytes only, never inside a published generation, and only over absence or gripsack's own write. A destination counts as restored only when the landed object is that identity. The switch happens only after every destination is settled, with a fresh transaction identifier, and a destination that cannot be restored aborts the rollback before the switch.
 
-These are kernel theorems from [plan 0056](https://github.com/gripsack-dev/gripsack/blob/{release_source}/plan/0056-verified-foundation.md). The proof sources are in [`proofs/`](https://github.com/gripsack-dev/gripsack/tree/{release_source}/proofs) and the kernel in [`crates/gripsack-kernel`](https://github.com/gripsack-dev/gripsack/tree/{release_source}/crates/gripsack-kernel).
+The [verified-foundation RFC](https://github.com/gripsack-dev/gripsack/blob/34e3f6f4e17bd6da52d501d0f64bd8b48073abd9/docs/rfcs/2026-11-08-verified-foundation.md) records the design. For the release documented here, read the [Lean proofs](https://github.com/gripsack-dev/gripsack/tree/{release_source}/proofs) over the [shipped Rust kernel](https://github.com/gripsack-dev/gripsack/tree/{release_source}/crates/gripsack-kernel).
 
 ## What is tested but not yet proved
 
