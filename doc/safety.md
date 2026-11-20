@@ -9,8 +9,8 @@ Two things first. It is alpha software: keep an independent backup of anything i
 {anim:apply}
 
 1. **Realize packages** into the read-only store. Content is verified, sealed read-only and published by rename, so a half-downloaded archive never becomes a package.
-2. **Journal** the prior state and the intended end state of every destination, durably, before touching any of them.
-3. **Write destinations** one at a time, re-reading each through a pinned directory handle and refusing if what is live is not what the plan saw.
+2. **Journal** a durable run marker. For each destination, record its prior state and intended change durably before changing that destination.
+3. **Write that destination** after a final re-check through a pinned directory handle. If it no longer matches the observation used for the write, stop rather than overwrite it. Repeat the journal-and-write sequence for the next destination.
 4. **Run pre-flip checks** you attached to files, still inside the transaction.
 5. **Flip `current`**: one atomic rename selects the new generation. This is the commit point.
 6. **Run hooks** (`post_link`, `post_activate`). Hook failures are reported; they never roll the committed generation back.
@@ -21,13 +21,13 @@ Destination writes are not atomic across a whole profile: a program reading its 
 
 {anim:crash}
 
-The next `grip` command recovers before it does anything else. It compares the `current` pointer with the previous and target generation recorded for the interrupted transaction:
+Before starting another lifecycle mutation, gripsack classifies the interrupted transaction. It compares the `current` selection with the previous and target selections in the journal, including their transaction identities:
 
-- **Uncommitted** (`current` still names the previous generation): prior bytes are restored from the journal.
-- **Committed** (`current` names the target): activation finishes; pending hooks resume under the same intent id.
-- **Ambiguous** (neither): nothing else mutates until you look. Corrupt manifests and quarantined journal entries are reported, not treated as disposable.
+- **Uncommitted** (`current` is still the previous selection, or there was no previous selection and there is no `current`): recover prior state from the journal where the destination can be restored safely.
+- **Committed** (`current` matches the target selection): the switch landed. Finish cleanup and handle pending activation under its recorded intent.
+- **Ambiguous** (neither): stop rather than guessing. Corrupt manifests and quarantined journal entries are reported, not treated as disposable.
 
-Either way each destination ends up holding its prior bytes, its intended bytes, or something gripsack did not write. Recovery covers file bytes, Unix modes and symlink targets, not mtimes, ownership or extended attributes. A file you changed while the transaction was interrupted is preserved, not replaced with the snapshot.
+Recovery checks file bytes, Unix modes and symlink targets, not mtimes, ownership or extended attributes. It leaves an outside edit it detects alone rather than replacing it with the snapshot. Crash-injection tests check prior and intended identities after interruptions; they do not rule out a concurrent edit racing the final re-check on a real filesystem.
 
 Do not delete journals, manifests or managed files to "unstick" a refusal; the [run log](runs.md) says what recovery found.
 
@@ -52,7 +52,7 @@ grip gc --dry-run
 
 `grip rollback` reselects a retained generation: files, launchers and package roots come from retained bytes, nothing is re-solved or rebuilt, and drift is preserved exactly as during apply. Rollback is a new activation and may run the retained generation's hooks; it is not an undo of commands run since then.
 
-`grip gc` refuses while recovery is pending or `current` is not in the inventory. It never removes the current generation or anything a retained generation or recovery root references. `keep_generations` in [settings](settings/reference.md) controls how many predecessors are kept; keep them until the real application has worked with the deployed files.
+`grip gc` refuses while recovery or activation is pending, or if `current` names a missing generation. It never removes the current generation or anything a retained generation or recovery root references. `keep_generations` in [settings](settings/reference.md) controls retention; keep predecessors until the real application has worked with the deployed files.
 
 ## Source approval
 
