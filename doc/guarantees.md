@@ -44,7 +44,7 @@ A higher generation number never grants commit authority; only identity does. Ea
 
 **Rollback.** A whole-file restore must install the target generation's recorded identity (bytes and mode, or link target), from retained content, only over absence or gripsack's own write. The machine never commands a restore inside a published generation. It counts the unit as restored only when the host observes that identity, and switches under a fresh transaction only after every supplied unit is settled. If the host cannot reproduce the target identity for a required write, rollback refuses before the switch.
 
-The [verified-foundation design record](https://github.com/gripsack-dev/gripsack/blob/{release_source}/plan/0056-verified-foundation.md) includes both implementation records and future goals. For what shipped, see the [proof sources](https://github.com/gripsack-dev/gripsack/tree/{release_source}/proofs) and [kernel](https://github.com/gripsack-dev/gripsack/tree/{release_source}/crates/gripsack-kernel). The [0.56 release](changelog.md) changed typed path resolution and task output, not kernel transitions or proof premises.
+The [verified-foundation RFC](https://github.com/gripsack-dev/gripsack/blob/{release_source}/docs/rfcs/2026-11-08-verified-foundation.md) includes both implementation records and future goals. For what shipped, see the [proof sources](https://github.com/gripsack-dev/gripsack/tree/{release_source}/proofs) and [kernel](https://github.com/gripsack-dev/gripsack/tree/{release_source}/crates/gripsack-kernel). The [0.56 releases](changelog.md) changed typed path resolution, task output and adoption advice, not kernel transitions or proof premises.
 
 ## What is tested, not proved
 

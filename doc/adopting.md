@@ -88,6 +88,8 @@ grip trust add .
 grip adopt ~/.config/editor --name editor --resume
 ```
 
+To abandon before resuming, remove only the generated paths listed by the attempt. Keep `gripsack.ts`. Since 0.56.1, if adoption edited the workspace, it names the import and the entry in `outputs` to remove. If it prints a manual-integration snippet instead, it did not edit the workspace.
+
 Resume uses the approved profile; do not pass `--mode` again. `--yes` skips apply confirmation, not source approval. The interview modes are `tracked_copy` for mutable real files, `owned` for store-owned links, and `merge` for managed text blocks. Keep backups and inspect the plan regardless of which route you choose.
 
 
