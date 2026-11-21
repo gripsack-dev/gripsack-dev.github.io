@@ -33,6 +33,8 @@ A missing repository-local source fails that output, not the whole survey: the o
 
 A Pixi survey privately reads both declared inputs and verifies the selected archives without retaining new inputs or writing either lockfile. `grip update` retains the manifest, external lock and verified archives and records their identities in `gripsack.lock`. It does not re-solve or rewrite the external lock. Use your Pixi workflow first when you intend to change packages.
 
+For Conda and Pixi, a build and a lock protect different things. An unchanged `grip update` followed by `grip gc` leaves the path returned by the last build usable. If an update fails on another output before publishing the new lock, the old lock keeps its previously retained archives. After a successful update, GC may collect archives no longer needed by any lock or build.
+
 If `source.package` names a bundle that is not imported here, run `grip package import --bundle <path>` first; `grip update` cannot fetch it. If the signed environment is already imported but its local command projection is missing, run `grip update` to create that projection. `--check` does neither.
 
 ## Asset selection
