@@ -81,7 +81,7 @@
   <div class="trust">
     <ul>
       <li class="proved"><strong>Apply and rollback</strong>The kernel authorizes a whole-file write only over absence, its own observed last write, or (on apply) an object you explicitly take over. Rollback requests the identity recorded by the target generation, not a rebuild.</li>
-      <li class="proved"><strong>Commit and recovery</strong>Recovery compares the current, previous and target generations by identity. If the result is ambiguous, the machine refuses to guess. A destination mutation needs a durable journal entry first.</li>
+      <li class="proved"><strong>Commit and recovery</strong>Recovery compares the current, previous and target selections by identity. If the result is ambiguous, it stops. Before a journaled leaf write, the run marker, entry and prior evidence survive every crash allowed by the storage model.</li>
       <li class="proved"><strong>Retention</strong>GC may not retire the current generation or delete store content a retained generation still references.</li>
       <li><strong>Tested: interruption and recovery</strong>Crash-injection tests interrupt runs and recovery on an in-memory filesystem. This exercises the machines together; it is not a proof about every crash on a real disk.</li>
       <li class="assume"><strong>The host keeps its contract</strong>The driver relies on atomic rename, file and directory sync, and one lifecycle writer. It can detect an outside edit at the final re-check, not one that races the write afterward.</li>

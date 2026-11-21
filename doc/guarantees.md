@@ -11,14 +11,14 @@ The rings separate decisions from effects. The kernel sees typed observations, n
 | Ring | What lives there | How it is checked |
 |---|---|---|
 | **Kernel** | Decide which generation committed, what may be written or deleted, and whether an update may publish a lock | Lean 4 proofs over a translation of the shipped Rust |
-| **Protocol** | Kernel machines issue commands for apply, rollback, recovery, GC, journaling and activation | Machine decisions and ordering are proved; composition with storage is crash-injection tested, not proved |
+| **Protocol** | Kernel machines issue commands for apply, rollback, recovery, GC, journaling and activation | Machine decisions and ordering are proved. The journaled leaf write also has a storage-level proof at mutation admission; end-to-end recovery is crash-injection tested. |
 | **Host** | Drivers observe destinations, issue filesystem calls, supervise processes and read store records | Persistence and fault-injection tests under explicit filesystem assumptions |
 | **Edge** | TypeScript evaluation, downloads, archives, Conda, Docker, systemd | Sandbox, typed admission, hash-verified bytes, fuzzing |
 | **Product** | The CLI, review, adopt, doctor | End-to-end flows against the real binary |
 
 ## What is proved in core {core_version}
 
-The `proofs` release gate uses [Charon and Aeneas](https://github.com/AeneasVerif/aeneas) to translate the dependency-free Rust crate `gripsack-kernel` to Lean 4. It rejects drift from the checked-in translation, builds the proofs, and [audits the kernel theorems](https://github.com/gripsack-dev/gripsack/blob/{release_source}/proofs/Audit.lean) for axioms beyond `propext`, `Classical.choice` and `Quot.sound`. Deliberately broken variants of the Rust must fail their designated proofs. The gate covers the kernel's decisions, not the compiled binary or its host drivers.
+The `proofs` release gate uses [Charon and Aeneas](https://github.com/AeneasVerif/aeneas) to translate the dependency-free Rust crate `gripsack-kernel` to Lean 4. It rejects drift from the checked-in translation, builds the proofs, and [audits their transitive axioms](https://github.com/gripsack-dev/gripsack/blob/{release_source}/proofs/Audit.lean) against `propext`, `Classical.choice` and `Quot.sound`. Deliberately broken variants must fail their designated theorems. The filesystem model is checked in Lean; the compiled binary, host driver and physical disk are not.
 
 **Commit classification.** After an interruption, recovery compares three selection identities: `current`, the recorded `previous` and the recorded `target` of the interrupted transaction.
 
@@ -45,6 +45,14 @@ A higher generation number never grants commit authority; only identity does. Ea
 **Rollback.** A whole-file restore must install the target generation's recorded identity (bytes and mode, or link target), from retained content, only over absence or gripsack's own write. The machine never commands a restore inside a published generation. It counts the unit as restored only when the host observes that identity, and switches under a fresh transaction only after every supplied unit is settled. If the host cannot reproduce the target identity for a required write, rollback refuses before the switch.
 
 The [verified-foundation RFC](https://github.com/gripsack-dev/gripsack/blob/{release_source}/docs/rfcs/2026-11-08-verified-foundation.md) includes both implementation records and future goals. For what shipped, see the [proof sources](https://github.com/gripsack-dev/gripsack/tree/{release_source}/proofs) and [kernel](https://github.com/gripsack-dev/gripsack/tree/{release_source}/crates/gripsack-kernel). In [0.57](changelog.md), debug and release builds use the same recovery machine. Removing the old debug route does not add a theorem about filesystem behavior.
+
+### What has to survive a crash?
+
+Suppose a leaf file is about to be replaced. Recovery needs the marker for **this transaction**, the entry for **this destination**, and the original content named by that entry. A file sync alone can leave complete bytes with no durable name. A directory sync alone can leave the right name pointing to incomplete bytes.
+
+Core 0.58 [proves that the evidence is readable](https://github.com/gripsack-dev/gripsack/blob/{release_source}/proofs/Protocol/Leaf.lean) **before the write**: after process death and in every power-loss image allowed by the model. If a run writes the same file twice, both the original prior and the immediate before-image remain recoverable at that cut. Killing the process is not a disk test: the next process can still see unsynced writes in the page cache. Whether recovery can later retire evidence after seeing an [unsynced user edit](https://github.com/gripsack-dev/gripsack/issues/364) remains open.
+
+The power-loss question applies to disk-backed filesystems that honor the file and directory sync assumptions. On tmpfs, killing a process leaves its files visible, but reboot discards them. In WSL2, distinguish the guest filesystem from a mounted Windows volume: the latter does not automatically provide the same persistence or name matching.
 
 ## What is tested, not proved
 

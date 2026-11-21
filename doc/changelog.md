@@ -2,6 +2,10 @@
 
 User-visible changes per release. The [full changelog](https://github.com/gripsack-dev/gripsack/blob/{release_source}/CHANGELOG.md) and [release downloads](https://github.com/gripsack-dev/gripsack/releases) live with the source. This site documents core **{core_version}**.
 
+## 0.58.0 — Durable journal evidence
+
+Before apply or rollback changes a journaled leaf, [the marker, entry and any required prior blob survive both modeled crash kinds](guarantees.md#what-has-to-survive-a-crash). Removing a required file or directory sync admits a counterexample. This strengthens what is proved; it does not change the journal format or promise that every recovery completes.
+
 ## 0.57.0 — Reliable previews and recovery
 
 - [Initialize and adopt](workspaces.md) without losing track of the files you own. Init is retryable after a scaffold collision; adoption stops before generating files if it cannot inventory the target completely or represent a filename exactly.

@@ -43,7 +43,7 @@ Follow a single write through the rings. The kernel compares what the last gener
 | Ring | Responsibility in the release | Evidence |
 |---|---|---|
 | Kernel | `gripsack-kernel`: pure decisions about identity, ownership, retention and lock publication | Lean 4 theorems over a translation of the Rust |
-| Protocol | Apply, rollback, recovery, GC, journal and activation machines also live in the kernel; drivers supply observations and execute commands | Lean theorems about machine decisions and ordering; crash-injection tests of machines running together |
+| Protocol | Apply, rollback, recovery, GC, journal and activation machines also live in the kernel; drivers supply observations and execute commands | Lean proves machine decisions and ordering, and that journaled leaf evidence survives modeled crashes at mutation admission. Crash-injection tests exercise recovery. |
 | Host | `gripsack-host`: filesystem and process operations, locks, store formats, journal and recovery drivers; `gripsack-exec` wires operations into the product | Fault injection, persistence tests and integration tests; filesystem behavior is assumed, not proved |
 | Edge | Workspace evaluation and IR admission, fetchers, Conda, Docker and systemd | Sandboxing, typed validation, digest checks and tests of the adapters |
 | Product | `grip`: plan, apply, review and the other commands you run | End-to-end CLI flows and release-checked example workspaces |
