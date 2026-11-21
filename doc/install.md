@@ -32,7 +32,7 @@ grip doctor
 Keep that versioned directory on your shell's `PATH`. This leaves an existing
 installation intact rather than replacing a binary used by managed launchers.
 
-Checksums detect corruption, not tampering. The signed installer (`install.sh`) and `grip self-update` need signed release metadata; when a release ships without it, use the manual steps above.
+Releases are unsigned. Both `install.sh` and `grip self-update` for release installs verify the tarball against the release's SHA-256 sidecar before replacement. That detects a corrupt download; it is not an independent publisher signature.
 
 Keep the installed path stable: profile launchers record the absolute core location and private state path. If you move the binary, restore its location or reapply profiles using the replacement installation.
 

@@ -29,7 +29,16 @@ grip task status "$invocation"
 grip task log "$invocation"
 ```
 
-Status reads the durable receipt; log reads bounded private stdout/stderr output. Review logs for private information before sharing them.
+`status` and `log` look up that ID in the current Gripsack state home. Neither
+needs a checkout, evaluates a workspace, or clones a repository. Both ignore
+`--repo`, even if the named checkout no longer exists. `list` and `plan`
+still inspect a local workspace, and `run` still resolves its repository.
+
+The saved log is bounded: if any output was omitted, human `status` and
+`log` warn on **stderr**, not in the log text on stdout. For automation, read
+`logs_truncated` from `task status --json` or `truncated` from `task log
+--json`. The warning does not change the task outcome. Review private
+stdout/stderr before sharing it.
 
 Since core 0.56, ordinary `grip task run` labels each dependency's steps and
 postcondition checks on stderr as they start and finish. Child stdout streams
@@ -43,6 +52,69 @@ status lines. `--json` keeps its structured stdout and bounded log behavior.
 shows the full captured block, and failures show their captured output. Capture
 is per verification, not across the entire apply. Piped/`NO_COLOR` metadata is
 plain; a tool's own raw task stdout may still contain its own formatting.
+
+## Archiving task history
+
+Each invocation needs two entries in `task-invocations`: `<id>.json` and
+`<id>.log`. New invocations are refused when those entries would take the
+directory over 10,000 entries. Nothing is pruned. To make room, archive
+completed pairs you no longer need in online task or scheduled-job history.
+
+Work as the owner of the private state home, without other operators moving
+or restoring history. Select **one** exact ID from a previous run or a
+receipt filename. An eligible version-1 receipt must be readable with
+`grip task status <id> --json`, match its filename, have `root_retained:
+false`, and have a terminal status: `succeeded`, `failed`, `blocked`,
+`cancelled` or `skipped-busy`. Require the matching readable regular log,
+even if it is empty. **Leave everything else in place**: running work is
+recorded as `indeterminate`, and that same status can outlive the process.
+Age, a vanished PID, and a nonzero status-command exit code are not evidence
+of completion. Never move a retained root, an incomplete pair, a symlink,
+a malformed or unfamiliar record, or any lock, process root or staging data.
+
+With Bash and `jq`, set `invocation` to the ID you reviewed. This example
+checks the pair, then moves just those two files into a **new private
+sibling directory** on the same filesystem:
+
+```bash
+(
+  set -eu
+  umask 077
+  home=${GRIPSACK_HOME:-"${XDG_DATA_HOME:-"$HOME/.local/share"}/gripsack"}
+  id=${invocation:?set invocation to the exact reviewed invocation ID}
+  [[ $id =~ ^[0-9a-f]{64}$ ]] || exit 1
+  base="$home/task-invocations/$id"
+  for path in "$base.json" "$base.log"; do
+    [[ -f $path && ! -L $path ]] || exit 1
+  done
+  # status returns the recorded outcome, not just lookup success.
+  record=$(grip task status "$id" --json) || case $? in
+    1|3|75|130) ;; *) exit 1 ;; esac
+  jq -e --arg id "$id" '
+    .version == 1 and .invocation == $id and .root_retained == false and
+    (.status as $s | ["succeeded","failed","blocked","cancelled","skipped-busy"] | index($s) != null)
+    and all(.nodes[]; .status != "indeterminate")
+  ' <<< "${record:?no validated receipt}" >/dev/null || exit 1
+  grip task log "$id" >/dev/null || exit 1
+  archive=$(mktemp -d "$home/task-archive.XXXXXXXX") || exit 1
+  printf 'Archive destination: %s\n' "$archive"
+  archive_dev=$(stat -c %d -- "$archive") || exit 1
+  for path in "$base.json" "$base.log"; do
+    source_dev=$(stat -c %d -- "$path") || exit 1
+    [[ $source_dev == "$archive_dev" ]] || exit 1
+  done
+  mv "$base.json" "$base.log" "$archive/"
+)
+```
+
+Keep the archive private; these are the original bytes, not sanitized terminal
+output. The two moves are not atomic as a pair. If interrupted, stop and
+locate both halves at the printed destination and their original paths before
+retrying. Never overwrite a file or discard an unmatched half. After both
+files move, their two slots are available to a new invocation. The archived
+ID is no longer available through `grip task status`/`log` or scheduled
+history in that store. If no pair qualifies, do not force admission by moving
+unknown evidence.
 
 ## Dependencies and mutation
 

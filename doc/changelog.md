@@ -2,6 +2,13 @@
 
 User-visible changes per release. The [full changelog](https://github.com/gripsack-dev/gripsack/blob/{release_source}/CHANGELOG.md) and [release downloads](https://github.com/gripsack-dev/gripsack/releases) live with the source. This site documents core **{core_version}**.
 
+## 0.57.0 — Reliable previews and recovery
+
+- [Initialize and adopt](workspaces.md) without losing track of the files you own. Init is retryable after a scaffold collision; adoption stops before generating files if it cannot inventory the target completely or represent a filename exactly.
+- [`grip update --check`](fetchers.md#update-deliberately) leaves the lock and store unchanged during a Pixi survey. Missing signed bundles and missing local projections have different next steps. GC dry runs describe planned removals; rollback names unreadable history and labels preserved edits as warnings.
+- [Diagnostic logs](runs.md#privacy-and-retention) are private. The newest 100 completed managed logs are kept; active logs and `latest` are protected. [Task history](tasks.md#archiving-task-history) is separate: inspect receipts without the checkout, see when a log was truncated, and archive completed pairs without discarding indeterminate work.
+- The SDK catches more mistakes at declaration or emission time: invalid bindings, incompatible runtime package targets and layouts, conflicting file ownership and invalid service or ecosystem inputs. Tree filters use segment prefixes, not globs; artifact release tokens remain supported. No IR11 migration is required.
+
 ## 0.56.1 — Safer adoption cleanup
 
 `grip adopt` distinguishes the files it created from the existing workspace it edited. After an interrupted copy, the cleanup list includes any partially written payload file, not files it never reached. See [guided adoption](adopting.md#guided-adoption) for how to abandon before applying.

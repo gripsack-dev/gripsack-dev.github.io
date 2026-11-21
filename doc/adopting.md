@@ -54,6 +54,8 @@ export default defineWorkspace(() => workspace({ outputs: [dotfiles] }));
 
 `repoTree` can select literal relative prefixes with `include` and `exclude`; these are **not globs**. Each expanded file is owned separately. Foreign siblings are not replaced, and safe internal aliases use captured target bytes. Whole-source capture rejects escapes and cycles before tree selection; use [capture exclusions](settings.md#source-capture) for irrelevant unsafe trees.
 
+For `repoTree`, `inputDirectory` and `artifactTree`, use `include: ["bin"]` to select `bin` and its descendants, not `binary`; `exclude: ["bin/debug"]` removes that subtree. Neither list accepts `*`, `?`, bracket classes or brace alternatives. Only artifact selectors accept the [locked release and platform placeholders](#package-artifacts-and-launchers) described below.
+
 ## Adopt existing files deliberately
 
 Copy the configuration you want to keep into the workspace source first. Declare its file policy, then run:

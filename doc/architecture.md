@@ -12,6 +12,12 @@ One binary, `grip`, with the TypeScript frontend embedded. It evaluates your wor
 
 The public authoring surface is `gripsack.ts` and `@gripsack/core`. The IR is an internal contract; you never write it by hand.
 
+The SDK reports graph mistakes at their declarations, before the core plans anything. A task or hook has no package source or writable staging output. A package check can read its subject with `sourcePath(...)`; a check explicitly attached to a profile file can use `sourcePath(".")` as data, not as a working directory.
+
+Package runtime dependencies and the packages selected by an environment must match the consumer's OS, architecture and ABI, and must not require a newer OS. An artifact referenced only in an environment variable supplies a path to data, not an executable: it need not match that target. Install-prefix rules still apply. Conda and Pixi packages derive their install prefix from the frozen lock; an environment cannot override it.
+
+For literal profile files, the SDK uses IR10's case-insensitive comparison of destination paths and managed-block markers, even on Linux. Two distinct markers may share one path; a whole-file declaration cannot share it. This is a declaration rule, not a filesystem probe: tree expansion and physical aliases such as symlinks still require the core.
+
 ## Sources, packages and the store
 
 Sources (`githubRelease`, `tarball`, `git`, `conda.environment`, `pixi.fromLock`, …) describe where bytes come from. `grip update` resolves them and records platform-keyed pins in `gripsack.lock`; that lockfile is the only source of versions at apply time. Downloads are hashed into private spools, verified, bounded, extracted and sealed read-only in the store before they get a final name.

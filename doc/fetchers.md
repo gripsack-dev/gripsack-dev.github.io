@@ -12,6 +12,7 @@ A source says where a package's bytes come from. `grip update` resolves sources 
 | `githubRelease({ repo, asset, version? })` | A release asset | Resolved release and verified asset hash |
 | `conda.environment(...)` | One coherent native Conda solve | Complete selected archive closure and policy |
 | `pixi.fromLock(...)` | An explicit captured manifest/lock import | Selected external locked environment |
+| `source.package({ manifest })` | A signed bundle already imported on this machine | Portable manifest digest |
 
 Use [packages](packages.md) for a complete archive example and [environments](environments.md) for Conda and Pixi declarations. Platform support is Linux x86_64 and WSL2, not every platform represented by upstream metadata.
 
@@ -28,7 +29,9 @@ grip update
 
 `grip update` resolves and verifies sources, records complete platform-keyed pins and captures frontend/import identities. It does not run activation hooks or deploy destinations. Review the lock diff and renew exact source/policy approval when required before the next frozen consumer.
 
-A changed Pixi manifest or lock must be imported explicitly with `grip update`; that operation does not re-solve or rewrite the external lock. Use your Pixi workflow first when you intend to change packages.
+A Pixi survey privately reads both declared inputs and verifies the selected archives without retaining new inputs or writing either lockfile. `grip update` retains the manifest, external lock and verified archives and records their identities in `gripsack.lock`. It does not re-solve or rewrite the external lock. Use your Pixi workflow first when you intend to change packages.
+
+If `source.package` names a bundle that is not imported here, run `grip package import --bundle <path>` first; `grip update` cannot fetch it. If the signed environment is already imported but its local command projection is missing, run `grip update` to create that projection. `--check` does neither.
 
 ## Asset selection
 

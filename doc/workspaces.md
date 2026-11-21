@@ -16,6 +16,8 @@ grip apply hello
 
 `init` writes a root `gripsack.ts`, a file-only `hello` profile that deploys under `~/.config/hello/`, sample configuration and editor settings. The first `grip check` asks you to approve the captured source; `grip plan` shows every file that would change; `grip apply` makes generation 1. Replace the sample with the files or packages you actually want.
 
+In an existing directory, `init` keeps regular files such as your `README.md` and refuses to replace an existing `gripsack.ts` or `env.toml`. If a template path is blocked (for example, `configs` is a file), move the conflicting item somewhere safe and rerun `grip init` with the same target. You do not need to delete the directory or the starter files already written. Git setup is optional: if `git init` fails, the workspace files are still ready to use.
+
 ## Or write it by hand
 
 <!-- example: examples/workspaces/05-first-workspace/gripsack.ts -->

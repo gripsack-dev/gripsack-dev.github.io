@@ -109,6 +109,8 @@ Some tools locate resources through their resolved executable pathname. A manage
 
 ## More producers and consumers
 
+Conda channels and MatchSpecs and the three `pixi.fromLock` names must be nonempty, without surrounding whitespace or control characters. Fix a pasted value rather than relying on trimming. List each Conda platform only once. A hash-pinned wheel URL must start with literal `https://`, use forward slashes, and end in an unescaped `.whl` filename; credentials, query strings and fragments are not allowed.
+
 - [Native Conda and explicit Pixi imports](environments.md)
 - [Sources, authentication and lock updates](fetchers.md)
 - [Managed launchers](environments.md#personal-launchers)
