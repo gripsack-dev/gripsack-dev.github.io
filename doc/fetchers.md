@@ -27,6 +27,8 @@ grip update
 
 `--check` surveys without publishing sources or writing `gripsack.lock`. Exit 0 means complete/current, 1 means complete with changes, and 2 means incomplete or operational failure. Network access, evaluator provisioning and run logging can still occur.
 
+A missing repository-local source fails that output, not the whole survey: the other selected outputs still report whether they would change. An unreadable lock is different; the survey cannot start.
+
 `grip update` resolves and verifies sources, records complete platform-keyed pins and captures frontend/import identities. It does not run activation hooks or deploy destinations. Review the lock diff and renew exact source/policy approval when required before the next frozen consumer.
 
 A Pixi survey privately reads both declared inputs and verifies the selected archives without retaining new inputs or writing either lockfile. `grip update` retains the manifest, external lock and verified archives and records their identities in `gripsack.lock`. It does not re-solve or rewrite the external lock. Use your Pixi workflow first when you intend to change packages.
