@@ -85,6 +85,9 @@
 <li><strong>Plan.</strong> The core compares the desired state with what is live. For a <a href="../docs/tasks.html#typed-artifact-selectors">typed artifact selector</a>, it shows the concrete path from the referenced package's lock in text and JSON (<code>resolved_paths</code>). Planning doesn't fetch the payload or claim that the path exists inside it.</li>
 </ol>
 <p>The public authoring surface is <code>gripsack.ts</code> and <code>@gripsack/core</code>. The IR is an internal contract; you never write it by hand.</p>
+<p>The SDK reports graph mistakes at their declarations, before the core plans anything. A task or hook has no package source or writable staging output. A package check can read its subject with <code>sourcePath(...)</code>; a check explicitly attached to a profile file can use <code>sourcePath(".")</code> as data, not as a working directory.</p>
+<p>Package runtime dependencies and the packages selected by an environment must match the consumer's OS, architecture and ABI, and must not require a newer OS. An artifact referenced only in an environment variable supplies a path to data, not an executable: it need not match that target. Install-prefix rules still apply. Conda and Pixi packages derive their install prefix from the frozen lock; an environment cannot override it.</p>
+<p>For literal profile files, the SDK uses IR10's case-insensitive comparison of destination paths and managed-block markers, even on Linux. Two distinct markers may share one path; a whole-file declaration cannot share it. This is a declaration rule, not a filesystem probe: tree expansion and physical aliases such as symlinks still require the core.</p>
 <h2 id="sources-packages-and-the-store">Sources, packages and the store</h2>
 <p>Sources (<code>githubRelease</code>, <code>tarball</code>, <code>git</code>, <code>conda.environment</code>, <code>pixi.fromLock</code>, …) describe where bytes come from. <code>grip update</code> resolves them and records platform-keyed pins in <code>gripsack.lock</code>; that lockfile is the only source of versions at apply time. Downloads are hashed into private spools, verified, bounded, extracted and sealed read-only in the store before they get a final name.</p>
 <p>A <strong>package</strong> gives a source a target platform, a layout, commands and runtime dependencies. <strong>Environments</strong>, <strong>profiles</strong> and <strong>tasks</strong> all select the same package declarations. Invocation re-admits the package's runtime closure each time rather than trusting whatever is on <code>PATH</code>.</p>
@@ -167,7 +170,7 @@
 </table>
 <p><a href="../docs/guarantees.html">How gripsack stays safe</a> spells out what each ring guarantees and what it does not.</p>
 <h2 id="where-the-implementation-lives">Where the implementation lives</h2>
-<p>The <a href="https://github.com/gripsack-dev/gripsack/tree/1980d2c94877c841eac07a888517cba24057dbd8/crates">core crates</a>, the <a href="https://github.com/gripsack-dev/gripsack/tree/1980d2c94877c841eac07a888517cba24057dbd8/typescript">TypeScript SDK</a>, the <a href="https://github.com/gripsack-dev/gripsack/tree/1980d2c94877c841eac07a888517cba24057dbd8/proofs">proofs</a> and the <a href="https://github.com/gripsack-dev/gripsack/tree/1980d2c94877c841eac07a888517cba24057dbd8/plan">design records</a> are all in one repository.</p>
+<p>The <a href="https://github.com/gripsack-dev/gripsack/tree/4188ed1034c63940bbf27b21fd5016e8de76c29e/crates">core crates</a>, the <a href="https://github.com/gripsack-dev/gripsack/tree/4188ed1034c63940bbf27b21fd5016e8de76c29e/typescript">TypeScript SDK</a>, the <a href="https://github.com/gripsack-dev/gripsack/tree/4188ed1034c63940bbf27b21fd5016e8de76c29e/proofs">proofs</a> and the <a href="https://github.com/gripsack-dev/gripsack/tree/4188ed1034c63940bbf27b21fd5016e8de76c29e/plan">design records</a> are all in one repository.</p>
 </article>
 <footer>
   <span>© 2026 <a href="https://github.com/tknawara">Tarek Nawara</a></span>
@@ -175,7 +178,7 @@
   <a href="https://github.com/gripsack-dev">gripsack-dev</a>
   <a href="https://github.com/gripsack-dev/gripsack">source</a>
   <a href="../index.html">home</a>
-  <span class="fversion">v0.56.1</span>
+  <span class="fversion">v0.57.0</span>
 </footer>
 </main>
 </div>

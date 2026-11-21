@@ -138,6 +138,7 @@ export default defineWorkspace(() =&gt; workspace({ outputs: [dotfiles] }));
 </code></pre>
 <p><code>templateFile</code> renders the captured body once; you do not duplicate it inside TypeScript. Source executability survives rendering. <code>literalText</code> has no executable source and produces a 0644 file; <code>file</code> has no arbitrary mode option.</p>
 <p><code>repoTree</code> can select literal relative prefixes with <code>include</code> and <code>exclude</code>; these are <strong>not globs</strong>. Each expanded file is owned separately. Foreign siblings are not replaced, and safe internal aliases use captured target bytes. Whole-source capture rejects escapes and cycles before tree selection; use <a href="../docs/settings.html#source-capture">capture exclusions</a> for irrelevant unsafe trees.</p>
+<p>For <code>repoTree</code>, <code>inputDirectory</code> and <code>artifactTree</code>, use <code>include: ["bin"]</code> to select <code>bin</code> and its descendants, not <code>binary</code>; <code>exclude: ["bin/debug"]</code> removes that subtree. Neither list accepts <code>*</code>, <code>?</code>, bracket classes or brace alternatives. Only artifact selectors accept the <a href="#package-artifacts-and-launchers">locked release and platform placeholders</a> described below.</p>
 <h2 id="adopt-existing-files-deliberately">Adopt existing files deliberately</h2>
 <p>Copy the configuration you want to keep into the workspace source first. Declare its file policy, then run:</p>
 <pre><code class="language-sh">grip check
@@ -184,7 +185,7 @@ grip rollback
   <a href="https://github.com/gripsack-dev">gripsack-dev</a>
   <a href="https://github.com/gripsack-dev/gripsack">source</a>
   <a href="../index.html">home</a>
-  <span class="fversion">v0.56.1</span>
+  <span class="fversion">v0.57.0</span>
 </footer>
 </main>
 </div>

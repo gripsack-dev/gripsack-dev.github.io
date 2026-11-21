@@ -158,12 +158,13 @@ export default defineWorkspace(() =&gt; workspace({ outputs: [sops, secrets, too
 <p>A Linux GNU package can explicitly opt into reviewed host libraries with <code>hostRuntime: { libraryDirectories: ["/opt/vendor/lib64"] }</code>. Those directories remain mutable trusted host inputs, not portable package content. See <a href="../docs/safety.html#host-libraries-and-launchers">runtime safety</a>.</p>
 <p>Some tools locate resources through their resolved executable pathname. A managed launcher does not promise the original <code>/proc/self/exe</code> pathname. For tools requiring a real sibling tree, use an explicit tracked-copy deployment and captured executable wrapper rather than assuming a launcher can repair the upstream layout. <a href="../docs/adopting.html#choose-file-ownership">File policies</a> explain the difference.</p>
 <h2 id="more-producers-and-consumers">More producers and consumers</h2>
+<p>Conda channels and MatchSpecs and the three <code>pixi.fromLock</code> names must be nonempty, without surrounding whitespace or control characters. Fix a pasted value rather than relying on trimming. List each Conda platform only once. A hash-pinned wheel URL must start with literal <code>https://</code>, use forward slashes, and end in an unescaped <code>.whl</code> filename; credentials, query strings and fragments are not allowed.</p>
 <ul>
 <li><a href="../docs/environments.html">Native Conda and explicit Pixi imports</a></li>
 <li><a href="../docs/fetchers.html">Sources, authentication and lock updates</a></li>
 <li><a href="../docs/environments.html#personal-launchers">Managed launchers</a></li>
 <li><a href="../docs/sharing.html">Native artifact sharing</a></li>
-<li><a href="https://github.com/gripsack-dev/gripsack/blob/1980d2c94877c841eac07a888517cba24057dbd8/typescript/README.md">SDK package contracts</a></li>
+<li><a href="https://github.com/gripsack-dev/gripsack/blob/4188ed1034c63940bbf27b21fd5016e8de76c29e/typescript/README.md">SDK package contracts</a></li>
 </ul>
 </article>
 <footer>
@@ -172,7 +173,7 @@ export default defineWorkspace(() =&gt; workspace({ outputs: [sops, secrets, too
   <a href="https://github.com/gripsack-dev">gripsack-dev</a>
   <a href="https://github.com/gripsack-dev/gripsack">source</a>
   <a href="../index.html">home</a>
-  <span class="fversion">v0.56.1</span>
+  <span class="fversion">v0.57.0</span>
 </footer>
 </main>
 </div>

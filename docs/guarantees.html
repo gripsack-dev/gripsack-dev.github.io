@@ -62,7 +62,7 @@
   <span class="rail-head">on this page</span>
   <div class="rail-toc">
     <a href="#the-idea-rings">The idea: rings</a>
-    <a href="#what-is-proved-in-core-0561">What is proved in core 0.56.1</a>
+    <a href="#what-is-proved-in-core-0570">What is proved in core 0.57.0</a>
     <a href="#what-is-tested-not-proved">What is tested, not proved</a>
     <a href="#what-is-assumed">What is assumed</a>
     <a href="#what-is-not-claimed">What is not claimed</a>
@@ -147,8 +147,8 @@
 </tr>
 </tbody>
 </table>
-<h2 id="what-is-proved-in-core-0561">What is proved in core 0.56.1</h2>
-<p>The <code>proofs</code> release gate uses <a href="https://github.com/AeneasVerif/aeneas">Charon and Aeneas</a> to translate the dependency-free Rust crate <code>gripsack-kernel</code> to Lean 4. It rejects drift from the checked-in translation, builds the proofs, and <a href="https://github.com/gripsack-dev/gripsack/blob/1980d2c94877c841eac07a888517cba24057dbd8/proofs/Audit.lean">audits the kernel theorems</a> for axioms beyond <code>propext</code>, <code>Classical.choice</code> and <code>Quot.sound</code>. Deliberately broken variants of the Rust must fail their designated proofs. The gate covers the kernel's decisions, not the compiled binary or its host drivers.</p>
+<h2 id="what-is-proved-in-core-0570">What is proved in core 0.57.0</h2>
+<p>The <code>proofs</code> release gate uses <a href="https://github.com/AeneasVerif/aeneas">Charon and Aeneas</a> to translate the dependency-free Rust crate <code>gripsack-kernel</code> to Lean 4. It rejects drift from the checked-in translation, builds the proofs, and <a href="https://github.com/gripsack-dev/gripsack/blob/4188ed1034c63940bbf27b21fd5016e8de76c29e/proofs/Audit.lean">audits the kernel theorems</a> for axioms beyond <code>propext</code>, <code>Classical.choice</code> and <code>Quot.sound</code>. Deliberately broken variants of the Rust must fail their designated proofs. The gate covers the kernel's decisions, not the compiled binary or its host drivers.</p>
 <p><strong>Commit classification.</strong> After an interruption, recovery compares three selection identities: <code>current</code>, the recorded <code>previous</code> and the recorded <code>target</code> of the interrupted transaction.</p>
 <ul>
 <li><em>Committed</em> if and only if <code>current</code> equals <code>target</code>.</li>
@@ -164,7 +164,7 @@
 <p><strong>Activation.</strong> Before each hook, the machine requires a durable start record and an observation that its generation is still current. If a hook switches generations, the next hook in the superseded batch is not launched. This governs dispatch, not what a hook does. The kernel allocates generation numbers above the durable high-water mark and does not authorize publishing the same generation twice.</p>
 <p><strong>Updates.</strong> <code>grip update</code> writes a lock only when every selected package was checked, none failed and something changed; each package is counted exactly once.</p>
 <p><strong>Rollback.</strong> A whole-file restore must install the target generation's recorded identity (bytes and mode, or link target), from retained content, only over absence or gripsack's own write. The machine never commands a restore inside a published generation. It counts the unit as restored only when the host observes that identity, and switches under a fresh transaction only after every supplied unit is settled. If the host cannot reproduce the target identity for a required write, rollback refuses before the switch.</p>
-<p>The <a href="https://github.com/gripsack-dev/gripsack/blob/1980d2c94877c841eac07a888517cba24057dbd8/docs/rfcs/2026-11-08-verified-foundation.md">verified-foundation RFC</a> includes both implementation records and future goals. For what shipped, see the <a href="https://github.com/gripsack-dev/gripsack/tree/1980d2c94877c841eac07a888517cba24057dbd8/proofs">proof sources</a> and <a href="https://github.com/gripsack-dev/gripsack/tree/1980d2c94877c841eac07a888517cba24057dbd8/crates/gripsack-kernel">kernel</a>. The <a href="../docs/changelog.html">0.56 releases</a> changed typed path resolution, task output and adoption advice, not kernel transitions or proof premises.</p>
+<p>The <a href="https://github.com/gripsack-dev/gripsack/blob/4188ed1034c63940bbf27b21fd5016e8de76c29e/docs/rfcs/2026-11-08-verified-foundation.md">verified-foundation RFC</a> includes both implementation records and future goals. For what shipped, see the <a href="https://github.com/gripsack-dev/gripsack/tree/4188ed1034c63940bbf27b21fd5016e8de76c29e/proofs">proof sources</a> and <a href="https://github.com/gripsack-dev/gripsack/tree/4188ed1034c63940bbf27b21fd5016e8de76c29e/crates/gripsack-kernel">kernel</a>. In <a href="../docs/changelog.html">0.57</a>, debug and release builds use the same recovery machine. Removing the old debug route does not add a theorem about filesystem behavior.</p>
 <h2 id="what-is-tested-not-proved">What is tested, not proved</h2>
 <p>These guarantees depend on more than a decision over typed inputs:</p>
 <ul>
@@ -184,7 +184,7 @@
 <li><strong>S6</strong> The host must identify equivalent destination names consistently. It detects case-only aliases that resolve to one object (as on WSL's <code>/mnt/c</code>); names a filesystem equates only after Unicode normalization are not detected.</li>
 <li><strong>S7</strong> Equal SHA-256 digests mean equal bytes.</li>
 </ul>
-<p><strong>Directory premise D.</strong> A directory step changes only the namespace named by its receipt and journals before its first change. A “settled” result means the recorded shape is in place; an interrupted or refused change must be recoverable through its journal. The <a href="https://github.com/gripsack-dev/gripsack/blob/1980d2c94877c841eac07a888517cba24057dbd8/crates/gripsack-kernel/src/directory.rs">directory fence</a> relies on this host contract; the Lean proof does not establish it.</p>
+<p><strong>Directory premise D.</strong> A directory step changes only the namespace named by its receipt and journals before its first change. A “settled” result means the recorded shape is in place; an interrupted or refused change must be recoverable through its journal. The <a href="https://github.com/gripsack-dev/gripsack/blob/4188ed1034c63940bbf27b21fd5016e8de76c29e/crates/gripsack-kernel/src/directory.rs">directory fence</a> relies on this host contract; the Lean proof does not establish it.</p>
 <p>The proof chain also trusts the Charon/Aeneas translation and Lean's kernel. Running the resulting program adds the Rust compiler, the Linux kernel and the host hardware to that trust boundary.</p>
 <h2 id="what-is-not-claimed">What is not claimed</h2>
 <ul>
@@ -203,7 +203,7 @@
   <a href="https://github.com/gripsack-dev">gripsack-dev</a>
   <a href="https://github.com/gripsack-dev/gripsack">source</a>
   <a href="../index.html">home</a>
-  <span class="fversion">v0.56.1</span>
+  <span class="fversion">v0.57.0</span>
 </footer>
 </main>
 </div>

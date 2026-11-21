@@ -61,6 +61,7 @@
   </details>
   <span class="rail-head">on this page</span>
   <div class="rail-toc">
+    <a href="#0570-reliable-previews-and-recovery">0.57.0 — Reliable previews and recovery</a>
     <a href="#0561-safer-adoption-cleanup">0.56.1 — Safer adoption cleanup</a>
     <a href="#0560-typed-artifact-selectors-and-live-task-output">0.56.0 — Typed artifact selectors and live task output</a>
     <a href="#0550-locked-release-payload-paths">0.55.0 — Locked-release payload paths</a>
@@ -77,7 +78,14 @@
 <p class="doc-eyebrow">Gripsack / documentation</p>
 <article class="md">
 <h1 id="whats-new">What's new</h1>
-<p>User-visible changes per release. The <a href="https://github.com/gripsack-dev/gripsack/blob/1980d2c94877c841eac07a888517cba24057dbd8/CHANGELOG.md">full changelog</a> and <a href="https://github.com/gripsack-dev/gripsack/releases">release downloads</a> live with the source. This site documents core <strong>0.56.1</strong>.</p>
+<p>User-visible changes per release. The <a href="https://github.com/gripsack-dev/gripsack/blob/4188ed1034c63940bbf27b21fd5016e8de76c29e/CHANGELOG.md">full changelog</a> and <a href="https://github.com/gripsack-dev/gripsack/releases">release downloads</a> live with the source. This site documents core <strong>0.57.0</strong>.</p>
+<h2 id="0570-reliable-previews-and-recovery">0.57.0 — Reliable previews and recovery</h2>
+<ul>
+<li><a href="../docs/workspaces.html">Initialize and adopt</a> without losing track of the files you own. Init is retryable after a scaffold collision; adoption stops before generating files if it cannot inventory the target completely or represent a filename exactly.</li>
+<li><a href="../docs/fetchers.html#update-deliberately"><code>grip update --check</code></a> leaves the lock and store unchanged during a Pixi survey. Missing signed bundles and missing local projections have different next steps. GC dry runs describe planned removals; rollback names unreadable history and labels preserved edits as warnings.</li>
+<li><a href="../docs/runs.html#privacy-and-retention">Diagnostic logs</a> are private. The newest 100 completed managed logs are kept; active logs and <code>latest</code> are protected. <a href="../docs/tasks.html#archiving-task-history">Task history</a> is separate: inspect receipts without the checkout, see when a log was truncated, and archive completed pairs without discarding indeterminate work.</li>
+<li>The SDK catches more mistakes at declaration or emission time: invalid bindings, incompatible runtime package targets and layouts, conflicting file ownership and invalid service or ecosystem inputs. Tree filters use segment prefixes, not globs; artifact release tokens remain supported. No IR11 migration is required.</li>
+</ul>
 <h2 id="0561-safer-adoption-cleanup">0.56.1 — Safer adoption cleanup</h2>
 <p><code>grip adopt</code> distinguishes the files it created from the existing workspace it edited. After an interrupted copy, the cleanup list includes any partially written payload file, not files it never reached. See <a href="../docs/adopting.html#guided-adoption">guided adoption</a> for how to abandon before applying.</p>
 <h2 id="0560-typed-artifact-selectors-and-live-task-output">0.56.0 — Typed artifact selectors and live task output</h2>
@@ -145,7 +153,7 @@
   <a href="https://github.com/gripsack-dev">gripsack-dev</a>
   <a href="https://github.com/gripsack-dev/gripsack">source</a>
   <a href="../index.html">home</a>
-  <span class="fversion">v0.56.1</span>
+  <span class="fversion">v0.57.0</span>
 </footer>
 </main>
 </div>

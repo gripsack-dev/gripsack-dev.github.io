@@ -62,6 +62,7 @@
   <span class="rail-head">on this page</span>
   <div class="rail-toc">
     <a href="#where">Where</a>
+    <a href="#privacy-and-retention">Privacy and retention</a>
     <a href="#whats-inside">What's inside</a>
     <a href="#for-agents">For agents</a>
   </div>
@@ -87,6 +88,29 @@ to initialize logging can leave no run file.</p>
 printing an id for every command. <code>latest</code> identifies the most recently
 initialized log, not necessarily the last completed or failed command.
 Save the specific filename when comparing concurrent runs.</p>
+<h2 id="privacy-and-retention">Privacy and retention</h2>
+<p><code>grip</code> creates <code>runs/</code> at <strong>0700</strong> and each new log at <strong>0600</strong>, regardless of
+the caller's umask. It tightens an existing caller-owned <code>runs/</code> before
+writing. A symlink in place of the directory is refused, not followed.
+<code>latest</code> is replaced atomically with a symlink to a generated basename; a
+regular file at <code>latest</code> is left alone and logging does not start.</p>
+<p>At startup and normal command exit, Gripsack keeps the <strong>newest 100 completed
+logs</strong>, ordered by start time (run ID breaks ties). The current run, any
+other run whose writer still holds its log lock, and the target of <code>latest</code>
+are protected even outside that hundred. Killed writers release their locks;
+the next pruning pass can reclaim their logs. This is a count, not a limit
+on bytes or days. Save a private copy outside <code>runs/</code> if you need to keep a
+particular log longer.</p>
+<p>Only regular, singly linked files owned by the current user with a current
+run ID and its matching opening record are eligible. Other entries, including
+pre-0.57 logs, are neither removed nor counted. The tightened directory
+protects access through <code>runs/</code> to old logs, but their individual modes are
+unchanged; it cannot revoke an open descriptor or protect an outside copy.
+Older binaries use different names and do not participate in locking; they
+can still move <code>latest</code>. Locks coordinate Gripsack writers, not same-account
+tools that rename files during cleanup. Archive or remove old logs yourself
+after older writers have stopped. This policy never touches task-invocation
+receipts, journals or generations.</p>
 <h2 id="whats-inside">What's inside</h2>
 <p>Each line is a JSON event with <code>timestamp</code>, <code>level</code>, <code>fields.message</code> and,
 where emitted, <code>fields.code</code>. <code>span</code> describes the current span and <code>spans</code>
@@ -108,7 +132,7 @@ Keep journals, generation manifests and retained content intact when
 investigating a failed transition; see <a href="../docs/safety.html">safety</a>. Review logs for
 private paths or command details before sharing them.</p>
 <h2 id="for-agents">For agents</h2>
-<p>The <a href="https://github.com/gripsack-dev/gripsack/tree/1980d2c94877c841eac07a888517cba24057dbd8/skills/gripsack-debug">debugging skill</a>
+<p>The <a href="https://github.com/gripsack-dev/gripsack/tree/4188ed1034c63940bbf27b21fd5016e8de76c29e/skills/gripsack-debug">debugging skill</a>
 provides a debugging workflow and diagnostic references. See <a href="../docs/skills.html">skills</a>
 for installation. Give the agent the specific run log and the failing command,
 not only <code>latest</code>, which another command may replace. A completed evaluation is not a successful build or apply; read the
@@ -120,7 +144,7 @@ spans for the stage that actually failed.</p>
   <a href="https://github.com/gripsack-dev">gripsack-dev</a>
   <a href="https://github.com/gripsack-dev/gripsack">source</a>
   <a href="../index.html">home</a>
-  <span class="fversion">v0.56.1</span>
+  <span class="fversion">v0.57.0</span>
 </footer>
 </main>
 </div>

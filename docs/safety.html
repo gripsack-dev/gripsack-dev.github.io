@@ -195,6 +195,7 @@
 <li><strong>Foreign files.</strong> A file gripsack never wrote is refused. <code>grip plan --take-over</code> shows what adoption would do; <code>grip apply --take-over</code> journals the prior bytes and adopts the selected destinations only. It is not a general ownership transfer and does not cross workspaces.</li>
 </ul>
 <p><code>symlinkTo</code> links the destination to read-only store content; <code>managedBlock</code> reconciles one delimited section of a shared text file and leaves every byte outside the markers alone. See <a href="../docs/adopting.html">profiles and dotfiles</a> for choosing between them.</p>
+<p><strong>When a file becomes a directory.</strong> Inside a tree with a directory receipt, an unchanged managed file with no prior to restore can grow children: <code>plan</code> leaves the file alone, <code>apply</code> replaces it with the directory, and rolling back to the earlier generation restores the file. This does <strong>not</strong> apply to a taken-over file with a recorded prior, or to a blocking file Gripsack never managed. In either case <code>plan</code> and <code>apply</code> refuse before changing the deployed files or selecting a generation. Use a different destination for the child rather than trying to force the takeover.</p>
 <h2 id="rollback-retention-and-gc">Rollback, retention and GC</h2>
 <pre><code class="language-sh">grip generations
 grip rollback
@@ -240,7 +241,7 @@ grip check
   <a href="https://github.com/gripsack-dev">gripsack-dev</a>
   <a href="https://github.com/gripsack-dev/gripsack">source</a>
   <a href="../index.html">home</a>
-  <span class="fversion">v0.56.1</span>
+  <span class="fversion">v0.57.0</span>
 </footer>
 </main>
 </div>

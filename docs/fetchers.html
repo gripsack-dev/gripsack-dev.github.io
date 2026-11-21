@@ -115,6 +115,11 @@
 <td>An explicit captured manifest/lock import</td>
 <td>Selected external locked environment</td>
 </tr>
+<tr>
+<td><code>source.package({ manifest })</code></td>
+<td>A signed bundle already imported on this machine</td>
+<td>Portable manifest digest</td>
+</tr>
 </tbody>
 </table>
 <p>Use <a href="../docs/packages.html">packages</a> for a complete archive example and <a href="../docs/environments.html">environments</a> for Conda and Pixi declarations. Platform support is Linux x86_64 and WSL2, not every platform represented by upstream metadata.</p>
@@ -125,7 +130,8 @@ grip update
 </code></pre>
 <p><code>--check</code> surveys without publishing sources or writing <code>gripsack.lock</code>. Exit 0 means complete/current, 1 means complete with changes, and 2 means incomplete or operational failure. Network access, evaluator provisioning and run logging can still occur.</p>
 <p><code>grip update</code> resolves and verifies sources, records complete platform-keyed pins and captures frontend/import identities. It does not run activation hooks or deploy destinations. Review the lock diff and renew exact source/policy approval when required before the next frozen consumer.</p>
-<p>A changed Pixi manifest or lock must be imported explicitly with <code>grip update</code>; that operation does not re-solve or rewrite the external lock. Use your Pixi workflow first when you intend to change packages.</p>
+<p>A Pixi survey privately reads both declared inputs and verifies the selected archives without retaining new inputs or writing either lockfile. <code>grip update</code> retains the manifest, external lock and verified archives and records their identities in <code>gripsack.lock</code>. It does not re-solve or rewrite the external lock. Use your Pixi workflow first when you intend to change packages.</p>
+<p>If <code>source.package</code> names a bundle that is not imported here, run <code>grip package import --bundle &lt;path&gt;</code> first; <code>grip update</code> cannot fetch it. If the signed environment is already imported but its local command projection is missing, run <code>grip update</code> to create that projection. <code>--check</code> does neither.</p>
 <h2 id="asset-selection">Asset selection</h2>
 <p>GitHub asset patterns support <code>{version}</code>, <code>{version.bare}</code>, <code>{os}</code>, <code>{arch}</code>, <code>{arch.go}</code>, <code>{arch.x64}</code>, <code>{target}</code> and <code>{system}</code>. <code>{version}</code> preserves the exact resolved raw tag. <code>{version.bare}</code> removes exactly one leading lowercase <code>v</code>, not an uppercase <code>V</code> or additional leading <code>v</code>s; the lock keeps the actual tag. Direct archive URLs can use platform placeholders, not a version they have not resolved.</p>
 <p>Since core 0.55.0, package command <strong>values</strong>, <code>artifactFile</code> selectors and <code>artifactTree</code> include/exclude segment prefixes support those same tokens. They bind to that package's resolved/locked source, with the asset resolver's platform spellings, not a sibling's pin or a fresh upstream lookup. Omit <code>githubRelease.version</code> when you want <code>grip update</code> to advance the release: a lock-only update then advances the command and file/tree consumers without source edits. Payload selection uses the exact expanded spelling, with no asset-search fallback.</p>
@@ -146,7 +152,7 @@ grip update
   <a href="https://github.com/gripsack-dev">gripsack-dev</a>
   <a href="https://github.com/gripsack-dev/gripsack">source</a>
   <a href="../index.html">home</a>
-  <span class="fversion">v0.56.1</span>
+  <span class="fversion">v0.57.0</span>
 </footer>
 </main>
 </div>

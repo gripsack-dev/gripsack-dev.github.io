@@ -62,6 +62,7 @@
   <span class="rail-head">on this page</span>
   <div class="rail-toc">
     <a href="#manual-tasks">Manual tasks</a>
+    <a href="#archiving-task-history">Archiving task history</a>
     <a href="#dependencies-and-mutation">Dependencies and mutation</a>
     <a href="#literal-bash-bodies">Literal Bash bodies</a>
     <a href="#profile-file-checks">Profile file checks</a>
@@ -95,7 +96,15 @@ grip task run search-version --closed-stdin
 grip task status &quot;$invocation&quot;
 grip task log &quot;$invocation&quot;
 </code></pre>
-<p>Status reads the durable receipt; log reads bounded private stdout/stderr output. Review logs for private information before sharing them.</p>
+<p><code>status</code> and <code>log</code> look up that ID in the current Gripsack state home. Neither
+needs a checkout, evaluates a workspace, or clones a repository. Both ignore
+<code>--repo</code>, even if the named checkout no longer exists. <code>list</code> and <code>plan</code>
+still inspect a local workspace, and <code>run</code> still resolves its repository.</p>
+<p>The saved log is bounded: if any output was omitted, human <code>status</code> and
+<code>log</code> warn on <strong>stderr</strong>, not in the log text on stdout. For automation, read
+<code>logs_truncated</code> from <code>task status --json</code> or <code>truncated</code> from <code>task log
+--json</code>. The warning does not change the task outcome. Review private
+stdout/stderr before sharing it.</p>
 <p>Since core 0.56, ordinary <code>grip task run</code> labels each dependency's steps and
 postcondition checks on stderr as they start and finish. Child stdout streams
 immediately, including partial lines, and remains unchanged for pipelines.
@@ -107,10 +116,66 @@ status lines. <code>--json</code> keeps its structured stdout and bounded log be
 shows the full captured block, and failures show their captured output. Capture
 is per verification, not across the entire apply. Piped/<code>NO_COLOR</code> metadata is
 plain; a tool's own raw task stdout may still contain its own formatting.</p>
+<h2 id="archiving-task-history">Archiving task history</h2>
+<p>Each invocation needs two entries in <code>task-invocations</code>: <code>&lt;id&gt;.json</code> and
+<code>&lt;id&gt;.log</code>. New invocations are refused when those entries would take the
+directory over 10,000 entries. Nothing is pruned. To make room, archive
+completed pairs you no longer need in online task or scheduled-job history.</p>
+<p>Work as the owner of the private state home, without other operators moving
+or restoring history. Select <strong>one</strong> exact ID from a previous run or a
+receipt filename. An eligible version-1 receipt must be readable with
+<code>grip task status &lt;id&gt; --json</code>, match its filename, have <code>root_retained:
+false</code>, and have a terminal status: <code>succeeded</code>, <code>failed</code>, <code>blocked</code>,
+<code>cancelled</code> or <code>skipped-busy</code>. Require the matching readable regular log,
+even if it is empty. <strong>Leave everything else in place</strong>: running work is
+recorded as <code>indeterminate</code>, and that same status can outlive the process.
+Age, a vanished PID, and a nonzero status-command exit code are not evidence
+of completion. Never move a retained root, an incomplete pair, a symlink,
+a malformed or unfamiliar record, or any lock, process root or staging data.</p>
+<p>With Bash and <code>jq</code>, set <code>invocation</code> to the ID you reviewed. This example
+checks the pair, then moves just those two files into a <strong>new private
+sibling directory</strong> on the same filesystem:</p>
+<pre><code class="language-bash">(
+  set -eu
+  umask 077
+  home=${GRIPSACK_HOME:-&quot;${XDG_DATA_HOME:-&quot;$HOME/.local/share&quot;}/gripsack&quot;}
+  id=${invocation:?set invocation to the exact reviewed invocation ID}
+  [[ $id =~ ^[0-9a-f]{64}$ ]] || exit 1
+  base=&quot;$home/task-invocations/$id&quot;
+  for path in &quot;$base.json&quot; &quot;$base.log&quot;; do
+    [[ -f $path &amp;&amp; ! -L $path ]] || exit 1
+  done
+  # status returns the recorded outcome, not just lookup success.
+  record=$(grip task status &quot;$id&quot; --json) || case $? in
+    1|3|75|130) ;; *) exit 1 ;; esac
+  jq -e --arg id &quot;$id&quot; '
+    .version == 1 and .invocation == $id and .root_retained == false and
+    (.status as $s | [&quot;succeeded&quot;,&quot;failed&quot;,&quot;blocked&quot;,&quot;cancelled&quot;,&quot;skipped-busy&quot;] | index($s) != null)
+    and all(.nodes[]; .status != &quot;indeterminate&quot;)
+  ' &lt;&lt;&lt; &quot;${record:?no validated receipt}&quot; &gt;/dev/null || exit 1
+  grip task log &quot;$id&quot; &gt;/dev/null || exit 1
+  archive=$(mktemp -d &quot;$home/task-archive.XXXXXXXX&quot;) || exit 1
+  printf 'Archive destination: %s\n' &quot;$archive&quot;
+  archive_dev=$(stat -c %d -- &quot;$archive&quot;) || exit 1
+  for path in &quot;$base.json&quot; &quot;$base.log&quot;; do
+    source_dev=$(stat -c %d -- &quot;$path&quot;) || exit 1
+    [[ $source_dev == &quot;$archive_dev&quot; ]] || exit 1
+  done
+  mv &quot;$base.json&quot; &quot;$base.log&quot; &quot;$archive/&quot;
+)
+</code></pre>
+<p>Keep the archive private; these are the original bytes, not sanitized terminal
+output. The two moves are not atomic as a pair. If interrupted, stop and
+locate both halves at the printed destination and their original paths before
+retrying. Never overwrite a file or discard an unmatched half. After both
+files move, their two slots are available to a new invocation. The archived
+ID is no longer available through <code>grip task status</code>/<code>log</code> or scheduled
+history in that store. If no pair qualifies, do not force admission by moving
+unknown evidence.</p>
 <h2 id="dependencies-and-mutation">Dependencies and mutation</h2>
 <p><code>deps</code> names unordered prerequisite tasks that must succeed in the same invocation. A task's <code>steps</code> are ordered locally; <code>checks</code> are its invocation postconditions. Declare live mutation paths with <code>context: { kind: "host", mutable_paths: [...] }</code> and shared mutation keys with <code>locks: [lock("user", "editor-config")]</code> or store-scoped locks.</p>
 <p>Locks coordinate declared effects; they do not grant execution authority or infer dependencies from shell text. <code>--skip-busy</code> can skip an active conflict, not bypass an unknown interrupted owner. <code>--timeout-seconds</code> bounds realization, prerequisites and verification together. Interrupted or indeterminate outcomes are not recorded as success.</p>
-<p>Use typed <code>packageCommand</code>, <code>lit</code> and explicit <code>env</code>/<code>argv</code> values for commands. A <code>runBash</code> body requires a declared package-command interpreter; it does not discover ambient Bash. Host executable commands are explicit trusted host execution, not sealed package-closure proof. Consult the <a href="https://github.com/gripsack-dev/gripsack/blob/1980d2c94877c841eac07a888517cba24057dbd8/typescript/README.md">SDK command reference</a> for shell bodies and task postconditions.</p>
+<p>Use typed <code>packageCommand</code>, <code>lit</code> and explicit <code>env</code>/<code>argv</code> values for commands. A <code>runBash</code> body requires a declared package-command interpreter; it does not discover ambient Bash. Host executable commands are explicit trusted host execution, not sealed package-closure proof. Consult the <a href="https://github.com/gripsack-dev/gripsack/blob/4188ed1034c63940bbf27b21fd5016e8de76c29e/typescript/README.md">SDK command reference</a> for shell bodies and task postconditions.</p>
 <h2 id="literal-bash-bodies">Literal Bash bodies</h2>
 <p>Create this complete <code>gripsack.ts</code> in a separate example directory:</p>
 <!-- example: examples/workspaces/11-bash-task/gripsack.ts -->
@@ -217,7 +282,7 @@ keep their literal selector meaning, including filenames containing braces.</p>
   <a href="https://github.com/gripsack-dev">gripsack-dev</a>
   <a href="https://github.com/gripsack-dev/gripsack">source</a>
   <a href="../index.html">home</a>
-  <span class="fversion">v0.56.1</span>
+  <span class="fversion">v0.57.0</span>
 </footer>
 </main>
 </div>
