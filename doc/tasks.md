@@ -34,6 +34,11 @@ needs a checkout, evaluates a workspace, or clones a repository. Both ignore
 `--repo`, even if the named checkout no longer exists. `list` and `plan`
 still inspect a local workspace, and `run` still resolves its repository.
 
+To check task inputs before running a command, use `grip check`. A missing
+captured path, a directory supplied as an input file, or a file supplied as
+an input directory is reported at its declaration. This check neither builds
+packages nor runs the task.
+
 The saved log is bounded: if any output was omitted, human `status` and
 `log` warn on **stderr**, not in the log text on stdout. For automation, read
 `logs_truncated` from `task status --json` or `truncated` from `task log
