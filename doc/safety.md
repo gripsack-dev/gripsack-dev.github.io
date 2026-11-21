@@ -42,6 +42,8 @@ Every destination has an owner. Gripsack writes only when the destination is abs
 
 `symlinkTo` links the destination to read-only store content; `managedBlock` reconciles one delimited section of a shared text file and leaves every byte outside the markers alone. See [profiles and dotfiles](adopting.md) for choosing between them.
 
+**When a file becomes a directory.** Inside a tree with a directory receipt, an unchanged managed file with no prior to restore can grow children: `plan` leaves the file alone, `apply` replaces it with the directory, and rolling back to the earlier generation restores the file. This does **not** apply to a taken-over file with a recorded prior, or to a blocking file Gripsack never managed. In either case `plan` and `apply` refuse before changing the deployed files or selecting a generation. Use a different destination for the child rather than trying to force the takeover.
+
 ## Rollback, retention and GC
 
 ```sh
