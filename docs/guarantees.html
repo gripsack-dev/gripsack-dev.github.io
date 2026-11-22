@@ -15,9 +15,9 @@
 <meta property="og:image:alt" content="gripsack — a traveler's satchel holding a config file and a terminal chip, beside the tagline 'Your environment, in one workspace.'">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
-<link rel="stylesheet" href="../assets/site.css?v=90643a3e">
-<script src="../assets/syntax.js?v=90643a3e" data-manual defer></script>
-<script src="../assets/site.js?v=90643a3e" defer></script>
+<link rel="stylesheet" href="../assets/site.css?v=a9202602">
+<script src="../assets/syntax.js?v=a9202602" data-manual defer></script>
+<script src="../assets/site.js?v=a9202602" defer></script>
 </head>
 <body class="docs">
 <a class="skip-link" href="#main">Skip to content</a>
@@ -62,7 +62,7 @@
   <span class="rail-head">on this page</span>
   <div class="rail-toc">
     <a href="#the-idea-rings">The idea: rings</a>
-    <a href="#what-is-proved-in-core-0570">What is proved in core 0.57.0</a>
+    <a href="#what-is-proved-in-core-0580">What is proved in core 0.58.0</a>
     <a href="#what-is-tested-not-proved">What is tested, not proved</a>
     <a href="#what-is-assumed">What is assumed</a>
     <a href="#what-is-not-claimed">What is not claimed</a>
@@ -108,7 +108,7 @@
       </div>
     </div>
   </div>
-  <figcaption>The proofs cover decisions and machine steps, not every possible crash and recovery. For a destination write, the host checks that the live file matches what the command expects. A mismatch stops the write. Another writer’s edit between the last comparison and the mutation can still be overwritten (S5).</figcaption>
+  <figcaption>Before a journaled leaf write, its intent and prior evidence survive the modeled crashes. The host still has to re-check the live file. A mismatch stops the write; another writer’s edit between the last comparison and the mutation can still be overwritten (S5). Recovery after cleanup is a separate question.</figcaption>
 </figure>
 
 <table>
@@ -128,7 +128,7 @@
 <tr>
 <td><strong>Protocol</strong></td>
 <td>Kernel machines issue commands for apply, rollback, recovery, GC, journaling and activation</td>
-<td>Machine decisions and ordering are proved; composition with storage is crash-injection tested, not proved</td>
+<td>Machine decisions and ordering are proved. The journaled leaf write also has a storage-level proof at mutation admission; end-to-end recovery is crash-injection tested.</td>
 </tr>
 <tr>
 <td><strong>Host</strong></td>
@@ -147,8 +147,8 @@
 </tr>
 </tbody>
 </table>
-<h2 id="what-is-proved-in-core-0570">What is proved in core 0.57.0</h2>
-<p>The <code>proofs</code> release gate uses <a href="https://github.com/AeneasVerif/aeneas">Charon and Aeneas</a> to translate the dependency-free Rust crate <code>gripsack-kernel</code> to Lean 4. It rejects drift from the checked-in translation, builds the proofs, and <a href="https://github.com/gripsack-dev/gripsack/blob/4188ed1034c63940bbf27b21fd5016e8de76c29e/proofs/Audit.lean">audits the kernel theorems</a> for axioms beyond <code>propext</code>, <code>Classical.choice</code> and <code>Quot.sound</code>. Deliberately broken variants of the Rust must fail their designated proofs. The gate covers the kernel's decisions, not the compiled binary or its host drivers.</p>
+<h2 id="what-is-proved-in-core-0580">What is proved in core 0.58.0</h2>
+<p>The <code>proofs</code> release gate uses <a href="https://github.com/AeneasVerif/aeneas">Charon and Aeneas</a> to translate the dependency-free Rust crate <code>gripsack-kernel</code> to Lean 4. It rejects drift from the checked-in translation, builds the proofs, and <a href="https://github.com/gripsack-dev/gripsack/blob/80529c0d139a250dbadc277368d4e9863e083249/proofs/Audit.lean">audits their transitive axioms</a> against <code>propext</code>, <code>Classical.choice</code> and <code>Quot.sound</code>. Deliberately broken variants must fail their designated theorems. The filesystem model is checked in Lean; the compiled binary, host driver and physical disk are not.</p>
 <p><strong>Commit classification.</strong> After an interruption, recovery compares three selection identities: <code>current</code>, the recorded <code>previous</code> and the recorded <code>target</code> of the interrupted transaction.</p>
 <ul>
 <li><em>Committed</em> if and only if <code>current</code> equals <code>target</code>.</li>
@@ -164,7 +164,11 @@
 <p><strong>Activation.</strong> Before each hook, the machine requires a durable start record and an observation that its generation is still current. If a hook switches generations, the next hook in the superseded batch is not launched. This governs dispatch, not what a hook does. The kernel allocates generation numbers above the durable high-water mark and does not authorize publishing the same generation twice.</p>
 <p><strong>Updates.</strong> <code>grip update</code> writes a lock only when every selected package was checked, none failed and something changed; each package is counted exactly once.</p>
 <p><strong>Rollback.</strong> A whole-file restore must install the target generation's recorded identity (bytes and mode, or link target), from retained content, only over absence or gripsack's own write. The machine never commands a restore inside a published generation. It counts the unit as restored only when the host observes that identity, and switches under a fresh transaction only after every supplied unit is settled. If the host cannot reproduce the target identity for a required write, rollback refuses before the switch.</p>
-<p>The <a href="https://github.com/gripsack-dev/gripsack/blob/4188ed1034c63940bbf27b21fd5016e8de76c29e/docs/rfcs/2026-11-08-verified-foundation.md">verified-foundation RFC</a> includes both implementation records and future goals. For what shipped, see the <a href="https://github.com/gripsack-dev/gripsack/tree/4188ed1034c63940bbf27b21fd5016e8de76c29e/proofs">proof sources</a> and <a href="https://github.com/gripsack-dev/gripsack/tree/4188ed1034c63940bbf27b21fd5016e8de76c29e/crates/gripsack-kernel">kernel</a>. In <a href="../docs/changelog.html">0.57</a>, debug and release builds use the same recovery machine. Removing the old debug route does not add a theorem about filesystem behavior.</p>
+<p>The <a href="https://github.com/gripsack-dev/gripsack/blob/80529c0d139a250dbadc277368d4e9863e083249/docs/rfcs/2026-11-08-verified-foundation.md">verified-foundation RFC</a> includes both implementation records and future goals. For what shipped, see the <a href="https://github.com/gripsack-dev/gripsack/tree/80529c0d139a250dbadc277368d4e9863e083249/proofs">proof sources</a> and <a href="https://github.com/gripsack-dev/gripsack/tree/80529c0d139a250dbadc277368d4e9863e083249/crates/gripsack-kernel">kernel</a>. In <a href="../docs/changelog.html">0.57</a>, debug and release builds use the same recovery machine. Removing the old debug route does not add a theorem about filesystem behavior.</p>
+<h3 id="what-has-to-survive-a-crash">What has to survive a crash?</h3>
+<p>Suppose a leaf file is about to be replaced. Recovery needs the marker for <strong>this transaction</strong>, the entry for <strong>this destination</strong>, and the original content named by that entry. A file sync alone can leave complete bytes with no durable name. A directory sync alone can leave the right name pointing to incomplete bytes.</p>
+<p>Core 0.58 <a href="https://github.com/gripsack-dev/gripsack/blob/80529c0d139a250dbadc277368d4e9863e083249/proofs/Protocol/Leaf.lean">proves that the evidence is readable</a> <strong>before the write</strong>: after process death and in every power-loss image allowed by the model. If a run writes the same file twice, both the original prior and the immediate before-image remain recoverable at that cut. Killing the process is not a disk test: the next process can still see unsynced writes in the page cache. Whether recovery can later retire evidence after seeing an <a href="https://github.com/gripsack-dev/gripsack/issues/364">unsynced user edit</a> remains open.</p>
+<p>The power-loss question applies to disk-backed filesystems that honor the file and directory sync assumptions. On tmpfs, killing a process leaves its files visible, but reboot discards them. In WSL2, distinguish the guest filesystem from a mounted Windows volume: the latter does not automatically provide the same persistence or name matching.</p>
 <h2 id="what-is-tested-not-proved">What is tested, not proved</h2>
 <p>These guarantees depend on more than a decision over typed inputs:</p>
 <ul>
@@ -184,7 +188,7 @@
 <li><strong>S6</strong> The host must identify equivalent destination names consistently. It detects case-only aliases that resolve to one object (as on WSL's <code>/mnt/c</code>); names a filesystem equates only after Unicode normalization are not detected.</li>
 <li><strong>S7</strong> Equal SHA-256 digests mean equal bytes.</li>
 </ul>
-<p><strong>Directory premise D.</strong> A directory step changes only the namespace named by its receipt and journals before its first change. A “settled” result means the recorded shape is in place; an interrupted or refused change must be recoverable through its journal. The <a href="https://github.com/gripsack-dev/gripsack/blob/4188ed1034c63940bbf27b21fd5016e8de76c29e/crates/gripsack-kernel/src/directory.rs">directory fence</a> relies on this host contract; the Lean proof does not establish it.</p>
+<p><strong>Directory premise D.</strong> A directory step changes only the namespace named by its receipt and journals before its first change. A “settled” result means the recorded shape is in place; an interrupted or refused change must be recoverable through its journal. The <a href="https://github.com/gripsack-dev/gripsack/blob/80529c0d139a250dbadc277368d4e9863e083249/crates/gripsack-kernel/src/directory.rs">directory fence</a> relies on this host contract; the Lean proof does not establish it.</p>
 <p>The proof chain also trusts the Charon/Aeneas translation and Lean's kernel. Running the resulting program adds the Rust compiler, the Linux kernel and the host hardware to that trust boundary.</p>
 <h2 id="what-is-not-claimed">What is not claimed</h2>
 <ul>
@@ -203,7 +207,7 @@
   <a href="https://github.com/gripsack-dev">gripsack-dev</a>
   <a href="https://github.com/gripsack-dev/gripsack">source</a>
   <a href="../index.html">home</a>
-  <span class="fversion">v0.57.0</span>
+  <span class="fversion">v0.58.0</span>
 </footer>
 </main>
 </div>

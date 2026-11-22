@@ -15,9 +15,9 @@
 <meta property="og:image:alt" content="gripsack — a traveler's satchel holding a config file and a terminal chip, beside the tagline 'Your environment, in one workspace.'">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
-<link rel="stylesheet" href="../assets/site.css?v=90643a3e">
-<script src="../assets/syntax.js?v=90643a3e" data-manual defer></script>
-<script src="../assets/site.js?v=90643a3e" defer></script>
+<link rel="stylesheet" href="../assets/site.css?v=a9202602">
+<script src="../assets/syntax.js?v=a9202602" data-manual defer></script>
+<script src="../assets/site.js?v=a9202602" defer></script>
 </head>
 <body class="docs">
 <a class="skip-link" href="#main">Skip to content</a>
@@ -129,7 +129,7 @@
       </div>
     </div>
   </div>
-  <figcaption>The proofs cover decisions and machine steps, not every possible crash and recovery. For a destination write, the host checks that the live file matches what the command expects. A mismatch stops the write. Another writer’s edit between the last comparison and the mutation can still be overwritten (S5).</figcaption>
+  <figcaption>Before a journaled leaf write, its intent and prior evidence survive the modeled crashes. The host still has to re-check the live file. A mismatch stops the write; another writer’s edit between the last comparison and the mutation can still be overwritten (S5). Recovery after cleanup is a separate question.</figcaption>
 </figure>
 
 <table>
@@ -149,7 +149,7 @@
 <tr>
 <td>Protocol</td>
 <td>Apply, rollback, recovery, GC, journal and activation machines also live in the kernel; drivers supply observations and execute commands</td>
-<td>Lean theorems about machine decisions and ordering; crash-injection tests of machines running together</td>
+<td>Lean proves machine decisions and ordering, and that journaled leaf evidence survives modeled crashes at mutation admission. Crash-injection tests exercise recovery.</td>
 </tr>
 <tr>
 <td>Host</td>
@@ -170,7 +170,7 @@
 </table>
 <p><a href="../docs/guarantees.html">How gripsack stays safe</a> spells out what each ring guarantees and what it does not.</p>
 <h2 id="where-the-implementation-lives">Where the implementation lives</h2>
-<p>The <a href="https://github.com/gripsack-dev/gripsack/tree/4188ed1034c63940bbf27b21fd5016e8de76c29e/crates">core crates</a>, the <a href="https://github.com/gripsack-dev/gripsack/tree/4188ed1034c63940bbf27b21fd5016e8de76c29e/typescript">TypeScript SDK</a>, the <a href="https://github.com/gripsack-dev/gripsack/tree/4188ed1034c63940bbf27b21fd5016e8de76c29e/proofs">proofs</a> and the <a href="https://github.com/gripsack-dev/gripsack/tree/4188ed1034c63940bbf27b21fd5016e8de76c29e/plan">design records</a> are all in one repository.</p>
+<p>The <a href="https://github.com/gripsack-dev/gripsack/tree/80529c0d139a250dbadc277368d4e9863e083249/crates">core crates</a>, the <a href="https://github.com/gripsack-dev/gripsack/tree/80529c0d139a250dbadc277368d4e9863e083249/typescript">TypeScript SDK</a>, the <a href="https://github.com/gripsack-dev/gripsack/tree/80529c0d139a250dbadc277368d4e9863e083249/proofs">proofs</a> and the <a href="https://github.com/gripsack-dev/gripsack/tree/80529c0d139a250dbadc277368d4e9863e083249/plan">design records</a> are all in one repository.</p>
 </article>
 <footer>
   <span>© 2026 <a href="https://github.com/tknawara">Tarek Nawara</a></span>
@@ -178,7 +178,7 @@
   <a href="https://github.com/gripsack-dev">gripsack-dev</a>
   <a href="https://github.com/gripsack-dev/gripsack">source</a>
   <a href="../index.html">home</a>
-  <span class="fversion">v0.57.0</span>
+  <span class="fversion">v0.58.0</span>
 </footer>
 </main>
 </div>

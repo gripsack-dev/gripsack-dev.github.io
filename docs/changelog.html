@@ -15,9 +15,9 @@
 <meta property="og:image:alt" content="gripsack — a traveler's satchel holding a config file and a terminal chip, beside the tagline 'Your environment, in one workspace.'">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
-<link rel="stylesheet" href="../assets/site.css?v=90643a3e">
-<script src="../assets/syntax.js?v=90643a3e" data-manual defer></script>
-<script src="../assets/site.js?v=90643a3e" defer></script>
+<link rel="stylesheet" href="../assets/site.css?v=a9202602">
+<script src="../assets/syntax.js?v=a9202602" data-manual defer></script>
+<script src="../assets/site.js?v=a9202602" defer></script>
 </head>
 <body class="docs">
 <a class="skip-link" href="#main">Skip to content</a>
@@ -61,6 +61,7 @@
   </details>
   <span class="rail-head">on this page</span>
   <div class="rail-toc">
+    <a href="#0580-durable-journal-evidence">0.58.0 — Durable journal evidence</a>
     <a href="#0570-reliable-previews-and-recovery">0.57.0 — Reliable previews and recovery</a>
     <a href="#0561-safer-adoption-cleanup">0.56.1 — Safer adoption cleanup</a>
     <a href="#0560-typed-artifact-selectors-and-live-task-output">0.56.0 — Typed artifact selectors and live task output</a>
@@ -78,7 +79,9 @@
 <p class="doc-eyebrow">Gripsack / documentation</p>
 <article class="md">
 <h1 id="whats-new">What's new</h1>
-<p>User-visible changes per release. The <a href="https://github.com/gripsack-dev/gripsack/blob/4188ed1034c63940bbf27b21fd5016e8de76c29e/CHANGELOG.md">full changelog</a> and <a href="https://github.com/gripsack-dev/gripsack/releases">release downloads</a> live with the source. This site documents core <strong>0.57.0</strong>.</p>
+<p>User-visible changes per release. The <a href="https://github.com/gripsack-dev/gripsack/blob/80529c0d139a250dbadc277368d4e9863e083249/CHANGELOG.md">full changelog</a> and <a href="https://github.com/gripsack-dev/gripsack/releases">release downloads</a> live with the source. This site documents core <strong>0.58.0</strong>.</p>
+<h2 id="0580-durable-journal-evidence">0.58.0 — Durable journal evidence</h2>
+<p>Before apply or rollback changes a journaled leaf, <a href="../docs/guarantees.html#what-has-to-survive-a-crash">the marker, entry and any required prior blob survive both modeled crash kinds</a>. Removing a required file or directory sync admits a counterexample. This strengthens what is proved; it does not change the journal format or promise that every recovery completes.</p>
 <h2 id="0570-reliable-previews-and-recovery">0.57.0 — Reliable previews and recovery</h2>
 <ul>
 <li><a href="../docs/workspaces.html">Initialize and adopt</a> without losing track of the files you own. Init is retryable after a scaffold collision; adoption stops before generating files if it cannot inventory the target completely or represent a filename exactly.</li>
@@ -153,7 +156,7 @@
   <a href="https://github.com/gripsack-dev">gripsack-dev</a>
   <a href="https://github.com/gripsack-dev/gripsack">source</a>
   <a href="../index.html">home</a>
-  <span class="fversion">v0.57.0</span>
+  <span class="fversion">v0.58.0</span>
 </footer>
 </main>
 </div>

@@ -16,9 +16,9 @@
 <meta property="og:image:alt" content="gripsack — a traveler's satchel holding a config file and a terminal chip, beside the tagline 'Your environment, in one workspace.'">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="./assets/favicon.svg" type="image/svg+xml">
-<link rel="stylesheet" href="./assets/site.css?v=90643a3e">
-<script src="./assets/syntax.js?v=90643a3e" data-manual defer></script>
-<script src="./assets/site.js?v=90643a3e" defer></script>
+<link rel="stylesheet" href="./assets/site.css?v=a9202602">
+<script src="./assets/syntax.js?v=a9202602" data-manual defer></script>
+<script src="./assets/site.js?v=a9202602" defer></script>
 </head>
 <body class="home">
 <a class="skip-link" href="#main">Skip to content</a>
@@ -34,7 +34,7 @@
   <h1 class="tagline">Your environment,<br>in <span class="accent">one workspace.</span></h1>
   <p class="sub">Describe your tools and configuration in one typed TypeScript file. Review what <code>grip</code> plans to change, apply it as a transaction, and roll back to a retained generation without rebuilding your packages.</p>
   <div class="cta"><a class="primary" href="./docs/install.html">Install grip <span aria-hidden="true">→</span></a><a href="#how">See how it works ↓</a></div>
-  <p class="alt">Linux x86_64 &amp; WSL2 <span aria-hidden="true">/</span> Alpha <span aria-hidden="true">/</span> MIT <span aria-hidden="true">/</span> <a href="./docs/changelog.html">What's new in v0.57.0</a></p>
+  <p class="alt">Linux x86_64 &amp; WSL2 <span aria-hidden="true">/</span> Alpha <span aria-hidden="true">/</span> MIT <span aria-hidden="true">/</span> <a href="./docs/changelog.html">What's new in v0.58.0</a></p>
   </div>
   <aside class="workspace-card" aria-label="What a workspace holds">
     <div class="workspace-label"><span>gripsack.ts</span><span>one file</span></div>
@@ -109,7 +109,7 @@
   <div class="trust">
     <ul>
       <li class="proved"><strong>Apply and rollback</strong>The kernel authorizes a whole-file write only over absence, its own observed last write, or (on apply) an object you explicitly take over. Rollback requests the identity recorded by the target generation, not a rebuild.</li>
-      <li class="proved"><strong>Commit and recovery</strong>Recovery compares the current, previous and target generations by identity. If the result is ambiguous, the machine refuses to guess. A destination mutation needs a durable journal entry first.</li>
+      <li class="proved"><strong>Commit and recovery</strong>Recovery compares the current, previous and target selections by identity. If the result is ambiguous, it stops. Before a journaled leaf write, the run marker, entry and prior evidence survive every crash allowed by the storage model.</li>
       <li class="proved"><strong>Retention</strong>GC may not retire the current generation or delete store content a retained generation still references.</li>
       <li><strong>Tested: interruption and recovery</strong>Crash-injection tests interrupt runs and recovery on an in-memory filesystem. This exercises the machines together; it is not a proof about every crash on a real disk.</li>
       <li class="assume"><strong>The host keeps its contract</strong>The driver relies on atomic rename, file and directory sync, and one lifecycle writer. It can detect an outside edit at the final re-check, not one that races the write afterward.</li>
@@ -145,7 +145,7 @@
       </div>
     </div>
   </div>
-  <figcaption>The proofs cover decisions and machine steps, not every possible crash and recovery. For a destination write, the host checks that the live file matches what the command expects. A mismatch stops the write. Another writer’s edit between the last comparison and the mutation can still be overwritten (S5).</figcaption>
+  <figcaption>Before a journaled leaf write, its intent and prior evidence survive the modeled crashes. The host still has to re-check the live file. A mismatch stops the write; another writer’s edit between the last comparison and the mutation can still be overwritten (S5). Recovery after cleanup is a separate question.</figcaption>
 </figure>
       <p class="note" style="margin-top:0">The release gate translates the shipped Rust kernel to Lean 4 and checks the proofs. It does not prove the CLI, Linux or the effects of your hooks and containers. <a href="./docs/guarantees.html">Read the guarantees and their assumptions →</a></p>
     </div>
@@ -293,7 +293,7 @@ grip task run greet --closed-stdin</code></pre></div>
 <section id="install">
   <div class="install-copy"><p class="eyebrow">06 / Install</p><h2 class="section">One static binary.<br>No daemon.</h2>
   <p class="lede">A musl-linked <code>grip</code> with its TypeScript frontend embedded. Docker Engine is needed only for container services; systemd only for schedules. Nothing runs in the background.</p></div>
-  <div class="install-actions"><p class="eyebrow">Linux x86_64 / WSL2 · Alpha</p><a class="primary" href="./docs/install.html">Install v0.57.0 <span aria-hidden="true">→</span></a><a href="https://github.com/gripsack-dev/gripsack/releases/tag/core-v0.57.0">Release notes and checksums ↗</a><p>Keep your OS package manager.<br>Declare the user-space pieces you choose.</p></div>
+  <div class="install-actions"><p class="eyebrow">Linux x86_64 / WSL2 · Alpha</p><a class="primary" href="./docs/install.html">Install v0.58.0 <span aria-hidden="true">→</span></a><a href="https://github.com/gripsack-dev/gripsack/releases/tag/core-v0.58.0">Release notes and checksums ↗</a><p>Keep your OS package manager.<br>Declare the user-space pieces you choose.</p></div>
 </section>
 
 <section id="docs">
@@ -305,7 +305,7 @@ grip task run greet --closed-stdin</code></pre></div>
     <li><a href="./docs/adopting.html">Profiles &amp; dotfiles</a> — ownership modes, drift, adopting files you already have.</li>
     <li><a href="./docs/services.html">Docker services</a> · <a href="./docs/tasks.html">Tasks</a> · <a href="./docs/schedules.html">Schedules</a> — project plumbing without a daemon.</li>
     <li><a href="./docs/guarantees.html">How it stays safe</a> · <a href="./docs/safety.html">Safety &amp; recovery</a> — what is proved, assumed and not claimed.</li>
-    <li><a href="https://github.com/gripsack-dev/gripsack/blob/4188ed1034c63940bbf27b21fd5016e8de76c29e/typescript/README.md">SDK reference</a> · <a href="https://github.com/gripsack-dev/gripsack/tree/4188ed1034c63940bbf27b21fd5016e8de76c29e/examples/workspaces">Example workspaces</a> · <a href="./docs/changelog.html">What's new</a>.</li>
+    <li><a href="https://github.com/gripsack-dev/gripsack/blob/80529c0d139a250dbadc277368d4e9863e083249/typescript/README.md">SDK reference</a> · <a href="https://github.com/gripsack-dev/gripsack/tree/80529c0d139a250dbadc277368d4e9863e083249/examples/workspaces">Example workspaces</a> · <a href="./docs/changelog.html">What's new</a>.</li>
   </ul>
 </section>
 

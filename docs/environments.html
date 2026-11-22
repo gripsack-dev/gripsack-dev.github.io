@@ -15,9 +15,9 @@
 <meta property="og:image:alt" content="gripsack — a traveler's satchel holding a config file and a terminal chip, beside the tagline 'Your environment, in one workspace.'">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
-<link rel="stylesheet" href="../assets/site.css?v=90643a3e">
-<script src="../assets/syntax.js?v=90643a3e" data-manual defer></script>
-<script src="../assets/site.js?v=90643a3e" defer></script>
+<link rel="stylesheet" href="../assets/site.css?v=a9202602">
+<script src="../assets/syntax.js?v=a9202602" data-manual defer></script>
+<script src="../assets/site.js?v=a9202602" defer></script>
 </head>
 <body class="docs">
 <a class="skip-link" href="#main">Skip to content</a>
@@ -119,7 +119,7 @@ grip apply personal
 <p>A coherent <code>conda.environment</code> can also declare <code>wheels: [{ name, version, url, sha256 }]</code> alongside its Conda packages. Use canonical lowercase wheel names, exact versions, explicit HTTPS wheel URLs without credentials/query strings/fragments, and independently approved SHA-256 values. The selected Python runtime and wheel dependencies must already belong to the declared environment; this is not an implicit PyPI solve. Imported Pixi locks can select supported hash-pinned wheel records too.</p>
 <p>The core validates metadata, RECORD ownership, dependencies, Python requirements and platform tags. Its pinned helper uses the maintained UV wheel installer offline; original wheel bytes are retained for reconstruction at the actual recipient prefix. Conda/wheel ownership collisions reject rather than overwrite. Binary manylinux wheels require an explicit compatible glibc baseline, checked again on the receiving host.</p>
 <p>Native environments own their runtime libraries, with one exception conda-forge itself makes: its platform libraries (the CDT set: X11 client libraries such as <code>libX11.so.6</code>, OpenGL/EGL and ALSA) come from the host. conda-forge's Python pulls in Tk, which links <code>libX11</code> this way. <code>grip build</code> and <code>grip apply</code> note which host platform libraries a prefix uses. Declare <code>strict: true</code> in <code>conda.environment</code> to refuse such a prefix; then add the library to the closure, for example <code>"xorg-libx11": "*"</code>. Anything else missing from the closure is reported instead of being searched for in ambient library paths.</p>
-<p>Source distributions, editable packages, executable startup files (<code>.pth</code>, <code>sitecustomize</code>, <code>usercustomize</code>) and arbitrary wheel <code>.data/scripts</code> are unsupported. Standard metadata-declared console entrypoints are supported. Missing dependencies are not resolved during installation, and package installation scripts are not executed. See <a href="../docs/sharing.html#conda-and-wheel-reconstruction">native sharing</a> for the offline transfer boundary and the <a href="https://github.com/gripsack-dev/gripsack/blob/4188ed1034c63940bbf27b21fd5016e8de76c29e/typescript/README.md">exact SDK reference</a> for authoring details.</p>
+<p>Source distributions, editable packages, executable startup files (<code>.pth</code>, <code>sitecustomize</code>, <code>usercustomize</code>) and arbitrary wheel <code>.data/scripts</code> are unsupported. Standard metadata-declared console entrypoints are supported. Missing dependencies are not resolved during installation, and package installation scripts are not executed. See <a href="../docs/sharing.html#conda-and-wheel-reconstruction">native sharing</a> for the offline transfer boundary and the <a href="https://github.com/gripsack-dev/gripsack/blob/80529c0d139a250dbadc277368d4e9863e083249/typescript/README.md">exact SDK reference</a> for authoring details.</p>
 <h2 id="solve-baselines">Solve baselines</h2>
 <p><code>systemRequirements</code> fixes the libc and kernel baseline the solve assumes. Without one, <code>grip update</code> measures the host it runs on. The recorded baseline is checked again on every host that runs the result, together with CPU and runtime requirements. A baseline is not a guarantee that every selected archive runs on every distribution.</p>
 <p>Keep required libraries in the complete closure. A successful version command alone does not prove editor, language-server or graphical behavior. Exercise the actual consumer on the host where you deploy it.</p>
@@ -171,7 +171,7 @@ export default defineWorkspace(() =&gt; workspace({ inputs, outputs: [tools, sea
   <a href="https://github.com/gripsack-dev">gripsack-dev</a>
   <a href="https://github.com/gripsack-dev/gripsack">source</a>
   <a href="../index.html">home</a>
-  <span class="fversion">v0.57.0</span>
+  <span class="fversion">v0.58.0</span>
 </footer>
 </main>
 </div>
