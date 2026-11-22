@@ -6,6 +6,7 @@ User-visible changes per release. The [full changelog](https://github.com/gripsa
 
 - Keep using the path printed by a Conda or Pixi build after `grip update` and `grip gc`. A failed multi-output update also leaves the old lock's archives available offline. [What an update retains](fetchers.md#update-deliberately).
 - Recovery no longer discards undo evidence just because it can see a user edit. It rechecks the edited file or symlink and syncs the required bytes and name first. A failed barrier leaves the journal for another attempt. [Which crash outcomes are covered](guarantees.md#what-has-to-survive-a-crash).
+- [The leaf cleanup proof](guarantees.md#what-has-to-survive-a-crash) covers process death and modeled power loss during retirement. In particular, cleanup cannot leave a committed run's stale undo record behind without the marker that identifies it.
 - `grip doctor` reports bad recovery evidence or an [unusable Deno](install.md#runtime-prerequisites) without repairing either. `grip check` reports missing or wrong-kind [task inputs](tasks.md#manual-tasks) without building packages or invoking the task.
 - A missing local source no longer hides the other rows in `grip update --check`: the survey still exits 2 for an incomplete result and leaves the lock alone.
 
