@@ -28,5 +28,5 @@
       </div>
     </div>
   </div>
-  <figcaption>The proofs cover decisions and machine steps, not every possible crash and recovery. For a destination write, the host checks that the live file matches what the command expects. A mismatch stops the write. Another writer’s edit between the last comparison and the mutation can still be overwritten (S5).</figcaption>
+  <figcaption>Before a journaled leaf write, its intent and prior evidence survive the modeled crashes. The host still has to re-check the live file. A mismatch stops the write; another writer’s edit between the last comparison and the mutation can still be overwritten (S5). Recovery after cleanup is a separate question.</figcaption>
 </figure>
