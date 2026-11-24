@@ -78,9 +78,9 @@
 <h2 id="supported-platforms">Supported platforms</h2>
 <p>The supported hosts are <strong>Linux x86_64 and WSL2's Linux environment</strong>. Native Windows, macOS and ARM are outside the current support scope. Package ABI, libc/kernel requirements and actual runtime dependencies still need to match the receiving host.</p>
 <h2 id="install-the-binary">Install the binary</h2>
-<p>Download the <a href="https://github.com/gripsack-dev/gripsack/releases/tag/core-v0.58.0">selected core release</a> into a versioned user directory:</p>
+<p>Download the <a href="https://github.com/gripsack-dev/gripsack/releases/tag/core-v0.59.0">selected core release</a> into a versioned user directory:</p>
 <pre><code class="language-sh">set -eu
-version=0.58.0
+version=0.59.0
 asset=&quot;gripsack-$version-x86_64-unknown-linux-musl.tar.gz&quot;
 base=&quot;https://github.com/gripsack-dev/gripsack/releases/download/core-v$version&quot;
 work=$(mktemp -d)
@@ -94,7 +94,6 @@ test ! -e &quot;$prefix/grip&quot; || { echo &quot;Refusing to replace $prefix/g
 install -m755 &quot;$work/gripsack-$version-x86_64-unknown-linux-musl/grip&quot; &quot;$prefix/grip&quot;
 export PATH=&quot;$prefix:$PATH&quot;
 grip --version
-grip doctor
 </code></pre>
 <p>Keep that versioned directory on your shell's <code>PATH</code>. This leaves an existing
 installation intact rather than replacing a binary used by managed launchers.</p>
@@ -102,7 +101,8 @@ installation intact rather than replacing a binary used by managed launchers.</p
 <p>Keep the installed path stable: profile launchers record the absolute core location and private state path. If you move the binary, restore its location or reapply profiles using the replacement installation.</p>
 <h2 id="runtime-prerequisites">Runtime prerequisites</h2>
 <ul>
-<li><strong>Evaluation:</strong> the core provisions a pinned, SHA-256-verified Deno runtime when needed. First use needs download access unless that runtime is already available or deliberately supplied through <code>GRIPSACK_DENO</code>.</li>
+<li><strong>Evaluation:</strong> the core provisions a pinned, SHA-256-verified Deno runtime when needed. First use needs download access unless that runtime is already available or deliberately supplied through <code>GRIPSACK_DENO</code>.
+  <code>grip doctor</code> only inspects the runtime already installed, or the absolute <code>GRIPSACK_DENO</code> override. On a fresh home a <code>MISS</code> is expected until the first live evaluation installs the pin, or you supply an executable Deno. A failing, slow or unrecognizable <code>--version</code> response is not success. Doctor never downloads the runtime or materializes the SDK for your editor.</li>
 <li><strong>Native packages:</strong> download access to their sources on a cold realization, suitable host ABI/runtime support, and space for verified archives and retained output. Native Conda uses the core's helper/materialization path, not a user-installed Pixi command.</li>
 <li><strong>Container services:</strong> a usable local Linux Docker Engine and access to the digest-pinned images. See <a href="../docs/services.html#prerequisites">services prerequisites</a>.</li>
 <li><strong>Profiles:</strong> write access to the selected destinations. No root or Docker service is required for ordinary file-only deployment.</li>
@@ -111,6 +111,7 @@ installation intact rather than replacing a binary used by managed launchers.</p
 <p>Use the SDK archive matching the installed core if you want editor types or explicitly pin the frontend. An installed <code>node_modules/@gripsack/core</code> can select the repository frontend rather than the embedded one; changing it is a source/policy change, not merely editor configuration.</p>
 <p><code>grip doctor</code> inspects the installed package version, not just the version range in <code>package.json</code>. An editor-only SDK can be excluded from runtime source capture to select the embedded frontend explicitly; see <a href="../docs/settings.html#the-frontend">settings</a>.</p>
 <h2 id="first-workspace">First workspace</h2>
+<p>There is no approval step. A repository on your disk is trusted when you run <code>grip</code> on it, and <code>--repo &lt;git url&gt;</code> is trusted on first use, once per origin. <code>grip plan</code> lists new hook bodies, fetch domains and destinations outside <code>~</code>; <code>grip apply</code> asks only when those are new. See <a href="../docs/safety.html#trust-and-review">trust and review</a>.</p>
 <p>Continue with <a href="../docs/workspaces.html">your first workspace</a>. For a native tool see <a href="../docs/packages.html">packages</a>; for a Conda toolchain see <a href="../docs/environments.html">environments</a>. Keep an independent backup of anything irreplaceable while you are getting started.</p>
 </article>
 <footer>
@@ -119,7 +120,7 @@ installation intact rather than replacing a binary used by managed launchers.</p
   <a href="https://github.com/gripsack-dev">gripsack-dev</a>
   <a href="https://github.com/gripsack-dev/gripsack">source</a>
   <a href="../index.html">home</a>
-  <span class="fversion">v0.58.0</span>
+  <span class="fversion">v0.59.0</span>
 </footer>
 </main>
 </div>

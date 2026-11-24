@@ -64,6 +64,7 @@
     <a href="#where">Where</a>
     <a href="#privacy-and-retention">Privacy and retention</a>
     <a href="#whats-inside">What's inside</a>
+    <a href="#diagnostics">Diagnostics</a>
     <a href="#for-agents">For agents</a>
   </div>
 
@@ -131,8 +132,10 @@ command output such as <code>grip check --json</code> remains on stdout separate
 Keep journals, generation manifests and retained content intact when
 investigating a failed transition; see <a href="../docs/safety.html">safety</a>. Review logs for
 private paths or command details before sharing them.</p>
+<h2 id="diagnostics">Diagnostics</h2>
+<p>I/O failures name the path, the output and its declaration: a command path missing from an artifact, a raw filesystem error, or a dangling symlink above a destination, which is reported as a conflict. Diagnostics name the output they belong to. When you wrap a declaration in your own helper function (for example <code>release("hunk", ...)</code>), the span points at the call site of the helper, not inside it. A refused Conda closure names the file that needs the missing library. Diagnostics are logged with their code and span, and <code>grip check --json</code> carries their labels.</p>
 <h2 id="for-agents">For agents</h2>
-<p>The <a href="https://github.com/gripsack-dev/gripsack/tree/80529c0d139a250dbadc277368d4e9863e083249/skills/gripsack-debug">debugging skill</a>
+<p>The <a href="https://github.com/gripsack-dev/gripsack/tree/c3b30d10004dd3c6c357508c3c02e3a1db8da3f7/skills/gripsack-debug">debugging skill</a>
 provides a debugging workflow and diagnostic references. See <a href="../docs/skills.html">skills</a>
 for installation. Give the agent the specific run log and the failing command,
 not only <code>latest</code>, which another command may replace. A completed evaluation is not a successful build or apply; read the
@@ -144,7 +147,7 @@ spans for the stage that actually failed.</p>
   <a href="https://github.com/gripsack-dev">gripsack-dev</a>
   <a href="https://github.com/gripsack-dev/gripsack">source</a>
   <a href="../index.html">home</a>
-  <span class="fversion">v0.58.0</span>
+  <span class="fversion">v0.59.0</span>
 </footer>
 </main>
 </div>

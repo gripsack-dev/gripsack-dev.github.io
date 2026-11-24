@@ -63,6 +63,7 @@
   <div class="rail-toc">
     <a href="#a-coherent-conda-toolchain">A coherent Conda toolchain</a>
     <a href="#hash-pinned-python-wheels">Hash-pinned Python wheels</a>
+    <a href="#activation-scripts-gcc-and-abi">Activation scripts, gcc and ABI</a>
     <a href="#solve-baselines">Solve baselines</a>
     <a href="#import-a-pixi-lock-explicitly">Import a Pixi lock explicitly</a>
     <a href="#typed-artifact-environment-values">Typed artifact environment values</a>
@@ -113,13 +114,18 @@ grip run --env search -- rg --version
 grip plan personal
 grip apply personal
 </code></pre>
-<p>Review the lock change and approve the source when prompted. <code>grip run</code> executes without deploying anything personal; <code>grip apply personal</code> deploys the launchers through a generation.</p>
+<p>Review the lock change. <code>grip run</code> executes without deploying anything personal; <code>grip apply personal</code> deploys the launchers through a generation.</p>
 <p>Package constraints are Conda MatchSpecs: <code>"*"</code>, <code>"==25.07.1"</code> for exact equality, <code>"=25.07"</code> for a prefix or <code>"&gt;=25.07.1,&lt;26"</code> for a range. A bare <code>"25.07.1"</code> is not a valid constraint. The lock fixes exact archive identities regardless of the authored range.</p>
 <h2 id="hash-pinned-python-wheels">Hash-pinned Python wheels</h2>
 <p>A coherent <code>conda.environment</code> can also declare <code>wheels: [{ name, version, url, sha256 }]</code> alongside its Conda packages. Use canonical lowercase wheel names, exact versions, explicit HTTPS wheel URLs without credentials/query strings/fragments, and independently approved SHA-256 values. The selected Python runtime and wheel dependencies must already belong to the declared environment; this is not an implicit PyPI solve. Imported Pixi locks can select supported hash-pinned wheel records too.</p>
 <p>The core validates metadata, RECORD ownership, dependencies, Python requirements and platform tags. Its pinned helper uses the maintained UV wheel installer offline; original wheel bytes are retained for reconstruction at the actual recipient prefix. Conda/wheel ownership collisions reject rather than overwrite. Binary manylinux wheels require an explicit compatible glibc baseline, checked again on the receiving host.</p>
 <p>Native environments own their runtime libraries, with one exception conda-forge itself makes: its platform libraries (the CDT set: X11 client libraries such as <code>libX11.so.6</code>, OpenGL/EGL and ALSA) come from the host. conda-forge's Python pulls in Tk, which links <code>libX11</code> this way. <code>grip build</code> and <code>grip apply</code> note which host platform libraries a prefix uses. Declare <code>strict: true</code> in <code>conda.environment</code> to refuse such a prefix; then add the library to the closure, for example <code>"xorg-libx11": "*"</code>. Anything else missing from the closure is reported instead of being searched for in ambient library paths.</p>
-<p>Source distributions, editable packages, executable startup files (<code>.pth</code>, <code>sitecustomize</code>, <code>usercustomize</code>) and arbitrary wheel <code>.data/scripts</code> are unsupported. Standard metadata-declared console entrypoints are supported. Missing dependencies are not resolved during installation, and package installation scripts are not executed. See <a href="../docs/sharing.html#conda-and-wheel-reconstruction">native sharing</a> for the offline transfer boundary and the <a href="https://github.com/gripsack-dev/gripsack/blob/80529c0d139a250dbadc277368d4e9863e083249/typescript/README.md">exact SDK reference</a> for authoring details.</p>
+<h2 id="activation-scripts-gcc-and-abi">Activation scripts, gcc and ABI</h2>
+<p>Some Conda packages ship <code>etc/conda/activate.d/*.sh</code> scripts (libxml2-16 through clang, llvm and lxml; libglib through matplotlib). Gripsack admits <strong>export-only</strong> scripts and never executes them: a deterministic shell-subset interpreter evaluates the exports from the verified installed prefix with ambient variables unset. The resulting variables apply in profile shells, in <code>grip run</code> and tasks, and in command wrappers (the declaring environment overrides them). They are named when the package is built.</p>
+<p>Everything else is still refused, naming the script and the packages that require it: scripts outside the subset, <code>pre-link</code>, <code>post-link</code> and <code>pre-unlink</code> scripts, and non-<code>.sh</code> activation files.</p>
+<p>conda <code>gcc</code> and <code>gxx</code> environments work. Files under a <code>sysroot/</code> target tree are not scanned as host executables, and a refused system library names the file that needs it.</p>
+<p>An environment whose target omits <code>abi</code> admits ABI-specific members, such as an <code>abi: "gnu"</code> package that needs <code>hostRuntime</code>. An environment that declares an ABI still requires it exactly.</p>
+<p>Source distributions, editable packages, executable startup files (<code>.pth</code>, <code>sitecustomize</code>, <code>usercustomize</code>) and arbitrary wheel <code>.data/scripts</code> are unsupported. Standard metadata-declared console entrypoints are supported. Missing dependencies are not resolved during installation, and package installation scripts are not executed. See <a href="../docs/sharing.html#conda-and-wheel-reconstruction">native sharing</a> for the offline transfer boundary and the <a href="https://github.com/gripsack-dev/gripsack/blob/c3b30d10004dd3c6c357508c3c02e3a1db8da3f7/typescript/README.md">exact SDK reference</a> for authoring details.</p>
 <h2 id="solve-baselines">Solve baselines</h2>
 <p><code>systemRequirements</code> fixes the libc and kernel baseline the solve assumes. Without one, <code>grip update</code> measures the host it runs on. The recorded baseline is checked again on every host that runs the result, together with CPU and runtime requirements. A baseline is not a guarantee that every selected archive runs on every distribution.</p>
 <p>Keep required libraries in the complete closure. A successful version command alone does not prove editor, language-server or graphical behavior. Exercise the actual consumer on the host where you deploy it.</p>
@@ -152,7 +158,7 @@ const search = environment(&quot;search&quot;, { packages: [&quot;tools&quot;], 
 
 export default defineWorkspace(() =&gt; workspace({ inputs, outputs: [tools, search] }));
 </code></pre>
-<p><code>grip update</code> imports the selected lock; it does <strong>not</strong> run Pixi, upgrade packages or rewrite <code>pixi.lock</code>. To change the solve, update the manifest/lock with your Pixi workflow first, review them, run <code>grip update</code>, then review and approve the resulting captured state. Frozen consumers refuse changed imported inputs until that explicit update. Gripsack's import and materialization do not require a <code>pixi</code> executable on <code>PATH</code>.</p>
+<p><code>grip update</code> imports the selected lock; it does <strong>not</strong> run Pixi, upgrade packages or rewrite <code>pixi.lock</code>. To change the solve, update the manifest/lock with your Pixi workflow first, review them, run <code>grip update</code>, then review the resulting lock change. Frozen consumers refuse changed imported inputs until that explicit update. Gripsack's import and materialization do not require a <code>pixi</code> executable on <code>PATH</code>.</p>
 <h2 id="typed-artifact-environment-values">Typed artifact environment values</h2>
 <p>Since core 0.56.0, <code>artifact(output, selector)</code> in an environment's <code>env</code> values expands version and platform tokens against the <strong>referenced package's</strong> locked source. For example, <code>artifact("tool", "tool-{version.bare}/lib")</code> selects that package's concrete library directory, not a directory derived from another package's version. The same rule applies in command env and cwd, as well as exec arguments; see <a href="../docs/tasks.html#typed-artifact-selectors">typed command selectors</a>. In 0.55, command and environment artifact selectors were literal.</p>
 <p>Use <code>lit(...)</code> for literal environment text; it does not interpolate release tokens. Missing required versions, unknown tokens and unsafe expanded paths fail with declaration provenance. Filesystem selection checks canonical containment, including working directories; <code>"."</code> remains the whole-artifact selector.</p>
@@ -160,7 +166,7 @@ export default defineWorkspace(() =&gt; workspace({ inputs, outputs: [tools, sea
 <h2 id="personal-launchers">Personal launchers</h2>
 <p>A profile's <code>launchers.directory</code> and <code>launchers.commands</code> are explicit. Only uniquely resolved exports from its selected environment become launchers; missing or ambiguous commands fail before mutation. Add the chosen directory to your shell, editor or SSH session's <code>PATH</code> yourself. Gripsack does not modify those programs' environments implicitly.</p>
 <p>Launchers use the absolute installed core path and retained private state. They re-admit the package/runtime contract on invocation. Keep both available; if the binary moves, restore it or reapply using the replacement core. Do not hand-edit generated launchers.</p>
-<p>Use the same UID that owns the state. An explicit <code>/usr/local/bin</code> destination does not turn a private store into a multi-user installation; do not make trust records or journals world-accessible.</p>
+<p>Use the same UID that owns the state. An explicit <code>/usr/local/bin</code> destination does not turn a private store into a multi-user installation; do not make trusted-remote records or journals world-accessible.</p>
 <h2 id="generations-and-rollback">Generations and rollback</h2>
 <p><code>grip generations</code> lists retained generations; <code>grip rollback</code> restores a previous managed state, including retained package roots and launcher bindings. It does not re-solve the environment or rebuild packages. Keep recovery data until you have exercised the deployed commands and configuration.</p>
 <p>For scoped project execution, use <code>grip run --env search -- COMMAND</code> or <code>grip shell search</code>. Add <a href="../docs/services.html">Docker services</a> for an explicit project database. For files alongside a toolchain, see <a href="../docs/adopting.html">profiles and dotfiles</a>.</p>
@@ -171,7 +177,7 @@ export default defineWorkspace(() =&gt; workspace({ inputs, outputs: [tools, sea
   <a href="https://github.com/gripsack-dev">gripsack-dev</a>
   <a href="https://github.com/gripsack-dev/gripsack">source</a>
   <a href="../index.html">home</a>
-  <span class="fversion">v0.58.0</span>
+  <span class="fversion">v0.59.0</span>
 </footer>
 </main>
 </div>

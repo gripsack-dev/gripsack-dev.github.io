@@ -154,20 +154,20 @@ grip apply dotfiles --take-over
 <p>From a workspace, <code>grip adopt</code> can inventory an existing path, copy its payload into <code>configs/</code>, and generate a named profile under <code>profiles/</code> plus its root import:</p>
 <pre><code class="language-sh">grip adopt ~/.config/editor --name editor --mode tracked_copy
 </code></pre>
-<p>The first invocation deliberately stops with exit status 1 for source review; it does not deploy the destination. Read the generated source, confirm the ownership policy and approve it, then resume:</p>
-<pre><code class="language-sh">grip trust add .
-grip adopt ~/.config/editor --name editor --resume
+<p>The first invocation deliberately stops with exit status 1 for review; it does not deploy the destination. Read the generated source and confirm the ownership policy, then resume:</p>
+<pre><code class="language-sh">grip adopt ~/.config/editor --name editor --resume
 </code></pre>
 <p>To abandon before resuming, remove only the generated paths listed by the attempt. Keep <code>gripsack.ts</code>. Since 0.56.1, if adoption edited the workspace, it names the import and the entry in <code>outputs</code> to remove. If it prints a manual-integration snippet instead, it did not edit the workspace.</p>
-<p>Resume uses the approved profile; do not pass <code>--mode</code> again. <code>--yes</code> skips apply confirmation, not source approval. The interview modes are <code>tracked_copy</code> for mutable real files, <code>owned</code> for store-owned links, and <code>merge</code> for managed text blocks. Keep backups and inspect the plan regardless of which route you choose.</p>
+<p>Resume uses the generated profile; do not pass <code>--mode</code> again. <code>--yes</code> answers the apply confirmation for scripts. The interview modes are <code>tracked_copy</code> for mutable real files, <code>owned</code> for store-owned links, and <code>merge</code> for managed text blocks. Keep backups and inspect the plan regardless of which route you choose.</p>
 <h2 id="drift-and-retained-generations">Drift and retained generations</h2>
-<p>A tracked copy is user-owned mutable content. If the application changes it, ordinary apply and rollback preserve the drift rather than silently overwrite it. To make that change your new desired state, deliberately copy it back into the repository, review and approve the new captured source, then apply again. <code>grip update</code> refreshes external source pins; it does not capture live destination content.</p>
+<p>A tracked copy is user-owned mutable content. If the application changes it, ordinary apply and rollback preserve the drift rather than silently overwrite it. To make that change your new desired state, deliberately copy it back into the repository, review it, then apply again. <code>grip update</code> refreshes external source pins; it does not capture live destination content.</p>
 <pre><code class="language-sh">grip generations
 grip rollback
 </code></pre>
 <p>Rollback uses retained content without re-rendering today's source or rebuilding packages. Keep predecessor generations until the real application works with the deployed files. See <a href="../docs/safety.html">safety and recovery</a> for the full ownership and drift rules, with a diagram.</p>
 <h2 id="package-artifacts-and-launchers">Package artifacts and launchers</h2>
 <p><code>artifactFile</code> and <code>artifactTree</code> select retained package content. Tree deployment still owns individual files, not the destination directory. Use tracked copies for consumers needing real filenames, extensions or sibling resources; per-file store symlinks do not promise those properties.</p>
+<p>Since 0.59, <code>symlinkTo(artifactFile(...))</code> over an <code>artifactFile</code> or <code>artifactTree</code> selector links into the realized package instead of publishing a copy, and the generation keeps that package retained. Prefix-relative programs and <code>$ORIGIN</code> rpaths keep working, which is what makes conda <code>tmux</code> and <code>helix</code> usable this way. A tracked copy still copies.</p>
 <p>In core 0.55.0 and later, <code>artifactFile</code> selectors and <code>artifactTree</code> include/exclude prefixes accept <code>{version}</code>, <code>{version.bare}</code>, <code>{os}</code>, <code>{arch}</code>, <code>{arch.go}</code>, <code>{arch.x64}</code>, <code>{target}</code> and <code>{system}</code>. They use the referenced package's resolved/locked source, with the same platform spellings as the release asset. <code>{version}</code> preserves the raw tag; <code>{version.bare}</code> strips exactly one leading lowercase <code>v</code>. With no source <code>version</code> pin, <code>grip update</code> can move these consumers to the newly locked release without editing your profile.</p>
 <p>For example, within a <code>file</code> declaration, select a version-bearing subtree with:</p>
 <pre><code class="language-typescript">source: artifactTree(&quot;tool&quot;, {
@@ -185,7 +185,7 @@ grip rollback
   <a href="https://github.com/gripsack-dev">gripsack-dev</a>
   <a href="https://github.com/gripsack-dev/gripsack">source</a>
   <a href="../index.html">home</a>
-  <span class="fversion">v0.58.0</span>
+  <span class="fversion">v0.59.0</span>
 </footer>
 </main>
 </div>

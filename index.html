@@ -34,7 +34,7 @@
   <h1 class="tagline">Your environment,<br>in <span class="accent">one workspace.</span></h1>
   <p class="sub">Describe your tools and configuration in one typed TypeScript file. Review what <code>grip</code> plans to change, apply it as a transaction, and roll back to a retained generation without rebuilding your packages.</p>
   <div class="cta"><a class="primary" href="./docs/install.html">Install grip <span aria-hidden="true">→</span></a><a href="#how">See how it works ↓</a></div>
-  <p class="alt">Linux x86_64 &amp; WSL2 <span aria-hidden="true">/</span> Alpha <span aria-hidden="true">/</span> MIT <span aria-hidden="true">/</span> <a href="./docs/changelog.html">What's new in v0.58.0</a></p>
+  <p class="alt">Linux x86_64 &amp; WSL2 <span aria-hidden="true">/</span> Alpha <span aria-hidden="true">/</span> MIT <span aria-hidden="true">/</span> <a href="./docs/changelog.html">What's new in v0.59.0</a></p>
   </div>
   <aside class="workspace-card" aria-label="What a workspace holds">
     <div class="workspace-label"><span>gripsack.ts</span><span>one file</span></div>
@@ -175,7 +175,7 @@ export default defineWorkspace(() =&gt; workspace({ outputs: [dotfiles] }));</co
   </div>
   <div class="example-flow">
   <p class="eyebrow">From declaration to deployment</p>
-  <p>After <a href="./docs/install.html">installing <code>grip</code></a>, approve the source when prompted, then:</p>
+  <p>After <a href="./docs/install.html">installing <code>grip</code></a>, then:</p>
   <ol class="flow">
     <li><span class="flow-num">01</span><div><h3>Validate the workspace</h3><pre><code class="language-bash">grip check</code></pre></div></li>
     <li><span class="flow-num">02</span><div><h3>Read the proposed changes</h3><pre><code class="language-bash">grip plan dotfiles</code></pre></div></li>
@@ -293,7 +293,7 @@ grip task run greet --closed-stdin</code></pre></div>
 <section id="install">
   <div class="install-copy"><p class="eyebrow">06 / Install</p><h2 class="section">One static binary.<br>No daemon.</h2>
   <p class="lede">A musl-linked <code>grip</code> with its TypeScript frontend embedded. Docker Engine is needed only for container services; systemd only for schedules. Nothing runs in the background.</p></div>
-  <div class="install-actions"><p class="eyebrow">Linux x86_64 / WSL2 · Alpha</p><a class="primary" href="./docs/install.html">Install v0.58.0 <span aria-hidden="true">→</span></a><a href="https://github.com/gripsack-dev/gripsack/releases/tag/core-v0.58.0">Release notes and checksums ↗</a><p>Keep your OS package manager.<br>Declare the user-space pieces you choose.</p></div>
+  <div class="install-actions"><p class="eyebrow">Linux x86_64 / WSL2 · Alpha</p><a class="primary" href="./docs/install.html">Install v0.59.0 <span aria-hidden="true">→</span></a><a href="https://github.com/gripsack-dev/gripsack/releases/tag/core-v0.59.0">Release notes and checksums ↗</a><p>Keep your OS package manager.<br>Declare the user-space pieces you choose.</p></div>
 </section>
 
 <section id="docs">
@@ -305,7 +305,7 @@ grip task run greet --closed-stdin</code></pre></div>
     <li><a href="./docs/adopting.html">Profiles &amp; dotfiles</a> — ownership modes, drift, adopting files you already have.</li>
     <li><a href="./docs/services.html">Docker services</a> · <a href="./docs/tasks.html">Tasks</a> · <a href="./docs/schedules.html">Schedules</a> — project plumbing without a daemon.</li>
     <li><a href="./docs/guarantees.html">How it stays safe</a> · <a href="./docs/safety.html">Safety &amp; recovery</a> — what is proved, assumed and not claimed.</li>
-    <li><a href="https://github.com/gripsack-dev/gripsack/blob/80529c0d139a250dbadc277368d4e9863e083249/typescript/README.md">SDK reference</a> · <a href="https://github.com/gripsack-dev/gripsack/tree/80529c0d139a250dbadc277368d4e9863e083249/examples/workspaces">Example workspaces</a> · <a href="./docs/changelog.html">What's new</a>.</li>
+    <li><a href="https://github.com/gripsack-dev/gripsack/blob/c3b30d10004dd3c6c357508c3c02e3a1db8da3f7/typescript/README.md">SDK reference</a> · <a href="https://github.com/gripsack-dev/gripsack/tree/c3b30d10004dd3c6c357508c3c02e3a1db8da3f7/examples/workspaces">Example workspaces</a> · <a href="./docs/changelog.html">What's new</a>.</li>
   </ul>
 </section>
 

@@ -72,7 +72,7 @@
 <p class="doc-eyebrow">Gripsack / documentation</p>
 <article class="md">
 <h1 id="review-and-saved-plans">Review and saved plans</h1>
-<p>Source approval, semantic review and deployment planning answer different questions. Approval binds captured bytes and policy; semantic review explains declared changes; a plan describes the selected operation. None proves that arbitrary commands are safe.</p>
+<p>Trust, semantic review and deployment planning answer different questions. Local repositories are trusted and remote ones are trusted on first use; semantic review explains declared changes; a plan describes the selected operation and flags new hook bodies, fetch domains and destinations outside <code>~</code>. None proves that arbitrary commands are safe.</p>
 <h2 id="snapshot-and-compare">Snapshot and compare</h2>
 <p>First apply the <a href="../docs/workspaces.html">file-only workspace</a> through its ordinary reviewed workflow. These commands compare retained generations, not unevaluated source edits. Keep snapshots outside the captured repository:</p>
 <pre><code class="language-sh">grip snapshot current --out /tmp/gripsack-before.json
@@ -96,7 +96,7 @@ grip diff-config /tmp/gripsack-before-config.json /tmp/gripsack-after-config.jso
 grip apply --saved-plan /tmp/gripsack-dotfiles-plan.json
 </code></pre>
 <p>Review the plan before the second command. Save outside the captured repository so writing the plan does not stale its own source binding. The private plan contains the exact evaluated IR and can contain literal configuration values; never put secrets in service literals. Inherited secret references are not resolved or stored while saving.</p>
-<p>Saving does not grant execution authority. Saved apply checks source, lock, trust, facts, probes, base generation, scope and destination bindings. A stale plan is refused; make a new plan rather than forcing it or silently evaluating different source. Existing ownership, crash recovery and per-mutation checks still apply. External filesystem writers can race operating-system operations.</p>
+<p>Saving does not grant execution authority. Saved apply checks source, lock, facts, probes, base generation, scope and destination bindings. A stale plan is refused; make a new plan rather than forcing it or silently evaluating different source. Existing ownership, crash recovery and per-mutation checks still apply. External filesystem writers can race operating-system operations.</p>
 <p>Review and saved profile application do not implicitly start unrelated <a href="../docs/services.html">services</a>. Profile rollback is not rollback of database data or task effects. See <a href="../docs/safety.html">safety</a> for the underlying boundaries.</p>
 </article>
 <footer>
@@ -105,7 +105,7 @@ grip apply --saved-plan /tmp/gripsack-dotfiles-plan.json
   <a href="https://github.com/gripsack-dev">gripsack-dev</a>
   <a href="https://github.com/gripsack-dev/gripsack">source</a>
   <a href="../index.html">home</a>
-  <span class="fversion">v0.58.0</span>
+  <span class="fversion">v0.59.0</span>
 </footer>
 </main>
 </div>

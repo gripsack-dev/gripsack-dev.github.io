@@ -89,14 +89,14 @@ const personal = profile(&quot;personal&quot;, { schedules: [&quot;nightly&quot;
   outputs: [shell, dev, greet, nightly, personal],
 }));
 </code></pre>
-<p>The <a href="https://github.com/gripsack-dev/gripsack/blob/80529c0d139a250dbadc277368d4e9863e083249/examples/workspaces/13-scheduled-bash-task/gripsack.ts">assembled workspace</a> is checked with the other documented examples.</p>
+<p>The <a href="https://github.com/gripsack-dev/gripsack/blob/c3b30d10004dd3c6c357508c3c02e3a1db8da3f7/examples/workspaces/13-scheduled-bash-task/gripsack.ts">assembled workspace</a> is checked with the other documented examples.</p>
 <pre><code class="language-sh">grip update
 grip task run greet --closed-stdin
 grip plan personal
 grip apply personal
 grip jobs status --json
 </code></pre>
-<p>Review source and lock approvals, then the registration plan before applying. Daily and weekly calendar triggers use local time. This example only prints a greeting: it does not back up or mutate a database. Tasks that mutate shared resources should declare appropriate store-scoped locks so manual and scheduled invocation participate in the same conflict policy.</p>
+<p>Review the lock and the registration plan before applying. Daily and weekly calendar triggers use local time. This example only prints a greeting: it does not back up or mutate a database. Tasks that mutate shared resources should declare appropriate store-scoped locks so manual and scheduled invocation participate in the same conflict policy.</p>
 <h2 id="inspect-disable-and-remove">Inspect, disable and remove</h2>
 <p>Use the actual job and invocation identifiers from status and receipts:</p>
 <pre><code class="language-sh">: &quot;${job:?set the registered job ID}&quot;
@@ -108,7 +108,7 @@ grip jobs disable &quot;$job&quot;
 <p>Remove the schedule from the profile's selection and apply the profile to remove registration. Profile rollback restores the retained registration capture, not effects from previous task runs. Update source or pins and explicitly apply again to replace the registered capture; timers do not evaluate current TypeScript at firing time.</p>
 <h2 id="execution-boundaries">Execution boundaries</h2>
 <p>Scheduled invocation uses closed stdin, bounded logs and a 1,800-second runtime limit. Timers use <code>Persistent=false</code> with native missed-event behavior, not promised catch-up delivery. Stale callbacks are refused; already-admitted old invocations may finish. Read logs as private application output. Retain independent backups and do not assume task side effects are reversible.</p>
-<p>Tasks requiring <a href="../docs/services.html">services</a> still require already-healthy services. Scheduling does not start Docker containers implicitly. The <a href="https://github.com/gripsack-dev/gripsack/tree/80529c0d139a250dbadc277368d4e9863e083249/examples/workspaces/04-scheduled-task">complete captured scheduled-task example</a> shows a package-command task and store lock.</p>
+<p>Tasks requiring <a href="../docs/services.html">services</a> still require already-healthy services. Scheduling does not start Docker containers implicitly. The <a href="https://github.com/gripsack-dev/gripsack/tree/c3b30d10004dd3c6c357508c3c02e3a1db8da3f7/examples/workspaces/04-scheduled-task">complete captured scheduled-task example</a> shows a package-command task and store lock.</p>
 </article>
 <footer>
   <span>© 2026 <a href="https://github.com/tknawara">Tarek Nawara</a></span>
@@ -116,7 +116,7 @@ grip jobs disable &quot;$job&quot;
   <a href="https://github.com/gripsack-dev">gripsack-dev</a>
   <a href="https://github.com/gripsack-dev/gripsack">source</a>
   <a href="../index.html">home</a>
-  <span class="fversion">v0.58.0</span>
+  <span class="fversion">v0.59.0</span>
 </footer>
 </main>
 </div>

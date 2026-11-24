@@ -78,8 +78,8 @@
 <p>One binary, <code>grip</code>, with the TypeScript frontend embedded. It evaluates your workspace in a sandbox, turns the result into a typed intermediate representation, and executes that against a content-addressed store with generations. This page follows one declaration from file to deployed state and names the parts along the way.</p>
 <h2 id="from-gripsackts-to-a-plan">From <code>gripsack.ts</code> to a plan</h2>
 <ol>
-<li><strong>Capture.</strong> The core snapshots the repository (minus explicit <a href="../docs/settings.html#source-capture">exclusions</a>). Git ignore rules are not a policy; everything in the tree is part of what you approve.</li>
-<li><strong>Approve.</strong> You review and approve the exact bundle and policy digests (<a href="../docs/safety.html#source-approval">source approval</a>).</li>
+<li><strong>Capture.</strong> The core snapshots the repository (minus explicit <a href="../docs/settings.html#source-capture">exclusions</a>). Git ignore rules are not a policy; everything in the tree is evaluated.</li>
+<li><strong>Trust.</strong> A local repository is trusted; a <code>--repo</code> origin is trusted on first use (<a href="../docs/safety.html#trust-and-review">trust and review</a>).</li>
 <li><strong>Evaluate.</strong> A pinned, checksum-verified Deno runs the embedded frontend over the captured source with no environment, network or subprocess access. Host facts arrive as inputs; anything that needs to look at the machine is an explicit probe.</li>
 <li><strong>Admit.</strong> The Rust core validates the resulting IR: references, dependency graph, command contracts, provenance for every declaration.</li>
 <li><strong>Plan.</strong> The core compares the desired state with what is live. For a <a href="../docs/tasks.html#typed-artifact-selectors">typed artifact selector</a>, it shows the concrete path from the referenced package's lock in text and JSON (<code>resolved_paths</code>). Planning doesn't fetch the payload or claim that the path exists inside it.</li>
@@ -170,7 +170,7 @@
 </table>
 <p><a href="../docs/guarantees.html">How gripsack stays safe</a> spells out what each ring guarantees and what it does not.</p>
 <h2 id="where-the-implementation-lives">Where the implementation lives</h2>
-<p>The <a href="https://github.com/gripsack-dev/gripsack/tree/80529c0d139a250dbadc277368d4e9863e083249/crates">core crates</a>, the <a href="https://github.com/gripsack-dev/gripsack/tree/80529c0d139a250dbadc277368d4e9863e083249/typescript">TypeScript SDK</a>, the <a href="https://github.com/gripsack-dev/gripsack/tree/80529c0d139a250dbadc277368d4e9863e083249/proofs">proofs</a> and the <a href="https://github.com/gripsack-dev/gripsack/tree/80529c0d139a250dbadc277368d4e9863e083249/plan">design records</a> are all in one repository.</p>
+<p>The <a href="https://github.com/gripsack-dev/gripsack/tree/c3b30d10004dd3c6c357508c3c02e3a1db8da3f7/crates">core crates</a>, the <a href="https://github.com/gripsack-dev/gripsack/tree/c3b30d10004dd3c6c357508c3c02e3a1db8da3f7/typescript">TypeScript SDK</a>, the <a href="https://github.com/gripsack-dev/gripsack/tree/c3b30d10004dd3c6c357508c3c02e3a1db8da3f7/proofs">proofs</a> and the <a href="https://github.com/gripsack-dev/gripsack/tree/c3b30d10004dd3c6c357508c3c02e3a1db8da3f7/plan">design records</a> are all in one repository.</p>
 </article>
 <footer>
   <span>© 2026 <a href="https://github.com/tknawara">Tarek Nawara</a></span>
@@ -178,7 +178,7 @@
   <a href="https://github.com/gripsack-dev">gripsack-dev</a>
   <a href="https://github.com/gripsack-dev/gripsack">source</a>
   <a href="../index.html">home</a>
-  <span class="fversion">v0.58.0</span>
+  <span class="fversion">v0.59.0</span>
 </footer>
 </main>
 </div>

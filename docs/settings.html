@@ -63,7 +63,7 @@
   <div class="rail-toc">
     <a href="#the-frontend">The frontend</a>
     <a href="#source-capture">Source capture</a>
-    <a href="#review-the-whole-capture">Review the whole capture</a>
+    <a href="#review-before-you-apply">Review before you apply</a>
     <a href="#state-temporary-files-and-storage">State, temporary files and storage</a>
     <a href="#network-and-acquisition-policy">Network and acquisition policy</a>
   </div>
@@ -82,23 +82,19 @@
 <pre><code class="language-toml">[capture]
 exclude = [&quot;node_modules/@gripsack/core&quot;]
 </code></pre>
-<p>This literal exclusion turns the installed SDK off as a runtime frontend. A glob cannot carve individual files out of an SDK root. If <code>node_modules</code> itself is symlinked, use real ancestry or exclude that whole parent deliberately. Frontend changes can require a lock refresh and renewed source approval.</p>
+<p>This literal exclusion turns the installed SDK off as a runtime frontend. A glob cannot carve individual files out of an SDK root. If <code>node_modules</code> itself is symlinked, use real ancestry or exclude that whole parent deliberately. Frontend changes can require a lock refresh.</p>
 <h2 id="source-capture">Source capture</h2>
-<p>Captured content, including untracked and Git-ignored files, participates in approval unless explicitly excluded. <code>.gitignore</code> is not a source authority policy.</p>
+<p>Captured content, including untracked and Git-ignored files, is evaluated unless explicitly excluded. <code>.gitignore</code> is not a source authority policy.</p>
 <pre><code class="language-toml">[capture]
 exclude = [&quot;.venv&quot;, &quot;**/__pycache__&quot;, &quot;.ruff_cache/**&quot;]
 </code></pre>
 <p>Literal entries exclude normalized relative subtrees. Globs support <code>*</code> within a component, <code>?</code> for one character and whole-component <code>**</code> across components. They are case-sensitive and bounded. Absolute paths, parent traversal and <code>~</code> are not valid shortcuts.</p>
 <p>Required configuration, entrypoints, the lockfile and selected SDK roots cannot be excluded. Prefix-scoped globs require real, unaliased ancestry; use a leading suffix glob such as <code>**/__pycache__</code> for aliased content trees where appropriate. Exclusions never grant access to excluded files.</p>
 <p><code>repoTree</code> selection is separate: its <code>include</code>/<code>exclude</code> prefixes are literal, not globs, and cannot reach past the capture boundary. Exclude an irrelevant outbound virtual-environment link at the capture boundary before evaluating tree declarations.</p>
-<h2 id="review-the-whole-capture">Review the whole capture</h2>
-<pre><code class="language-sh">grip trust inspect --json
-grip trust add
-</code></pre>
-<p>Interactive <code>trust add</code> shows the capture and policy before asking for approval. Review actual changed content as well as inventory paths. <code>--focus PREFIX</code> narrows the displayed changed-path list only: approval still binds the exact whole bundle and policy, and JSON stays complete. An out-of-focus change requires renewed approval too.</p>
-<p>For noninteractive execution, compare separately reviewed expected digests before approval; see <a href="../docs/safety.html#source-approval">unattended approval</a>.</p>
+<h2 id="review-before-you-apply">Review before you apply</h2>
+<p>There is no approval step. Local repositories are trusted, and a <code>--repo &lt;git url&gt;</code> is trusted on first use, once per origin; see <a href="../docs/safety.html#trust-and-review">trust and review</a>. <code>grip plan</code> lists new hook bodies, new fetch domains and destinations outside <code>~</code>, and <code>grip apply</code> confirms on a terminal only when such items are new. Pass the global <code>--yes</code> in scripts and CI. Review actual changed content, not only the list.</p>
 <h2 id="state-temporary-files-and-storage">State, temporary files and storage</h2>
-<p><code>GRIPSACK_HOME</code> selects the private state root; otherwise it is <code>$XDG_DATA_HOME/gripsack</code> or <code>~/.local/share/gripsack</code>. Keep its store, trust records, journals and generations private and intact. Moving state or the installed core can invalidate managed launcher bindings.</p>
+<p><code>GRIPSACK_HOME</code> selects the private state root; otherwise it is <code>$XDG_DATA_HOME/gripsack</code> or <code>~/.local/share/gripsack</code>. Keep its store, trusted-remote records, journals and generations private and intact. Moving state or the installed core can invalidate managed launcher bindings.</p>
 <p>Temporary extraction and materialization can use <code>TMPDIR</code>, <code>TMP</code> or <code>TEMP</code>. Native publication stages and seals content before final rename; a cross-filesystem transfer uses a bounded copy into destination-filesystem staging before publication. Scratch cleanup is not a substitute for publication or recovery authority.</p>
 <p>External tools retain their own temporary-storage rules. Configure enough space for source archives, expanded trees and retained generations; <code>grip gc --dry-run</code> previews native reclamation. Docker Engine storage and service volumes have a separate lifecycle.</p>
 <h2 id="network-and-acquisition-policy">Network and acquisition policy</h2>
@@ -112,7 +108,7 @@ grip trust add
   <a href="https://github.com/gripsack-dev">gripsack-dev</a>
   <a href="https://github.com/gripsack-dev/gripsack">source</a>
   <a href="../index.html">home</a>
-  <span class="fversion">v0.58.0</span>
+  <span class="fversion">v0.59.0</span>
 </footer>
 </main>
 </div>

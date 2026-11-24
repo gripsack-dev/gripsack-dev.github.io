@@ -84,7 +84,7 @@ grip check
 grip plan hello
 grip apply hello
 </code></pre>
-<p><code>init</code> writes a root <code>gripsack.ts</code>, a file-only <code>hello</code> profile that deploys under <code>~/.config/hello/</code>, sample configuration and editor settings. The first <code>grip check</code> asks you to approve the captured source; <code>grip plan</code> shows every file that would change; <code>grip apply</code> makes generation 1. Replace the sample with the files or packages you actually want.</p>
+<p><code>init</code> writes a root <code>gripsack.ts</code>, a file-only <code>hello</code> profile that deploys under <code>~/.config/hello/</code>, sample configuration and editor settings. <code>grip check</code> validates the workspace; <code>grip plan</code> shows every file that would change; <code>grip apply</code> makes generation 1. Replace the sample with the files or packages you actually want.</p>
 <p>In an existing directory, <code>init</code> keeps regular files such as your <code>README.md</code> and refuses to replace an existing <code>gripsack.ts</code> or <code>env.toml</code>. If a template path is blocked (for example, <code>configs</code> is a file), move the conflicting item somewhere safe and rerun <code>grip init</code> with the same target. You do not need to delete the directory or the starter files already written. Git setup is optional: if <code>git init</code> fails, the workspace files are still ready to use.</p>
 <h2 id="or-write-it-by-hand">Or write it by hand</h2>
 <!-- example: examples/workspaces/05-first-workspace/gripsack.ts -->
@@ -164,7 +164,7 @@ grip apply dotfiles
 <p>These are ordinary typed values: build them with functions, reuse them, and list every referenced output in <code>workspace.outputs</code>. Names are unique; invalid references and cycles are errors at <code>grip check</code>.</p>
 <h2 id="select-what-you-deploy">Select what you deploy</h2>
 <p><code>grip plan dotfiles</code> and <code>grip apply dotfiles</code> act on that profile only; unselected profiles are neither applied nor pruned. Without a selection, apply processes the declared profile graph. Keep frequently edited configuration in its own profile so the scope of each apply is obvious.</p>
-<p>Selection does not narrow approval: you approve the whole captured source, and a change outside the selected profile still needs review.</p>
+<p>Selection narrows what is deployed, not what is evaluated: the whole workspace is evaluated, and <code>grip plan</code> lists any new hook bodies, fetch domains or destinations outside <code>~</code> before you apply.</p>
 <h2 id="the-commands-in-order">The commands, in order</h2>
 <ul>
 <li><code>grip check</code> validates declarations. It starts no service and registers no timer.</li>
@@ -179,7 +179,7 @@ grip apply dotfiles
 <li><a href="../docs/environments.html">Environments</a>: a Conda toolchain for <code>grip run</code>, with launchers on your path.</li>
 <li><a href="../docs/adopting.html">Profiles and dotfiles</a>: ownership modes and adopting files you already have.</li>
 <li><a href="../docs/services.html">Services</a>, <a href="../docs/tasks.html">tasks</a>, <a href="../docs/schedules.html">schedules</a>: project plumbing.</li>
-<li>The <a href="https://github.com/gripsack-dev/gripsack/blob/80529c0d139a250dbadc277368d4e9863e083249/typescript/README.md">SDK reference</a> and <a href="https://github.com/gripsack-dev/gripsack/tree/80529c0d139a250dbadc277368d4e9863e083249/examples/workspaces">example workspaces</a>.</li>
+<li>The <a href="https://github.com/gripsack-dev/gripsack/blob/c3b30d10004dd3c6c357508c3c02e3a1db8da3f7/typescript/README.md">SDK reference</a> and <a href="https://github.com/gripsack-dev/gripsack/tree/c3b30d10004dd3c6c357508c3c02e3a1db8da3f7/examples/workspaces">example workspaces</a>.</li>
 </ul>
 <p>Evaluation runs in a sandbox: use <code>repoFile</code>, <code>repoTree</code> and named <code>inputFile</code> declarations for source data instead of reading the filesystem from TypeScript, and expect host facts to arrive through the injected context.</p>
 </article>
@@ -189,7 +189,7 @@ grip apply dotfiles
   <a href="https://github.com/gripsack-dev">gripsack-dev</a>
   <a href="https://github.com/gripsack-dev/gripsack">source</a>
   <a href="../index.html">home</a>
-  <span class="fversion">v0.58.0</span>
+  <span class="fversion">v0.59.0</span>
 </footer>
 </main>
 </div>

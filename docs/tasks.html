@@ -100,6 +100,10 @@ grip task log &quot;$invocation&quot;
 needs a checkout, evaluates a workspace, or clones a repository. Both ignore
 <code>--repo</code>, even if the named checkout no longer exists. <code>list</code> and <code>plan</code>
 still inspect a local workspace, and <code>run</code> still resolves its repository.</p>
+<p>To check task inputs before running a command, use <code>grip check</code>. A missing
+captured path, a directory supplied as an input file, or a file supplied as
+an input directory is reported at its declaration. This check neither builds
+packages nor runs the task.</p>
 <p>The saved log is bounded: if any output was omitted, human <code>status</code> and
 <code>log</code> warn on <strong>stderr</strong>, not in the log text on stdout. For automation, read
 <code>logs_truncated</code> from <code>task status --json</code> or <code>truncated</code> from <code>task log
@@ -175,7 +179,8 @@ unknown evidence.</p>
 <h2 id="dependencies-and-mutation">Dependencies and mutation</h2>
 <p><code>deps</code> names unordered prerequisite tasks that must succeed in the same invocation. A task's <code>steps</code> are ordered locally; <code>checks</code> are its invocation postconditions. Declare live mutation paths with <code>context: { kind: "host", mutable_paths: [...] }</code> and shared mutation keys with <code>locks: [lock("user", "editor-config")]</code> or store-scoped locks.</p>
 <p>Locks coordinate declared effects; they do not grant execution authority or infer dependencies from shell text. <code>--skip-busy</code> can skip an active conflict, not bypass an unknown interrupted owner. <code>--timeout-seconds</code> bounds realization, prerequisites and verification together. Interrupted or indeterminate outcomes are not recorded as success.</p>
-<p>Use typed <code>packageCommand</code>, <code>lit</code> and explicit <code>env</code>/<code>argv</code> values for commands. A <code>runBash</code> body requires a declared package-command interpreter; it does not discover ambient Bash. Host executable commands are explicit trusted host execution, not sealed package-closure proof. Consult the <a href="https://github.com/gripsack-dev/gripsack/blob/80529c0d139a250dbadc277368d4e9863e083249/typescript/README.md">SDK command reference</a> for shell bodies and task postconditions.</p>
+<p><code>hostPath("~/...")</code> as a command working directory expands <code>~</code> like a file destination does, instead of failing at apply.</p>
+<p>Use typed <code>packageCommand</code>, <code>lit</code> and explicit <code>env</code>/<code>argv</code> values for commands. A <code>runBash</code> body requires a declared package-command interpreter; it does not discover ambient Bash. Host executable commands are explicit trusted host execution, not sealed package-closure proof. Consult the <a href="https://github.com/gripsack-dev/gripsack/blob/c3b30d10004dd3c6c357508c3c02e3a1db8da3f7/typescript/README.md">SDK command reference</a> for shell bodies and task postconditions.</p>
 <h2 id="literal-bash-bodies">Literal Bash bodies</h2>
 <p>Create this complete <code>gripsack.ts</code> in a separate example directory:</p>
 <!-- example: examples/workspaces/11-bash-task/gripsack.ts -->
@@ -211,7 +216,7 @@ const greet = task(&quot;greet&quot;, {
 });
 export default defineWorkspace(() =&gt; workspace({ outputs: [shell, dev, greet] }));
 </code></pre>
-<p>Run <code>grip update</code>, review the source and lock approvals, then <code>grip task run greet --closed-stdin</code>. The normal lock pins the interpreter package. Bash runs with fixed <code>-e -u -o pipefail</code>; it is not ambient shell discovery. The tag accepts literal bodies, not JavaScript substitutions: pass dynamic values through typed environment bindings. To author shell <code>${NAME}</code> syntax inside the tag, escape the dollar sign as <code>\${NAME}</code>. JavaScript evaluates substitutions before a tag is called, so rejection is not a sandbox for JavaScript side effects.</p>
+<p>Run <code>grip update</code>, review the lock change, then <code>grip task run greet --closed-stdin</code>. The normal lock pins the interpreter package. Bash runs with fixed <code>-e -u -o pipefail</code>; it is not ambient shell discovery. The tag accepts literal bodies, not JavaScript substitutions: pass dynamic values through typed environment bindings. To author shell <code>${NAME}</code> syntax inside the tag, escape the dollar sign as <code>\${NAME}</code>. JavaScript evaluates substitutions before a tag is called, so rejection is not a sandbox for JavaScript side effects.</p>
 <p>The same command works in task steps, check runs and hook runs. Use <code>runBash({ interpreter, body, env, cwd })</code> with a separately declared tagged body when composing reusable commands; <code>cwd</code> must be a typed path. See the SDK reference for the complete command contract.</p>
 <h2 id="profile-file-checks">Profile file checks</h2>
 <p>This complete workspace validates a captured shell configuration before writing its destination. It deliberately uses the host's <code>/bin/sh</code> syntax checker, so that executable is a prerequisite and trusted host input:</p>
@@ -237,7 +242,7 @@ const dotfiles = profile(&quot;dotfiles&quot;, {
 
 export default defineWorkspace(() =&gt; workspace({ outputs: [syntax, dotfiles] }));
 </code></pre>
-<p>Create <code>config/shell.sh</code> with valid POSIX shell configuration, then use <code>grip check</code>, <code>grip plan dotfiles</code> and <code>grip apply dotfiles</code>, reviewing approvals and the deployment plan as usual. A check's <code>sourcePath(".")</code> is its immutable attached subject, not writable staging or an arbitrary working directory.</p>
+<p>Create <code>config/shell.sh</code> with valid POSIX shell configuration, then use <code>grip check</code>, <code>grip plan dotfiles</code> and <code>grip apply dotfiles</code>, reviewing the deployment plan as usual. A check's <code>sourcePath(".")</code> is its immutable attached subject, not writable staging or an arbitrary working directory.</p>
 <h2 id="lifecycle-boundaries">Lifecycle boundaries</h2>
 <ul>
 <li>A source check requires captured source.</li>
@@ -282,7 +287,7 @@ keep their literal selector meaning, including filenames containing braces.</p>
   <a href="https://github.com/gripsack-dev">gripsack-dev</a>
   <a href="https://github.com/gripsack-dev/gripsack">source</a>
   <a href="../index.html">home</a>
-  <span class="fversion">v0.58.0</span>
+  <span class="fversion">v0.59.0</span>
 </footer>
 </main>
 </div>

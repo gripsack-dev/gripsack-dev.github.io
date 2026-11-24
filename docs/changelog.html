@@ -61,6 +61,7 @@
   </details>
   <span class="rail-head">on this page</span>
   <div class="rail-toc">
+    <a href="#0590-no-approval-step-fast-launchers-wider-conda">0.59.0 — No approval step, fast launchers, wider Conda</a>
     <a href="#0580-durable-journal-evidence">0.58.0 — Durable journal evidence</a>
     <a href="#0570-reliable-previews-and-recovery">0.57.0 — Reliable previews and recovery</a>
     <a href="#0561-safer-adoption-cleanup">0.56.1 — Safer adoption cleanup</a>
@@ -79,7 +80,24 @@
 <p class="doc-eyebrow">Gripsack / documentation</p>
 <article class="md">
 <h1 id="whats-new">What's new</h1>
-<p>User-visible changes per release. The <a href="https://github.com/gripsack-dev/gripsack/blob/80529c0d139a250dbadc277368d4e9863e083249/CHANGELOG.md">full changelog</a> and <a href="https://github.com/gripsack-dev/gripsack/releases">release downloads</a> live with the source. This site documents core <strong>0.58.0</strong>.</p>
+<p>User-visible changes per release. The <a href="https://github.com/gripsack-dev/gripsack/blob/c3b30d10004dd3c6c357508c3c02e3a1db8da3f7/CHANGELOG.md">full changelog</a> and <a href="https://github.com/gripsack-dev/gripsack/releases">release downloads</a> live with the source. This site documents core <strong>0.59.0</strong>.</p>
+<h2 id="0590-no-approval-step-fast-launchers-wider-conda">0.59.0 — No approval step, fast launchers, wider Conda</h2>
+<ul>
+<li><strong>No approval step.</strong> <code>grip trust add</code>/<code>inspect</code>, <code>trust.toml</code> and <code>GRIPSACK_TRUST_ALL</code> are gone; stale trust files are ignored. Local repositories are trusted. A <code>--repo &lt;git url&gt;</code> is trusted on first use, once per origin; <code>grip trust list</code> and <code>grip trust remove &lt;url&gt;</code> manage those. <code>grip plan</code> lists new hook bodies, fetch domains and destinations outside <code>~</code>, and <code>grip apply</code> confirms on a terminal only when they are new. The global <code>--yes</code> is for scripts and CI. <a href="../docs/safety.html#trust-and-review">Trust and review</a>.</li>
+<li><strong>Store and launchers.</strong> Published store entries are read-only, so a tool such as Python cannot corrupt one with <code>__pycache__</code>. Launchers admit only the command they run (about 190 ms to 55 ms for a 30-package environment); <code>grip store-verify</code> detects tampering anywhere in a payload. <code>symlinkTo(artifactFile(...))</code> links into the realized package, so prefix-relative tools such as conda <code>tmux</code> and <code>helix</code> work. <a href="../docs/safety.html#host-libraries-and-launchers">Launchers</a>, <a href="../docs/adopting.html#package-artifacts-and-launchers">package artifacts</a>.</li>
+<li><strong>Conda.</strong> Export-only <code>activate.d</code> scripts are evaluated, never executed, and apply in shells, <code>grip run</code>, tasks and wrappers; link scripts and other scripts are still refused by name. conda <code>gcc</code>/<code>gxx</code> works, and an environment without <code>abi</code> admits <code>abi: "gnu"</code> members. <a href="../docs/environments.html#activation-scripts-gcc-and-abi">Activation scripts</a>.</li>
+<li><strong>Diagnostics.</strong> Errors name the path, output and declaration, spans point at the call site of your own helpers, and a dangling symlink above a destination is a conflict. <a href="../docs/runs.html#diagnostics">Diagnostics</a>.</li>
+<li><strong>GitHub API budget.</strong> Anonymous 1/min with a burst of 5; authenticated 30/min; rate-limit headers are learned from every response. Set <code>GITHUB_TOKEN</code> or <code>GH_TOKEN</code>. <a href="../docs/fetchers.html#github-api-budget">Budget</a>.</li>
+<li><code>hostPath("~/...")</code> expands.</li>
+</ul>
+<p>Earlier in 0.59.0:</p>
+<ul>
+<li>Keep using the path printed by a Conda or Pixi build after <code>grip update</code> and <code>grip gc</code>. A failed multi-output update also leaves the old lock's archives available offline. <a href="../docs/fetchers.html#update-deliberately">What an update retains</a>.</li>
+<li>Recovery no longer discards undo evidence just because it can see a user edit. It rechecks the edited file or symlink and syncs the required bytes and name first. A failed barrier leaves the journal for another attempt. <a href="../docs/guarantees.html#what-has-to-survive-a-crash">Which crash outcomes are covered</a>.</li>
+<li><a href="../docs/guarantees.html#what-has-to-survive-a-crash">The leaf cleanup proof</a> covers process death and modeled power loss during retirement. In particular, cleanup cannot leave a committed run's stale undo record behind without the marker that identifies it.</li>
+<li><code>grip doctor</code> reports bad recovery evidence or an <a href="../docs/install.html#runtime-prerequisites">unusable Deno</a> without repairing either. <code>grip check</code> reports missing or wrong-kind <a href="../docs/tasks.html#manual-tasks">task inputs</a> without building packages or invoking the task.</li>
+<li>A missing local source no longer hides the other rows in <code>grip update --check</code>: the survey still exits 2 for an incomplete result and leaves the lock alone.</li>
+</ul>
 <h2 id="0580-durable-journal-evidence">0.58.0 — Durable journal evidence</h2>
 <p>Before apply or rollback changes a journaled leaf, <a href="../docs/guarantees.html#what-has-to-survive-a-crash">the marker, entry and any required prior blob survive both modeled crash kinds</a>. Removing a required file or directory sync admits a counterexample. This strengthens what is proved; it does not change the journal format or promise that every recovery completes.</p>
 <h2 id="0570-reliable-previews-and-recovery">0.57.0 — Reliable previews and recovery</h2>
@@ -156,7 +174,7 @@
   <a href="https://github.com/gripsack-dev">gripsack-dev</a>
   <a href="https://github.com/gripsack-dev/gripsack">source</a>
   <a href="../index.html">home</a>
-  <span class="fversion">v0.58.0</span>
+  <span class="fversion">v0.59.0</span>
 </footer>
 </main>
 </div>

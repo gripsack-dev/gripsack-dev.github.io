@@ -65,7 +65,7 @@
     <a href="#what-a-crash-leaves-behind">What a crash leaves behind</a>
     <a href="#ownership-and-drift">Ownership and drift</a>
     <a href="#rollback-retention-and-gc">Rollback, retention and GC</a>
-    <a href="#source-approval">Source approval</a>
+    <a href="#trust-and-review">Trust and review</a>
     <a href="#hooks-and-checks">Hooks and checks</a>
     <a href="#host-libraries-and-launchers">Host libraries and launchers</a>
     <a href="#what-is-not-covered">What is not covered</a>
@@ -102,7 +102,7 @@
 </figure>
 
 <ol>
-<li><strong>Realize packages</strong> into the read-only store. Content is verified, sealed read-only and published by rename, so a half-downloaded archive never becomes a package.</li>
+<li><strong>Realize packages</strong> into the read-only store. Content is verified, sealed read-only and published by rename, so a half-downloaded archive never becomes a package. Because published entries are read-only, a tool running from the store cannot modify it; Python can no longer write <code>__pycache__</code> into a package and break the next apply.</li>
 <li><strong>Journal</strong> a durable run marker. For each destination, record its prior state and intended change durably before changing that destination.</li>
 <li><strong>Write that destination</strong> after a final re-check through a pinned directory handle. If it no longer matches the observation used for the write, stop rather than overwrite it. Repeat the journal-and-write sequence for the next destination.</li>
 <li><strong>Run pre-flip checks</strong> you attached to files, still inside the transaction.</li>
@@ -191,7 +191,7 @@
 
 <p>Every destination has an owner. Gripsack writes only when the destination is absent, or holds exactly what gripsack wrote last time. Two other cases are decided conservatively:</p>
 <ul>
-<li><strong>Drift.</strong> A <code>trackedCopyTo</code> file that the application (or you) changed since the last apply is <em>yours</em>. Apply and rollback both leave it alone and say so. To adopt the change, copy it back into the repository, review, approve and apply.</li>
+<li><strong>Drift.</strong> A <code>trackedCopyTo</code> file that the application (or you) changed since the last apply is <em>yours</em>. Apply and rollback both leave it alone and say so. To adopt the change, copy it back into the repository, review and apply.</li>
 <li><strong>Foreign files.</strong> A file gripsack never wrote is refused. <code>grip plan --take-over</code> shows what adoption would do; <code>grip apply --take-over</code> journals the prior bytes and adopts the selected destinations only. It is not a general ownership transfer and does not cross workspaces.</li>
 </ul>
 <p><code>symlinkTo</code> links the destination to read-only store content; <code>managedBlock</code> reconciles one delimited section of a shared text file and leaves every byte outside the markers alone. See <a href="../docs/adopting.html">profiles and dotfiles</a> for choosing between them.</p>
@@ -203,35 +203,36 @@ grip gc --dry-run
 </code></pre>
 <p><code>grip rollback</code> reselects a retained generation: files, launchers and package roots come from retained bytes, nothing is re-solved or rebuilt, and drift is preserved exactly as during apply. Rollback is a new activation and may run the retained generation's hooks; it is not an undo of commands run since then.</p>
 <p><code>grip gc</code> refuses while recovery or activation is pending, or if <code>current</code> names a missing generation. It never removes the current generation or anything a retained generation or recovery root references. <code>keep_generations</code> in <a href="../docs/settings/reference.html">settings</a> controls retention; keep predecessors until the real application has worked with the deployed files.</p>
-<h2 id="source-approval">Source approval</h2>
-<p>Workspace code is evaluated in a sandboxed Deno with no environment, network or subprocess access, over a captured copy of the repository. Before evaluation you approve the <strong>exact captured bundle and policy</strong>, so a changed file, a changed exclusion or a changed frontend needs a fresh approval. There is no repository-wide "trust everything"; <code>GRIPSACK_TRUST_ALL=1</code> is refused.</p>
-<pre><code class="language-sh">grip trust inspect --json
-grip trust add
+<h2 id="trust-and-review">Trust and review</h2>
+<p>There is no approval step. Workspace code is evaluated in a sandboxed Deno with no environment, network or subprocess access, over a captured copy of the repository. Editing a file in your own repository never invalidates anything.</p>
+<ul>
+<li><strong>Local repositories are trusted.</strong> Running <code>grip</code> on a repository on your disk is consent.</li>
+<li><strong>A remote repository is trusted on first use.</strong> <code>grip ... --repo &lt;git url&gt;</code> asks once per origin URL, showing what the repository declares. Later commits from the same origin do not ask again. Spellings of one origin (trailing slash, <code>.git</code>, embedded credentials) are one record.</li>
+<li><strong>The plan is the guardrail.</strong> <code>grip plan</code> lists what is new since the last apply of that repository: hook bodies, fetch domains and destinations outside <code>~</code>. <code>grip apply</code> shows the same list and asks for confirmation on a terminal, but only when such items are new. Without a terminal it refuses unless you pass <code>--yes</code>.</li>
+</ul>
+<pre><code class="language-sh">grip trust list
+grip trust remove https://example.com/me/env.git
 </code></pre>
-<p><code>--focus</code> and profile selection narrow what is <em>displayed</em> or <em>deployed</em>, never what is approved. Approval also says nothing about what the packages and hooks you declared will do when they run: those run with your privileges.</p>
-<p>For unattended machines, record the bundle and policy digests when you review the source, and compare before approving:</p>
+<p><code>grip trust list</code> shows the remote origins trusted on first use; <code>grip trust remove &lt;url&gt;</code> forgets one, and its next use asks again. The record of what you have already seen is a convenience: deleting it only makes every item new again, and it never gates evaluation.</p>
+<p>The global <code>--yes</code> (<code>-y</code>) answers every confirmation for scripts and CI: it trusts a remote on first use and applies new items. Use it where the repository and its reviewers are the control, not as a habit at a terminal.</p>
+<p>Confirming says nothing about what the packages and hooks you declared will do when they run: those run with your privileges. Old <code>trust.toml</code> files are ignored, and <code>grip trust add</code> and <code>grip trust inspect</code> no longer exist.</p>
+<p>A CI job needs no approval step:</p>
 <pre><code class="language-sh">set -eu
-: &quot;${expected_bundle:?load the separately reviewed bundle digest}&quot;
-: &quot;${expected_policy:?load the separately reviewed policy digest}&quot;
-source=$(grip trust inspect --json)
-[ &quot;$(printf '%s' &quot;$source&quot; | jq -er .bundle_digest)&quot; = &quot;$expected_bundle&quot; ] &amp;&amp;
-  [ &quot;$(printf '%s' &quot;$source&quot; | jq -er .policy_digest)&quot; = &quot;$expected_policy&quot; ] ||
-  { echo &quot;captured source differs from review — NOT approving&quot; &gt;&amp;2; exit 1; }
-grip trust add --bundle &quot;$expected_bundle&quot; --policy &quot;$expected_policy&quot;
 grip check
+grip plan
 </code></pre>
-<p>Never derive the expected values from the inspection you are about to approve.</p>
 <h2 id="hooks-and-checks">Hooks and checks</h2>
 <p>Rendered-file checks run before any destination is written. Deployed <code>pre_flip</code> checks run after candidate writes but before the flip, inside the transaction. <code>post_link</code> and <code>post_activate</code> run after commit and are never auto-rolled back.</p>
 <p>Hooks have durable intents. An interrupted delivery can run again under the same intent id, so write idempotent hooks. Failed intents are not retried automatically. See <a href="../docs/tasks.html">tasks and checks</a>.</p>
 <h2 id="host-libraries-and-launchers">Host libraries and launchers</h2>
 <p>A Linux GNU package may declare <code>hostRuntime: { libraryDirectories: [...] }</code>. Those directories are trusted host input: review who controls them. They are package-scoped and never widen what the evaluator or other packages can see.</p>
+<p>Each time a launcher runs, it checks only the command being run against its sealed, hash-addressed payload, and refuses a tampered executable. It no longer re-hashes every package or walks every file, which makes an exec of a 30-package environment about three times faster (roughly 190 ms to 55 ms). The rest of a payload is covered by <code>grip store-verify</code>, which detects tampering anywhere in a retained payload; <code>grip store-verify --repair</code> removes corrupt paths so the next apply fetches them again. <code>grip gc</code> and repair also remove sealed read-only trees.</p>
 <p>Managed launchers embed the absolute path of the installed core and its private state directory. If you move the binary, reapply with the new one rather than editing launchers. Run as the UID that owns the state; placing a launcher in <code>/usr/local/bin</code> does not make the store multi-user.</p>
 <h2 id="what-is-not-covered">What is not covered</h2>
 <ul>
 <li>Effects of hooks, tasks, services and the programs you deploy. Rollback does not undo a database migration.</li>
 <li>Writes by another process in the window between gripsack's re-check and its own write (<a href="../docs/guarantees.html#what-is-not-claimed">a named residual risk</a>).</li>
-<li>Same-UID or privileged tampering with the store, journals or trust records.</li>
+<li>Same-UID or privileged tampering with the store, journals or trust records. <code>grip store-verify</code> can find tampering in a payload after the fact; it does not prevent it.</li>
 <li>Anything outside Linux x86_64 and WSL2.</li>
 </ul>
 </article>
@@ -241,7 +242,7 @@ grip check
   <a href="https://github.com/gripsack-dev">gripsack-dev</a>
   <a href="https://github.com/gripsack-dev/gripsack">source</a>
   <a href="../index.html">home</a>
-  <span class="fversion">v0.58.0</span>
+  <span class="fversion">v0.59.0</span>
 </footer>
 </main>
 </div>
