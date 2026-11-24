@@ -80,7 +80,7 @@
 <p class="doc-eyebrow">Gripsack / documentation</p>
 <article class="md">
 <h1 id="whats-new">What's new</h1>
-<p>User-visible changes per release. The <a href="https://github.com/gripsack-dev/gripsack/blob/c3b30d10004dd3c6c357508c3c02e3a1db8da3f7/CHANGELOG.md">full changelog</a> and <a href="https://github.com/gripsack-dev/gripsack/releases">release downloads</a> live with the source. This site documents core <strong>0.59.0</strong>.</p>
+<p>User-visible changes per release. The <a href="https://github.com/gripsack-dev/gripsack/blob/4cd6b10780b6c4b98d8e62c5d1ded7a241b9e041/CHANGELOG.md">full changelog</a> and <a href="https://github.com/gripsack-dev/gripsack/releases">release downloads</a> live with the source. This site documents core <strong>0.59.0</strong>.</p>
 <h2 id="0590-no-approval-step-fast-launchers-wider-conda">0.59.0 — No approval step, fast launchers, wider Conda</h2>
 <ul>
 <li><strong>No approval step.</strong> <code>grip trust add</code>/<code>inspect</code>, <code>trust.toml</code> and <code>GRIPSACK_TRUST_ALL</code> are gone; stale trust files are ignored. Local repositories are trusted. A <code>--repo &lt;git url&gt;</code> is trusted on first use, once per origin; <code>grip trust list</code> and <code>grip trust remove &lt;url&gt;</code> manage those. <code>grip plan</code> lists new hook bodies, fetch domains and destinations outside <code>~</code>, and <code>grip apply</code> confirms on a terminal only when they are new. The global <code>--yes</code> is for scripts and CI. <a href="../docs/safety.html#trust-and-review">Trust and review</a>.</li>
