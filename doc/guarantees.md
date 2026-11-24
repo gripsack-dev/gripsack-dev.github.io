@@ -66,7 +66,7 @@ These guarantees depend on more than a decision over typed inputs:
 
 - **Crash safety end to end.** Tests run kernel machines with a crash-injecting in-memory filesystem. For example, they interrupt a rollback, interrupt recovery again, then check that each destination has its prior or target identity after recovery. This tests the composition for the exercised runs; it is not a theorem about all crash histories or the real filesystem.
 - **Directory changes.** Apply and rollback keep whole-file writes out of destinations held by the directory protocol and reject steps out of order. The directory implementation itself is host code: TLA+ models and end-to-end tests check its contract (premise D below).
-- **Source approval.** Approval binds the exact captured source bundle and policy; evaluation runs in a Deno sandbox with no environment, network or subprocess access.
+- **Evaluation sandbox.** There is no approval step: local repositories are trusted and remote ones are trusted on first use. Evaluation runs in a Deno sandbox with no environment, network or subprocess access.
 - **Content integrity.** Downloads are hashed and verified before extraction; the store is sealed read-only and published by rename.
 
 ## What is assumed

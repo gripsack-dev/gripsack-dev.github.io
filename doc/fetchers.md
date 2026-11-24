@@ -29,7 +29,7 @@ grip update
 
 A missing repository-local source fails that output, not the whole survey: the other selected outputs still report whether they would change. An unreadable lock is different; the survey cannot start.
 
-`grip update` resolves and verifies sources, records complete platform-keyed pins and captures frontend/import identities. It does not run activation hooks or deploy destinations. Review the lock diff and renew exact source/policy approval when required before the next frozen consumer.
+`grip update` resolves and verifies sources, records complete platform-keyed pins and captures frontend/import identities. It does not run activation hooks or deploy destinations. Review the lock diff before the next frozen consumer.
 
 A Pixi survey privately reads both declared inputs and verifies the selected archives without retaining new inputs or writing either lockfile. `grip update` retains the manifest, external lock and verified archives and records their identities in `gripsack.lock`. It does not re-solve or rewrite the external lock. Use your Pixi workflow first when you intend to change packages.
 
@@ -54,6 +54,12 @@ For a single versioned archive wrapper directory, `archiveRoot: { kind: "single_
 Credentials are explicitly host-bound. `GITHUB_TOKEN` takes precedence over `GH_TOKEN` and goes only to github.com/api.github.com. Enterprise credentials use `GITHUB_ENTERPRISE_TOKEN`, then `GH_ENTERPRISE_TOKEN`, with `GH_HOST` or `GITHUB_HOST` naming the intended enterprise host.
 
 A source's `base_url` selects a destination; it is not a token grant. Cross-host and HTTPS-to-HTTP redirects do not forward authorization. Supply secrets through the trusted calling environment, not captured TypeScript; non-interactive SSH may not load your shell profile. Gripsack does not read gh's credential store or source profiles to compensate.
+
+## GitHub API budget
+
+Requests to `api.github.com` are paced by whether a token is present. Without one, gripsack allows 1 request per minute with a burst of 5, which matches GitHub's anonymous limit of 60 per hour. With `GITHUB_TOKEN` or `GH_TOKEN` set and non-empty, the budget is 30 per minute. Set a token if you track more than a few GitHub releases or update often.
+
+Every response's `x-ratelimit-*` headers feed the persisted budget, so what GitHub reports overrides the local estimate; at zero remaining nothing is sent before the reset time. `grip update` skips releases pinned to a tag that are already settled, and release metadata is cached within a run.
 
 API quotas can be shared by an egress IP. Local pacing cannot restore upstream quota. Review rate/authentication diagnostics rather than treating every 403 as a retryable outage. Corporate certificates and proxy settings are covered in [settings](settings.md).
 

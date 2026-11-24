@@ -43,7 +43,7 @@ grip plan personal
 grip apply personal
 ```
 
-Review the lock change and approve the source when prompted. `grip run` executes without deploying anything personal; `grip apply personal` deploys the launchers through a generation.
+Review the lock change. `grip run` executes without deploying anything personal; `grip apply personal` deploys the launchers through a generation.
 
 Package constraints are Conda MatchSpecs: `"*"`, `"==25.07.1"` for exact equality, `"=25.07"` for a prefix or `">=25.07.1,<26"` for a range. A bare `"25.07.1"` is not a valid constraint. The lock fixes exact archive identities regardless of the authored range.
 
@@ -54,6 +54,16 @@ A coherent `conda.environment` can also declare `wheels: [{ name, version, url, 
 The core validates metadata, RECORD ownership, dependencies, Python requirements and platform tags. Its pinned helper uses the maintained UV wheel installer offline; original wheel bytes are retained for reconstruction at the actual recipient prefix. Conda/wheel ownership collisions reject rather than overwrite. Binary manylinux wheels require an explicit compatible glibc baseline, checked again on the receiving host.
 
 Native environments own their runtime libraries, with one exception conda-forge itself makes: its platform libraries (the CDT set: X11 client libraries such as `libX11.so.6`, OpenGL/EGL and ALSA) come from the host. conda-forge's Python pulls in Tk, which links `libX11` this way. `grip build` and `grip apply` note which host platform libraries a prefix uses. Declare `strict: true` in `conda.environment` to refuse such a prefix; then add the library to the closure, for example `"xorg-libx11": "*"`. Anything else missing from the closure is reported instead of being searched for in ambient library paths.
+
+## Activation scripts, gcc and ABI
+
+Some Conda packages ship `etc/conda/activate.d/*.sh` scripts (libxml2-16 through clang, llvm and lxml; libglib through matplotlib). Gripsack admits **export-only** scripts and never executes them: a deterministic shell-subset interpreter evaluates the exports from the verified installed prefix with ambient variables unset. The resulting variables apply in profile shells, in `grip run` and tasks, and in command wrappers (the declaring environment overrides them). They are named when the package is built.
+
+Everything else is still refused, naming the script and the packages that require it: scripts outside the subset, `pre-link`, `post-link` and `pre-unlink` scripts, and non-`.sh` activation files.
+
+conda `gcc` and `gxx` environments work. Files under a `sysroot/` target tree are not scanned as host executables, and a refused system library names the file that needs it.
+
+An environment whose target omits `abi` admits ABI-specific members, such as an `abi: "gnu"` package that needs `hostRuntime`. An environment that declares an ABI still requires it exactly.
 
 Source distributions, editable packages, executable startup files (`.pth`, `sitecustomize`, `usercustomize`) and arbitrary wheel `.data/scripts` are unsupported. Standard metadata-declared console entrypoints are supported. Missing dependencies are not resolved during installation, and package installation scripts are not executed. See [native sharing](sharing.md#conda-and-wheel-reconstruction) for the offline transfer boundary and the [exact SDK reference](https://github.com/gripsack-dev/gripsack/blob/{release_source}/typescript/README.md) for authoring details.
 
@@ -96,7 +106,7 @@ const search = environment("search", { packages: ["tools"], target });
 export default defineWorkspace(() => workspace({ inputs, outputs: [tools, search] }));
 ```
 
-`grip update` imports the selected lock; it does **not** run Pixi, upgrade packages or rewrite `pixi.lock`. To change the solve, update the manifest/lock with your Pixi workflow first, review them, run `grip update`, then review and approve the resulting captured state. Frozen consumers refuse changed imported inputs until that explicit update. Gripsack's import and materialization do not require a `pixi` executable on `PATH`.
+`grip update` imports the selected lock; it does **not** run Pixi, upgrade packages or rewrite `pixi.lock`. To change the solve, update the manifest/lock with your Pixi workflow first, review them, run `grip update`, then review the resulting lock change. Frozen consumers refuse changed imported inputs until that explicit update. Gripsack's import and materialization do not require a `pixi` executable on `PATH`.
 
 ## Typed artifact environment values
 
@@ -112,7 +122,7 @@ A profile's `launchers.directory` and `launchers.commands` are explicit. Only un
 
 Launchers use the absolute installed core path and retained private state. They re-admit the package/runtime contract on invocation. Keep both available; if the binary moves, restore it or reapply using the replacement core. Do not hand-edit generated launchers.
 
-Use the same UID that owns the state. An explicit `/usr/local/bin` destination does not turn a private store into a multi-user installation; do not make trust records or journals world-accessible.
+Use the same UID that owns the state. An explicit `/usr/local/bin` destination does not turn a private store into a multi-user installation; do not make trusted-remote records or journals world-accessible.
 
 ## Generations and rollback
 

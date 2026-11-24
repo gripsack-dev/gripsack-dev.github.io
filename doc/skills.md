@@ -18,4 +18,4 @@ Logs are for diagnosis, not something recovery reads. Keep journals, generation 
 
 Review the skill contents at the selected source revision, then copy the chosen skill directory into your harness's configured skill path. For Claude Code, for example, that can be `~/.claude/skills/`. Installing guidance does not install or upgrade `grip`.
 
-Require the agent to review captured source and policy, inspect a plan before applying, and report only checks it actually ran. A task receipt, evaluation result and application-level consumer test answer different questions.
+Require the agent to review the repository source, inspect a plan before applying, and report only checks it actually ran. A task receipt, evaluation result and application-level consumer test answer different questions.

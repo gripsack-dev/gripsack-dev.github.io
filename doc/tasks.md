@@ -127,6 +127,8 @@ unknown evidence.
 
 Locks coordinate declared effects; they do not grant execution authority or infer dependencies from shell text. `--skip-busy` can skip an active conflict, not bypass an unknown interrupted owner. `--timeout-seconds` bounds realization, prerequisites and verification together. Interrupted or indeterminate outcomes are not recorded as success.
 
+`hostPath("~/...")` as a command working directory expands `~` like a file destination does, instead of failing at apply.
+
 Use typed `packageCommand`, `lit` and explicit `env`/`argv` values for commands. A `runBash` body requires a declared package-command interpreter; it does not discover ambient Bash. Host executable commands are explicit trusted host execution, not sealed package-closure proof. Consult the [SDK command reference](https://github.com/gripsack-dev/gripsack/blob/{release_source}/typescript/README.md) for shell bodies and task postconditions.
 
 ## Literal Bash bodies
@@ -167,7 +169,7 @@ const greet = task("greet", {
 export default defineWorkspace(() => workspace({ outputs: [shell, dev, greet] }));
 ```
 
-Run `grip update`, review the source and lock approvals, then `grip task run greet --closed-stdin`. The normal lock pins the interpreter package. Bash runs with fixed `-e -u -o pipefail`; it is not ambient shell discovery. The tag accepts literal bodies, not JavaScript substitutions: pass dynamic values through typed environment bindings. To author shell `${NAME}` syntax inside the tag, escape the dollar sign as `\${NAME}`. JavaScript evaluates substitutions before a tag is called, so rejection is not a sandbox for JavaScript side effects.
+Run `grip update`, review the lock change, then `grip task run greet --closed-stdin`. The normal lock pins the interpreter package. Bash runs with fixed `-e -u -o pipefail`; it is not ambient shell discovery. The tag accepts literal bodies, not JavaScript substitutions: pass dynamic values through typed environment bindings. To author shell `${NAME}` syntax inside the tag, escape the dollar sign as `\${NAME}`. JavaScript evaluates substitutions before a tag is called, so rejection is not a sandbox for JavaScript side effects.
 
 The same command works in task steps, check runs and hook runs. Use `runBash({ interpreter, body, env, cwd })` with a separately declared tagged body when composing reusable commands; `cwd` must be a typed path. See the SDK reference for the complete command contract.
 
@@ -198,7 +200,7 @@ const dotfiles = profile("dotfiles", {
 export default defineWorkspace(() => workspace({ outputs: [syntax, dotfiles] }));
 ```
 
-Create `config/shell.sh` with valid POSIX shell configuration, then use `grip check`, `grip plan dotfiles` and `grip apply dotfiles`, reviewing approvals and the deployment plan as usual. A check's `sourcePath(".")` is its immutable attached subject, not writable staging or an arbitrary working directory.
+Create `config/shell.sh` with valid POSIX shell configuration, then use `grip check`, `grip plan dotfiles` and `grip apply dotfiles`, reviewing the deployment plan as usual. A check's `sourcePath(".")` is its immutable attached subject, not writable staging or an arbitrary working directory.
 
 ## Lifecycle boundaries
 

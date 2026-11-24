@@ -1,6 +1,6 @@
 # Review and saved plans
 
-Source approval, semantic review and deployment planning answer different questions. Approval binds captured bytes and policy; semantic review explains declared changes; a plan describes the selected operation. None proves that arbitrary commands are safe.
+Trust, semantic review and deployment planning answer different questions. Local repositories are trusted and remote ones are trusted on first use; semantic review explains declared changes; a plan describes the selected operation and flags new hook bodies, fetch domains and destinations outside `~`. None proves that arbitrary commands are safe.
 
 ## Snapshot and compare
 
@@ -43,6 +43,6 @@ grip apply --saved-plan /tmp/gripsack-dotfiles-plan.json
 
 Review the plan before the second command. Save outside the captured repository so writing the plan does not stale its own source binding. The private plan contains the exact evaluated IR and can contain literal configuration values; never put secrets in service literals. Inherited secret references are not resolved or stored while saving.
 
-Saving does not grant execution authority. Saved apply checks source, lock, trust, facts, probes, base generation, scope and destination bindings. A stale plan is refused; make a new plan rather than forcing it or silently evaluating different source. Existing ownership, crash recovery and per-mutation checks still apply. External filesystem writers can race operating-system operations.
+Saving does not grant execution authority. Saved apply checks source, lock, facts, probes, base generation, scope and destination bindings. A stale plan is refused; make a new plan rather than forcing it or silently evaluating different source. Existing ownership, crash recovery and per-mutation checks still apply. External filesystem writers can race operating-system operations.
 
 Review and saved profile application do not implicitly start unrelated [services](services.md). Profile rollback is not rollback of database data or task effects. See [safety](safety.md) for the underlying boundaries.

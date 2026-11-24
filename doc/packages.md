@@ -35,7 +35,7 @@ grip build ripgrep
 grip run --env search -- rg --version
 ```
 
-`grip update` resolves the release and records the archive hash in `gripsack.lock`; review that diff and approve the source when prompted. To pin a particular release, set `githubRelease.version` to its exact tag.
+`grip update` resolves the release and records the archive hash in `gripsack.lock`; review that diff. To pin a particular release, set `githubRelease.version` to its exact tag.
 
 The target names only the OS and architecture. Gripsack reads the ABI from each executable: a static binary like this one runs on any Linux x86_64 host, and a dynamically linked one must name the host's platform loader. An `abi` you do declare is checked against the executable, not against the host.
 

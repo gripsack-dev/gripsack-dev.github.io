@@ -4,8 +4,8 @@ One binary, `grip`, with the TypeScript frontend embedded. It evaluates your wor
 
 ## From `gripsack.ts` to a plan
 
-1. **Capture.** The core snapshots the repository (minus explicit [exclusions](settings.md#source-capture)). Git ignore rules are not a policy; everything in the tree is part of what you approve.
-2. **Approve.** You review and approve the exact bundle and policy digests ([source approval](safety.md#source-approval)).
+1. **Capture.** The core snapshots the repository (minus explicit [exclusions](settings.md#source-capture)). Git ignore rules are not a policy; everything in the tree is evaluated.
+2. **Trust.** A local repository is trusted; a `--repo` origin is trusted on first use ([trust and review](safety.md#trust-and-review)).
 3. **Evaluate.** A pinned, checksum-verified Deno runs the embedded frontend over the captured source with no environment, network or subprocess access. Host facts arrive as inputs; anything that needs to look at the machine is an explicit probe.
 4. **Admit.** The Rust core validates the resulting IR: references, dependency graph, command contracts, provenance for every declaration.
 5. **Plan.** The core compares the desired state with what is live. For a [typed artifact selector](tasks.md#typed-artifact-selectors), it shows the concrete path from the referenced package's lock in text and JSON (`resolved_paths`). Planning doesn't fetch the payload or claim that the path exists inside it.

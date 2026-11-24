@@ -8,7 +8,7 @@ Two things first. It is alpha software: keep an independent backup of anything i
 
 {anim:apply}
 
-1. **Realize packages** into the read-only store. Content is verified, sealed read-only and published by rename, so a half-downloaded archive never becomes a package.
+1. **Realize packages** into the read-only store. Content is verified, sealed read-only and published by rename, so a half-downloaded archive never becomes a package. Because published entries are read-only, a tool running from the store cannot modify it; Python can no longer write `__pycache__` into a package and break the next apply.
 2. **Journal** a durable run marker. For each destination, record its prior state and intended change durably before changing that destination.
 3. **Write that destination** after a final re-check through a pinned directory handle. If it no longer matches the observation used for the write, stop rather than overwrite it. Repeat the journal-and-write sequence for the next destination.
 4. **Run pre-flip checks** you attached to files, still inside the transaction.
@@ -37,7 +37,7 @@ Do not delete journals, manifests or managed files to "unstick" a refusal; the [
 
 Every destination has an owner. Gripsack writes only when the destination is absent, or holds exactly what gripsack wrote last time. Two other cases are decided conservatively:
 
-- **Drift.** A `trackedCopyTo` file that the application (or you) changed since the last apply is *yours*. Apply and rollback both leave it alone and say so. To adopt the change, copy it back into the repository, review, approve and apply.
+- **Drift.** A `trackedCopyTo` file that the application (or you) changed since the last apply is *yours*. Apply and rollback both leave it alone and say so. To adopt the change, copy it back into the repository, review and apply.
 - **Foreign files.** A file gripsack never wrote is refused. `grip plan --take-over` shows what adoption would do; `grip apply --take-over` journals the prior bytes and adopts the selected destinations only. It is not a general ownership transfer and does not cross workspaces.
 
 `symlinkTo` links the destination to read-only store content; `managedBlock` reconciles one delimited section of a shared text file and leaves every byte outside the markers alone. See [profiles and dotfiles](adopting.md) for choosing between them.
@@ -56,32 +56,32 @@ grip gc --dry-run
 
 `grip gc` refuses while recovery or activation is pending, or if `current` names a missing generation. It never removes the current generation or anything a retained generation or recovery root references. `keep_generations` in [settings](settings/reference.md) controls retention; keep predecessors until the real application has worked with the deployed files.
 
-## Source approval
+## Trust and review
 
-Workspace code is evaluated in a sandboxed Deno with no environment, network or subprocess access, over a captured copy of the repository. Before evaluation you approve the **exact captured bundle and policy**, so a changed file, a changed exclusion or a changed frontend needs a fresh approval. There is no repository-wide "trust everything"; `GRIPSACK_TRUST_ALL=1` is refused.
+There is no approval step. Workspace code is evaluated in a sandboxed Deno with no environment, network or subprocess access, over a captured copy of the repository. Editing a file in your own repository never invalidates anything.
+
+- **Local repositories are trusted.** Running `grip` on a repository on your disk is consent.
+- **A remote repository is trusted on first use.** `grip ... --repo <git url>` asks once per origin URL, showing what the repository declares. Later commits from the same origin do not ask again. Spellings of one origin (trailing slash, `.git`, embedded credentials) are one record.
+- **The plan is the guardrail.** `grip plan` lists what is new since the last apply of that repository: hook bodies, fetch domains and destinations outside `~`. `grip apply` shows the same list and asks for confirmation on a terminal, but only when such items are new. Without a terminal it refuses unless you pass `--yes`.
 
 ```sh
-grip trust inspect --json
-grip trust add
+grip trust list
+grip trust remove https://example.com/me/env.git
 ```
 
-`--focus` and profile selection narrow what is *displayed* or *deployed*, never what is approved. Approval also says nothing about what the packages and hooks you declared will do when they run: those run with your privileges.
+`grip trust list` shows the remote origins trusted on first use; `grip trust remove <url>` forgets one, and its next use asks again. The record of what you have already seen is a convenience: deleting it only makes every item new again, and it never gates evaluation.
 
-For unattended machines, record the bundle and policy digests when you review the source, and compare before approving:
+The global `--yes` (`-y`) answers every confirmation for scripts and CI: it trusts a remote on first use and applies new items. Use it where the repository and its reviewers are the control, not as a habit at a terminal.
+
+Confirming says nothing about what the packages and hooks you declared will do when they run: those run with your privileges. Old `trust.toml` files are ignored, and `grip trust add` and `grip trust inspect` no longer exist.
+
+A CI job needs no approval step:
 
 ```sh
 set -eu
-: "${expected_bundle:?load the separately reviewed bundle digest}"
-: "${expected_policy:?load the separately reviewed policy digest}"
-source=$(grip trust inspect --json)
-[ "$(printf '%s' "$source" | jq -er .bundle_digest)" = "$expected_bundle" ] &&
-  [ "$(printf '%s' "$source" | jq -er .policy_digest)" = "$expected_policy" ] ||
-  { echo "captured source differs from review — NOT approving" >&2; exit 1; }
-grip trust add --bundle "$expected_bundle" --policy "$expected_policy"
 grip check
+grip plan
 ```
-
-Never derive the expected values from the inspection you are about to approve.
 
 ## Hooks and checks
 
@@ -93,11 +93,13 @@ Hooks have durable intents. An interrupted delivery can run again under the same
 
 A Linux GNU package may declare `hostRuntime: { libraryDirectories: [...] }`. Those directories are trusted host input: review who controls them. They are package-scoped and never widen what the evaluator or other packages can see.
 
+Each time a launcher runs, it checks only the command being run against its sealed, hash-addressed payload, and refuses a tampered executable. It no longer re-hashes every package or walks every file, which makes an exec of a 30-package environment about three times faster (roughly 190 ms to 55 ms). The rest of a payload is covered by `grip store-verify`, which detects tampering anywhere in a retained payload; `grip store-verify --repair` removes corrupt paths so the next apply fetches them again. `grip gc` and repair also remove sealed read-only trees.
+
 Managed launchers embed the absolute path of the installed core and its private state directory. If you move the binary, reapply with the new one rather than editing launchers. Run as the UID that owns the state; placing a launcher in `/usr/local/bin` does not make the store multi-user.
 
 ## What is not covered
 
 - Effects of hooks, tasks, services and the programs you deploy. Rollback does not undo a database migration.
 - Writes by another process in the window between gripsack's re-check and its own write ([a named residual risk](guarantees.md#what-is-not-claimed)).
-- Same-UID or privileged tampering with the store, journals or trust records.
+- Same-UID or privileged tampering with the store, journals or trust records. `grip store-verify` can find tampering in a payload after the fact; it does not prevent it.
 - Anything outside Linux x86_64 and WSL2.

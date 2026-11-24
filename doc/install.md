@@ -51,4 +51,6 @@ Use the SDK archive matching the installed core if you want editor types or expl
 
 ## First workspace
 
+There is no approval step. A repository on your disk is trusted when you run `grip` on it, and `--repo <git url>` is trusted on first use, once per origin. `grip plan` lists new hook bodies, fetch domains and destinations outside `~`; `grip apply` asks only when those are new. See [trust and review](safety.md#trust-and-review).
+
 Continue with [your first workspace](workspaces.md). For a native tool see [packages](packages.md); for a Conda toolchain see [environments](environments.md). Keep an independent backup of anything irreplaceable while you are getting started.

@@ -2,7 +2,17 @@
 
 User-visible changes per release. The [full changelog](https://github.com/gripsack-dev/gripsack/blob/{release_source}/CHANGELOG.md) and [release downloads](https://github.com/gripsack-dev/gripsack/releases) live with the source. This site documents core **{core_version}**.
 
-## 0.59.0 — Recovery checks and retained builds
+## 0.59.0 — No approval step, fast launchers, wider Conda
+
+- **No approval step.** `grip trust add`/`inspect`, `trust.toml` and `GRIPSACK_TRUST_ALL` are gone; stale trust files are ignored. Local repositories are trusted. A `--repo <git url>` is trusted on first use, once per origin; `grip trust list` and `grip trust remove <url>` manage those. `grip plan` lists new hook bodies, fetch domains and destinations outside `~`, and `grip apply` confirms on a terminal only when they are new. The global `--yes` is for scripts and CI. [Trust and review](safety.md#trust-and-review).
+- **Store and launchers.** Published store entries are read-only, so a tool such as Python cannot corrupt one with `__pycache__`. Launchers admit only the command they run (about 190 ms to 55 ms for a 30-package environment); `grip store-verify` detects tampering anywhere in a payload. `symlinkTo(artifactFile(...))` links into the realized package, so prefix-relative tools such as conda `tmux` and `helix` work. [Launchers](safety.md#host-libraries-and-launchers), [package artifacts](adopting.md#package-artifacts-and-launchers).
+- **Conda.** Export-only `activate.d` scripts are evaluated, never executed, and apply in shells, `grip run`, tasks and wrappers; link scripts and other scripts are still refused by name. conda `gcc`/`gxx` works, and an environment without `abi` admits `abi: "gnu"` members. [Activation scripts](environments.md#activation-scripts-gcc-and-abi).
+- **Diagnostics.** Errors name the path, output and declaration, spans point at the call site of your own helpers, and a dangling symlink above a destination is a conflict. [Diagnostics](runs.md#diagnostics).
+- **GitHub API budget.** Anonymous 1/min with a burst of 5; authenticated 30/min; rate-limit headers are learned from every response. Set `GITHUB_TOKEN` or `GH_TOKEN`. [Budget](fetchers.md#github-api-budget).
+- `hostPath("~/...")` expands.
+
+Earlier in 0.59.0:
+
 
 - Keep using the path printed by a Conda or Pixi build after `grip update` and `grip gc`. A failed multi-output update also leaves the old lock's archives available offline. [What an update retains](fetchers.md#update-deliberately).
 - Recovery no longer discards undo evidence just because it can see a user edit. It rechecks the edited file or symlink and syncs the required bytes and name first. A failed barrier leaves the journal for another attempt. [Which crash outcomes are covered](guarantees.md#what-has-to-survive-a-crash).

@@ -56,7 +56,7 @@ Units are `s`, `min` and `hr`. Bucket state persists in the private state root s
 
 | Variable | Purpose |
 |---|---|
-| `GRIPSACK_HOME` | Private store, generations, trust and recovery state root |
+| `GRIPSACK_HOME` | Private store, generations, trusted remotes and recovery state root |
 | `XDG_DATA_HOME` | Parent of the default state root when set |
 | `GRIPSACK_DENO` | Deliberately selected evaluation runtime |
 | `GRIPSACK_LOG` | Console log filter; JSONL retains its own threshold |
@@ -65,7 +65,7 @@ Units are `s`, `min` and `hr`. Bucket state persists in the private state root s
 | `GITHUB_TOKEN`, `GH_TOKEN` | Public GitHub credentials, in that precedence |
 | `GITHUB_ENTERPRISE_TOKEN`, `GH_ENTERPRISE_TOKEN` | Enterprise credentials, requiring a matching `GH_HOST` or `GITHUB_HOST` |
 
-`GRIPSACK_TRUST_ALL=1` is refused. Use exact-digest [source approval](safety.md#source-approval), not a floating trust setting.
+`GRIPSACK_TRUST_ALL` is no longer read; there is no approval step to bypass. See [trust and review](safety.md#trust-and-review).
 
 ## Command map
 
@@ -88,12 +88,10 @@ grip rollback [N]                  # restore a retained generation
 grip gc --dry-run                  # preview native reclamation
 grip why-owns PATH                 # inspect destination ownership
 grip doctor                        # inspect runtime/frontend selection
-grip trust inspect --json          # inspect captured source and policy
-grip trust add                     # review and approve exact current inputs
-grip trust list
-grip trust remove
+grip trust list                    # remote origins trusted on first use
+grip trust remove URL              # forget one; its next use asks again
 grip hooks list                    # inspect durable hook outcomes
-grip store-verify                  # verify retained store content
+grip store-verify [--repair]       # detect tampering anywhere in retained payloads
 grip up [SERVICE...]               # start services and await readiness
 grip down [SERVICE...]             # remove owned containers, retain volumes
 grip services status --json        # inspect recorded service state
