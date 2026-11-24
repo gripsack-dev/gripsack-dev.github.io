@@ -15,11 +15,11 @@ For editor types without selecting a separate runtime frontend:
 exclude = ["node_modules/@gripsack/core"]
 ```
 
-This literal exclusion turns the installed SDK off as a runtime frontend. A glob cannot carve individual files out of an SDK root. If `node_modules` itself is symlinked, use real ancestry or exclude that whole parent deliberately. Frontend changes can require a lock refresh and renewed source approval.
+This literal exclusion turns the installed SDK off as a runtime frontend. A glob cannot carve individual files out of an SDK root. If `node_modules` itself is symlinked, use real ancestry or exclude that whole parent deliberately. Frontend changes can require a lock refresh.
 
 ## Source capture
 
-Captured content, including untracked and Git-ignored files, participates in approval unless explicitly excluded. `.gitignore` is not a source authority policy.
+Captured content, including untracked and Git-ignored files, is evaluated unless explicitly excluded. `.gitignore` is not a source authority policy.
 
 ```toml
 [capture]
@@ -32,20 +32,13 @@ Required configuration, entrypoints, the lockfile and selected SDK roots cannot 
 
 `repoTree` selection is separate: its `include`/`exclude` prefixes are literal, not globs, and cannot reach past the capture boundary. Exclude an irrelevant outbound virtual-environment link at the capture boundary before evaluating tree declarations.
 
-## Review the whole capture
+## Review before you apply
 
-```sh
-grip trust inspect --json
-grip trust add
-```
-
-Interactive `trust add` shows the capture and policy before asking for approval. Review actual changed content as well as inventory paths. `--focus PREFIX` narrows the displayed changed-path list only: approval still binds the exact whole bundle and policy, and JSON stays complete. An out-of-focus change requires renewed approval too.
-
-For noninteractive execution, compare separately reviewed expected digests before approval; see [unattended approval](safety.md#source-approval).
+There is no approval step. Local repositories are trusted, and a `--repo <git url>` is trusted on first use, once per origin; see [trust and review](safety.md#trust-and-review). `grip plan` lists new hook bodies, new fetch domains and destinations outside `~`, and `grip apply` confirms on a terminal only when such items are new. Pass the global `--yes` in scripts and CI. Review actual changed content, not only the list.
 
 ## State, temporary files and storage
 
-`GRIPSACK_HOME` selects the private state root; otherwise it is `$XDG_DATA_HOME/gripsack` or `~/.local/share/gripsack`. Keep its store, trust records, journals and generations private and intact. Moving state or the installed core can invalidate managed launcher bindings.
+`GRIPSACK_HOME` selects the private state root; otherwise it is `$XDG_DATA_HOME/gripsack` or `~/.local/share/gripsack`. Keep its store, trusted-remote records, journals and generations private and intact. Moving state or the installed core can invalidate managed launcher bindings.
 
 Temporary extraction and materialization can use `TMPDIR`, `TMP` or `TEMP`. Native publication stages and seals content before final rename; a cross-filesystem transfer uses a bounded copy into destination-filesystem staging before publication. Scratch cleanup is not a substitute for publication or recovery authority.
 

@@ -11,7 +11,7 @@ The rings separate decisions from effects. The kernel sees typed observations, n
 | Ring | What lives there | How it is checked |
 |---|---|---|
 | **Kernel** | Decide which generation committed, what may be written or deleted, and whether an update may publish a lock | Lean 4 proofs over a translation of the shipped Rust |
-| **Protocol** | Kernel machines issue commands for apply, rollback, recovery, GC, journaling and activation | Machine decisions and ordering are proved. The journaled leaf write also has a storage-level proof at mutation admission; end-to-end recovery is crash-injection tested. |
+| **Protocol** | Kernel machines issue commands for apply, rollback, recovery, GC, journaling and activation | Journaled leaf writes and recovery cleanup have storage-level proofs. Tests also inject crashes into complete recovery runs. |
 | **Host** | Drivers observe destinations, issue filesystem calls, supervise processes and read store records | Persistence and fault-injection tests under explicit filesystem assumptions |
 | **Edge** | TypeScript evaluation, downloads, archives, Conda, Docker, systemd | Sandbox, typed admission, hash-verified bytes, fuzzing |
 | **Product** | The CLI, review, adopt, doctor | End-to-end flows against the real binary |
@@ -50,7 +50,13 @@ The [verified-foundation RFC](https://github.com/gripsack-dev/gripsack/blob/{rel
 
 Suppose a leaf file is about to be replaced. Recovery needs the marker for **this transaction**, the entry for **this destination**, and the original content named by that entry. A file sync alone can leave complete bytes with no durable name. A directory sync alone can leave the right name pointing to incomplete bytes.
 
-Core 0.58 [proves that the evidence is readable](https://github.com/gripsack-dev/gripsack/blob/{release_source}/proofs/Protocol/Leaf.lean) **before the write**: after process death and in every power-loss image allowed by the model. If a run writes the same file twice, both the original prior and the immediate before-image remain recoverable at that cut. Killing the process is not a disk test: the next process can still see unsynced writes in the page cache. Whether recovery can later retire evidence after seeing an [unsynced user edit](https://github.com/gripsack-dev/gripsack/issues/364) remains open.
+Core 0.58 [proves that the evidence is readable](https://github.com/gripsack-dev/gripsack/blob/{release_source}/proofs/Protocol/Leaf.lean) **before the write**: after process death and in every power-loss image allowed by the model. If a run writes the same file twice, both the original prior and the immediate before-image remain recoverable at that cut. Killing the process is not a disk test: the next process can still see unsynced writes in the page cache.
+
+**Seeing a later user edit is not permission to discard undo evidence.** An unsynced replacement can vanish on power loss and expose an intermediate version. Recovery now rechecks and syncs the observed regular file and its parent, or seals the name of a rechecked symlink, before accepting it as preserved. A failed sync stops cleanup. The [settlement proof](https://github.com/gripsack-dev/gripsack/blob/{release_source}/proofs/Protocol/Preservation.lean) is about those barriers; it does not assume the external writer already made its edit durable.
+
+**When may recovery remove the undo record?** Core 0.59 [proves the leaf cleanup rule](https://github.com/gripsack-dev/gripsack/blob/{release_source}/proofs/Protocol/RecoveryCleanup.lean). For an uncommitted run, each leaf has already reached its prior or the exact user edit recovery preserved. For a committed run, the selected generation remains identifiable: if any old undo record survives, the matching marker still tells the next reader not to apply it. Syncing the journal *between* removing the records and removing the marker is essential. The final sync makes the marker's removal durable too.
+
+A failed sync stops further cleanup even if some writes reached disk. A restarted reader may find fewer records, or see a legitimate older journal with no marker. The proof covers the leaf cases and the specified interrupted cleanup cuts, not every sequence of crashes, directory repairs, hooks or eventual completion.
 
 The power-loss question applies to disk-backed filesystems that honor the file and directory sync assumptions. On tmpfs, killing a process leaves its files visible, but reboot discards them. In WSL2, distinguish the guest filesystem from a mounted Windows volume: the latter does not automatically provide the same persistence or name matching.
 
@@ -60,7 +66,7 @@ These guarantees depend on more than a decision over typed inputs:
 
 - **Crash safety end to end.** Tests run kernel machines with a crash-injecting in-memory filesystem. For example, they interrupt a rollback, interrupt recovery again, then check that each destination has its prior or target identity after recovery. This tests the composition for the exercised runs; it is not a theorem about all crash histories or the real filesystem.
 - **Directory changes.** Apply and rollback keep whole-file writes out of destinations held by the directory protocol and reject steps out of order. The directory implementation itself is host code: TLA+ models and end-to-end tests check its contract (premise D below).
-- **Source approval.** Approval binds the exact captured source bundle and policy; evaluation runs in a Deno sandbox with no environment, network or subprocess access.
+- **Evaluation sandbox.** There is no approval step: local repositories are trusted and remote ones are trusted on first use. Evaluation runs in a Deno sandbox with no environment, network or subprocess access.
 - **Content integrity.** Downloads are hashed and verified before extraction; the store is sealed read-only and published by rename.
 
 ## What is assumed

@@ -14,7 +14,7 @@ grip plan hello
 grip apply hello
 ```
 
-`init` writes a root `gripsack.ts`, a file-only `hello` profile that deploys under `~/.config/hello/`, sample configuration and editor settings. The first `grip check` asks you to approve the captured source; `grip plan` shows every file that would change; `grip apply` makes generation 1. Replace the sample with the files or packages you actually want.
+`init` writes a root `gripsack.ts`, a file-only `hello` profile that deploys under `~/.config/hello/`, sample configuration and editor settings. `grip check` validates the workspace; `grip plan` shows every file that would change; `grip apply` makes generation 1. Replace the sample with the files or packages you actually want.
 
 In an existing directory, `init` keeps regular files such as your `README.md` and refuses to replace an existing `gripsack.ts` or `env.toml`. If a template path is blocked (for example, `configs` is a file), move the conflicting item somewhere safe and rerun `grip init` with the same target. You do not need to delete the directory or the starter files already written. Git setup is optional: if `git init` fails, the workspace files are still ready to use.
 
@@ -66,7 +66,7 @@ These are ordinary typed values: build them with functions, reuse them, and list
 
 `grip plan dotfiles` and `grip apply dotfiles` act on that profile only; unselected profiles are neither applied nor pruned. Without a selection, apply processes the declared profile graph. Keep frequently edited configuration in its own profile so the scope of each apply is obvious.
 
-Selection does not narrow approval: you approve the whole captured source, and a change outside the selected profile still needs review.
+Selection narrows what is deployed, not what is evaluated: the whole workspace is evaluated, and `grip plan` lists any new hook bodies, fetch domains or destinations outside `~` before you apply.
 
 ## The commands, in order
 

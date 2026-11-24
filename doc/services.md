@@ -4,7 +4,7 @@ Services are explicit workspace outputs for existing container images. `grip up`
 
 ## Prerequisites
 
-Use Linux x86_64 or WSL2 with a reachable local Linux Docker Engine Unix socket and permission to use it. Docker access is powerful host authority: source approval is not a container-security guarantee. For a nondefault local socket, pass `grip up --socket /path/to/docker.sock postgres`; later inspection and down use recorded state.
+Use Linux x86_64 or WSL2 with a reachable local Linux Docker Engine Unix socket and permission to use it. Docker access is powerful host authority: trusting a repository is not a container-security guarantee. For a nondefault local socket, pass `grip up --socket /path/to/docker.sock postgres`; later inspection and down use recorded state.
 
 Images must use immutable `name@sha256:DIGEST` references, not floating tags. The PostgreSQL 18 digest below was taken from the image's repository digest at writing time; check it against the registry before relying on it. Cold startup needs registry access and disk space.
 
@@ -58,7 +58,7 @@ grip task run database-ready --closed-stdin
 grip services logs postgres --lines 50
 ```
 
-Review and approve the exact captured source and policy when prompted before startup. Ports must bind explicit loopback addresses; the example exposes PostgreSQL on `127.0.0.1:55432`, not the LAN. Readiness uses `pg_isready` inside the container; it does not prove your application's schema, credentials or queries work.
+Review the plan before startup. Ports must bind explicit loopback addresses; the example exposes PostgreSQL on `127.0.0.1:55432`, not the LAN. Readiness uses `pg_isready` inside the container; it does not prove your application's schema, credentials or queries work.
 
 ## Stop without deleting data
 

@@ -39,7 +39,7 @@ grip apply personal
 grip jobs status --json
 ```
 
-Review source and lock approvals, then the registration plan before applying. Daily and weekly calendar triggers use local time. This example only prints a greeting: it does not back up or mutate a database. Tasks that mutate shared resources should declare appropriate store-scoped locks so manual and scheduled invocation participate in the same conflict policy.
+Review the lock and the registration plan before applying. Daily and weekly calendar triggers use local time. This example only prints a greeting: it does not back up or mutate a database. Tasks that mutate shared resources should declare appropriate store-scoped locks so manual and scheduled invocation participate in the same conflict policy.
 
 ## Inspect, disable and remove
 

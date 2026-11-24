@@ -73,6 +73,10 @@ Keep journals, generation manifests and retained content intact when
 investigating a failed transition; see [safety](safety.md). Review logs for
 private paths or command details before sharing them.
 
+## Diagnostics
+
+I/O failures name the path, the output and its declaration: a command path missing from an artifact, a raw filesystem error, or a dangling symlink above a destination, which is reported as a conflict. Diagnostics name the output they belong to. When you wrap a declaration in your own helper function (for example `release("hunk", ...)`), the span points at the call site of the helper, not inside it. A refused Conda closure names the file that needs the missing library. Diagnostics are logged with their code and span, and `grip check --json` carries their labels.
+
 ## For agents
 
 The [debugging skill](https://github.com/gripsack-dev/gripsack/tree/{release_source}/skills/gripsack-debug)

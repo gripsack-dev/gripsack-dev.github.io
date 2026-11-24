@@ -83,21 +83,20 @@ From a workspace, `grip adopt` can inventory an existing path, copy its payload 
 grip adopt ~/.config/editor --name editor --mode tracked_copy
 ```
 
-The first invocation deliberately stops with exit status 1 for source review; it does not deploy the destination. Read the generated source, confirm the ownership policy and approve it, then resume:
+The first invocation deliberately stops with exit status 1 for review; it does not deploy the destination. Read the generated source and confirm the ownership policy, then resume:
 
 ```sh
-grip trust add .
 grip adopt ~/.config/editor --name editor --resume
 ```
 
 To abandon before resuming, remove only the generated paths listed by the attempt. Keep `gripsack.ts`. Since 0.56.1, if adoption edited the workspace, it names the import and the entry in `outputs` to remove. If it prints a manual-integration snippet instead, it did not edit the workspace.
 
-Resume uses the approved profile; do not pass `--mode` again. `--yes` skips apply confirmation, not source approval. The interview modes are `tracked_copy` for mutable real files, `owned` for store-owned links, and `merge` for managed text blocks. Keep backups and inspect the plan regardless of which route you choose.
+Resume uses the generated profile; do not pass `--mode` again. `--yes` answers the apply confirmation for scripts. The interview modes are `tracked_copy` for mutable real files, `owned` for store-owned links, and `merge` for managed text blocks. Keep backups and inspect the plan regardless of which route you choose.
 
 
 ## Drift and retained generations
 
-A tracked copy is user-owned mutable content. If the application changes it, ordinary apply and rollback preserve the drift rather than silently overwrite it. To make that change your new desired state, deliberately copy it back into the repository, review and approve the new captured source, then apply again. `grip update` refreshes external source pins; it does not capture live destination content.
+A tracked copy is user-owned mutable content. If the application changes it, ordinary apply and rollback preserve the drift rather than silently overwrite it. To make that change your new desired state, deliberately copy it back into the repository, review it, then apply again. `grip update` refreshes external source pins; it does not capture live destination content.
 
 ```sh
 grip generations
@@ -109,6 +108,8 @@ Rollback uses retained content without re-rendering today's source or rebuilding
 ## Package artifacts and launchers
 
 `artifactFile` and `artifactTree` select retained package content. Tree deployment still owns individual files, not the destination directory. Use tracked copies for consumers needing real filenames, extensions or sibling resources; per-file store symlinks do not promise those properties.
+
+Since 0.59, `symlinkTo(artifactFile(...))` over an `artifactFile` or `artifactTree` selector links into the realized package instead of publishing a copy, and the generation keeps that package retained. Prefix-relative programs and `$ORIGIN` rpaths keep working, which is what makes conda `tmux` and `helix` usable this way. A tracked copy still copies.
 
 In core 0.55.0 and later, `artifactFile` selectors and `artifactTree` include/exclude prefixes accept `{version}`, `{version.bare}`, `{os}`, `{arch}`, `{arch.go}`, `{arch.x64}`, `{target}` and `{system}`. They use the referenced package's resolved/locked source, with the same platform spellings as the release asset. `{version}` preserves the raw tag; `{version.bare}` strips exactly one leading lowercase `v`. With no source `version` pin, `grip update` can move these consumers to the newly locked release without editing your profile.
 

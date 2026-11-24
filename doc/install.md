@@ -26,7 +26,6 @@ test ! -e "$prefix/grip" || { echo "Refusing to replace $prefix/grip" >&2; exit 
 install -m755 "$work/gripsack-$version-x86_64-unknown-linux-musl/grip" "$prefix/grip"
 export PATH="$prefix:$PATH"
 grip --version
-grip doctor
 ```
 
 Keep that versioned directory on your shell's `PATH`. This leaves an existing
@@ -39,6 +38,7 @@ Keep the installed path stable: profile launchers record the absolute core locat
 ## Runtime prerequisites
 
 - **Evaluation:** the core provisions a pinned, SHA-256-verified Deno runtime when needed. First use needs download access unless that runtime is already available or deliberately supplied through `GRIPSACK_DENO`.
+  `grip doctor` only inspects the runtime already installed, or the absolute `GRIPSACK_DENO` override. On a fresh home a `MISS` is expected until the first live evaluation installs the pin, or you supply an executable Deno. A failing, slow or unrecognizable `--version` response is not success. Doctor never downloads the runtime or materializes the SDK for your editor.
 - **Native packages:** download access to their sources on a cold realization, suitable host ABI/runtime support, and space for verified archives and retained output. Native Conda uses the core's helper/materialization path, not a user-installed Pixi command.
 - **Container services:** a usable local Linux Docker Engine and access to the digest-pinned images. See [services prerequisites](services.md#prerequisites).
 - **Profiles:** write access to the selected destinations. No root or Docker service is required for ordinary file-only deployment.
@@ -50,5 +50,7 @@ Use the SDK archive matching the installed core if you want editor types or expl
 `grip doctor` inspects the installed package version, not just the version range in `package.json`. An editor-only SDK can be excluded from runtime source capture to select the embedded frontend explicitly; see [settings](settings.md#the-frontend).
 
 ## First workspace
+
+There is no approval step. A repository on your disk is trusted when you run `grip` on it, and `--repo <git url>` is trusted on first use, once per origin. `grip plan` lists new hook bodies, fetch domains and destinations outside `~`; `grip apply` asks only when those are new. See [trust and review](safety.md#trust-and-review).
 
 Continue with [your first workspace](workspaces.md). For a native tool see [packages](packages.md); for a Conda toolchain see [environments](environments.md). Keep an independent backup of anything irreplaceable while you are getting started.
