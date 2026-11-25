@@ -61,6 +61,7 @@
   </details>
   <span class="rail-head">on this page</span>
   <div class="rail-toc">
+    <a href="#0600-upgrading-from-058-works-again">0.60.0 — Upgrading from 0.58 works again</a>
     <a href="#0590-no-approval-step-fast-launchers-wider-conda">0.59.0 — No approval step, fast launchers, wider Conda</a>
     <a href="#0580-durable-journal-evidence">0.58.0 — Durable journal evidence</a>
     <a href="#0570-reliable-previews-and-recovery">0.57.0 — Reliable previews and recovery</a>
@@ -80,7 +81,12 @@
 <p class="doc-eyebrow">Gripsack / documentation</p>
 <article class="md">
 <h1 id="whats-new">What's new</h1>
-<p>User-visible changes per release. The <a href="https://github.com/gripsack-dev/gripsack/blob/4cd6b10780b6c4b98d8e62c5d1ded7a241b9e041/CHANGELOG.md">full changelog</a> and <a href="https://github.com/gripsack-dev/gripsack/releases">release downloads</a> live with the source. This site documents core <strong>0.59.0</strong>.</p>
+<p>User-visible changes per release. The <a href="https://github.com/gripsack-dev/gripsack/blob/78316288ccbf84f30fd819d525b35e2c15ab72c6/CHANGELOG.md">full changelog</a> and <a href="https://github.com/gripsack-dev/gripsack/releases">release downloads</a> live with the source. This site documents core <strong>0.60.0</strong>.</p>
+<h2 id="0600-upgrading-from-058-works-again">0.60.0 — Upgrading from 0.58 works again</h2>
+<ul>
+<li><strong>Upgrade fix.</strong> After upgrading to 0.59, a store written by an earlier release made <code>grip check</code>, <code>plan</code> and <code>apply</code> fail for workspaces with Conda or Pixi packages ("same package identity names a different producer/runtime/command receipt"). Package reuse now compares only the fields that define a package; the system-library detail 0.59 records is measured again from the hash-pinned prefix and no longer decides reuse. Upgrade in place; no store cleanup is needed.</li>
+<li>A package receipt that cannot be reused names the output, its store path and the fields that differ.</li>
+</ul>
 <h2 id="0590-no-approval-step-fast-launchers-wider-conda">0.59.0 — No approval step, fast launchers, wider Conda</h2>
 <ul>
 <li><strong>No approval step.</strong> <code>grip trust add</code>/<code>inspect</code>, <code>trust.toml</code> and <code>GRIPSACK_TRUST_ALL</code> are gone; stale trust files are ignored. Local repositories are trusted. A <code>--repo &lt;git url&gt;</code> is trusted on first use, once per origin; <code>grip trust list</code> and <code>grip trust remove &lt;url&gt;</code> manage those. <code>grip plan</code> lists new hook bodies, fetch domains and destinations outside <code>~</code>, and <code>grip apply</code> confirms on a terminal only when they are new. The global <code>--yes</code> is for scripts and CI. <a href="../docs/safety.html#trust-and-review">Trust and review</a>.</li>
@@ -174,7 +180,7 @@
   <a href="https://github.com/gripsack-dev">gripsack-dev</a>
   <a href="https://github.com/gripsack-dev/gripsack">source</a>
   <a href="../index.html">home</a>
-  <span class="fversion">v0.59.0</span>
+  <span class="fversion">v0.60.0</span>
 </footer>
 </main>
 </div>

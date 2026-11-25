@@ -125,7 +125,7 @@ grip apply personal
 <p>Everything else is still refused, naming the script and the packages that require it: scripts outside the subset, <code>pre-link</code>, <code>post-link</code> and <code>pre-unlink</code> scripts, and non-<code>.sh</code> activation files.</p>
 <p>conda <code>gcc</code> and <code>gxx</code> environments work. Files under a <code>sysroot/</code> target tree are not scanned as host executables, and a refused system library names the file that needs it.</p>
 <p>An environment whose target omits <code>abi</code> admits ABI-specific members, such as an <code>abi: "gnu"</code> package that needs <code>hostRuntime</code>. An environment that declares an ABI still requires it exactly.</p>
-<p>Source distributions, editable packages, executable startup files (<code>.pth</code>, <code>sitecustomize</code>, <code>usercustomize</code>) and arbitrary wheel <code>.data/scripts</code> are unsupported. Standard metadata-declared console entrypoints are supported. Missing dependencies are not resolved during installation, and package installation scripts are not executed. See <a href="../docs/sharing.html#conda-and-wheel-reconstruction">native sharing</a> for the offline transfer boundary and the <a href="https://github.com/gripsack-dev/gripsack/blob/4cd6b10780b6c4b98d8e62c5d1ded7a241b9e041/typescript/README.md">exact SDK reference</a> for authoring details.</p>
+<p>Source distributions, editable packages, executable startup files (<code>.pth</code>, <code>sitecustomize</code>, <code>usercustomize</code>) and arbitrary wheel <code>.data/scripts</code> are unsupported. Standard metadata-declared console entrypoints are supported. Missing dependencies are not resolved during installation, and package installation scripts are not executed. See <a href="../docs/sharing.html#conda-and-wheel-reconstruction">native sharing</a> for the offline transfer boundary and the <a href="https://github.com/gripsack-dev/gripsack/blob/78316288ccbf84f30fd819d525b35e2c15ab72c6/typescript/README.md">exact SDK reference</a> for authoring details.</p>
 <h2 id="solve-baselines">Solve baselines</h2>
 <p><code>systemRequirements</code> fixes the libc and kernel baseline the solve assumes. Without one, <code>grip update</code> measures the host it runs on. The recorded baseline is checked again on every host that runs the result, together with CPU and runtime requirements. A baseline is not a guarantee that every selected archive runs on every distribution.</p>
 <p>Keep required libraries in the complete closure. A successful version command alone does not prove editor, language-server or graphical behavior. Exercise the actual consumer on the host where you deploy it.</p>
@@ -177,7 +177,7 @@ export default defineWorkspace(() =&gt; workspace({ inputs, outputs: [tools, sea
   <a href="https://github.com/gripsack-dev">gripsack-dev</a>
   <a href="https://github.com/gripsack-dev/gripsack">source</a>
   <a href="../index.html">home</a>
-  <span class="fversion">v0.59.0</span>
+  <span class="fversion">v0.60.0</span>
 </footer>
 </main>
 </div>
