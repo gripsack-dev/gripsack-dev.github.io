@@ -2,6 +2,11 @@
 
 User-visible changes per release. The [full changelog](https://github.com/gripsack-dev/gripsack/blob/{release_source}/CHANGELOG.md) and [release downloads](https://github.com/gripsack-dev/gripsack/releases) live with the source. This site documents core **{core_version}**.
 
+## 0.60.0 — Upgrading from 0.58 works again
+
+- **Upgrade fix.** After upgrading to 0.59, a store written by an earlier release made `grip check`, `plan` and `apply` fail for workspaces with Conda or Pixi packages ("same package identity names a different producer/runtime/command receipt"). Package reuse now compares only the fields that define a package; the system-library detail 0.59 records is measured again from the hash-pinned prefix and no longer decides reuse. Upgrade in place; no store cleanup is needed.
+- A package receipt that cannot be reused names the output, its store path and the fields that differ.
+
 ## 0.59.0 — No approval step, fast launchers, wider Conda
 
 - **No approval step.** `grip trust add`/`inspect`, `trust.toml` and `GRIPSACK_TRUST_ALL` are gone; stale trust files are ignored. Local repositories are trusted. A `--repo <git url>` is trusted on first use, once per origin; `grip trust list` and `grip trust remove <url>` manage those. `grip plan` lists new hook bodies, fetch domains and destinations outside `~`, and `grip apply` confirms on a terminal only when they are new. The global `--yes` is for scripts and CI. [Trust and review](safety.md#trust-and-review).
